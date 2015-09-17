@@ -57,3 +57,4 @@ local.properties
 .texlipse
 
 lib/
+.DS_Store
