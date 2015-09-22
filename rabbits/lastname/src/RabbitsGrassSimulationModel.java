@@ -65,6 +65,12 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private void buildModel() {
 		space = new RabbitsGrassSimulationSpace(xSize, ySize);
 
+		// TODO : spread grass
+		
+		// TODO : add new rabbits
+		
+		
+		// TODO : Spread rabbits
 	}
 
 	public String[] getInitParam() {
