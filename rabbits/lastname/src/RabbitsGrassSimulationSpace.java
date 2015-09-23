@@ -15,7 +15,11 @@ public class RabbitsGrassSimulationSpace {
 		rabbitSpace = new Object2DGrid(xSize, ySize);
 		grassSpace = new Object2DGrid(xSize, ySize);
 
-		// TODO: Put 0 grass in space everywhere 
+		for (int i = 0; i < xSize; i++) {
+			for (int j = 0; i < ySize; j++) {
+				grassSpace.putValueAt(i, j, new Integer(0));
+			}
+		}
 
 	}
 	
