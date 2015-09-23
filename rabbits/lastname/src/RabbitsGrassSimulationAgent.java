@@ -17,16 +17,22 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	private int vX;
 	private int vY;
 	private int energy;
+	private int lossRateEnergy;
 	private int birthThreshold;
+	private int lossReproductionEnergy;
+	private boolean reproductionStatus;
 	private static int IDNumber = 0;
 	private int ID;
 	private RabbitsGrassSimulationSpace rabbitSpace;
 
-	public RabbitsGrassSimulationAgent(int minEnergy, int maxEnergy, int birthThreshold) {
+	public RabbitsGrassSimulationAgent(int minEnergy, int maxEnergy, int lossRateEnergy, int birthThreshold, int lossReproductionEnergy) {
 		x = -1;
 		y = -1;
 		energy = (int) ((Math.random() * (maxEnergy - minEnergy)) + minEnergy);
+		this.lossRateEnergy = lossRateEnergy;
 		this.birthThreshold = birthThreshold;
+		this.lossReproductionEnergy = lossReproductionEnergy;
+		reproductionStatus = false;
 		setVxVy();
 		IDNumber++;
 		ID = IDNumber;
@@ -34,7 +40,7 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 
 	public void draw(SimGraphics simG) {
 		// TODO : We could add images instead of simple colored circles
-		if (energy > birthThreshold) {
+		if (energy >= birthThreshold) {
 			simG.drawCircle(Color.GREEN);
 		} else {
 			simG.drawCircle(Color.RED);
@@ -80,7 +86,7 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	}
 
 	public void step() {
-		// TODO : code a "step" -> move, eat grass, make a child
+		reproductionStatus = false;
 		int newX = x + vX;
 		int newY = y + vY;
 
@@ -88,12 +94,25 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 		newX = (newX + grid.getSizeX()) % grid.getSizeX();
 		newY = (newY + grid.getSizeY()) % grid.getSizeY();
 
+		// Reproduce the rabbit
+		if(energy >= birthThreshold) {
+			reproductionStatus = true;
+			energy -= lossReproductionEnergy;
+		}
+
+		// Move the rabbit
 		if(tryMove(newX, newY)){
 			energy += rabbitSpace.eatGrassAt(x, y);
+		} else {
+			// TODO : handle collision?
 		}
+
+		energy -= lossRateEnergy;
 		setVxVy();
-		
-		// TODO : Add make a child, lower energy?
+	}
+
+	public boolean isReproducing() {
+		return reproductionStatus;
 	}
 
 	private boolean tryMove(int newX, int newY){
