@@ -19,7 +19,7 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	private int birthThreshold;
 	private static int IDNumber = 0;
 	private int ID;
-	private RabbitsGrassSimulationSpace space;
+	private RabbitsGrassSimulationSpace rabbitSpace;
 
 	public RabbitsGrassSimulationAgent(int minEnergy, int maxEnergy, int birthThreshold) {
 		x = -1;
@@ -71,7 +71,7 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	}
 
 	public void setSpace(RabbitsGrassSimulationSpace newSpace) {
-		this.space = newSpace;
+		this.rabbitSpace = newSpace;
 	}
 
 	public void report() {

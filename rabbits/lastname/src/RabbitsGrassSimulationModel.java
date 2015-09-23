@@ -31,7 +31,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private Schedule schedule;
 	private int numRabbits = NUM_RABBITS;
 	private ArrayList<RabbitsGrassSimulationAgent> rabbitList;
-	private RabbitsGrassSimulationSpace space;
+	private RabbitsGrassSimulationSpace rabbitSpace;
 	private int xSize = X_SIZE;
 	private int ySize = Y_SIZE;
 	private int minEnergy = MIN_ENERGY;
@@ -57,7 +57,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 	
 	public void setup() {
-		space = null;
+		rabbitSpace = null;
 		rabbitList = new ArrayList<RabbitsGrassSimulationAgent>();
 		schedule = new Schedule(1);
 
@@ -87,7 +87,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 
 	private void buildModel() {
-		space = new RabbitsGrassSimulationSpace(xSize, ySize);
+		rabbitSpace = new RabbitsGrassSimulationSpace(xSize, ySize);
 
 		// TODO : spread grass
 
@@ -104,7 +104,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private void addNewRabbit() {
 		RabbitsGrassSimulationAgent rabbit = new RabbitsGrassSimulationAgent(minEnergy, maxEnergy, birthThreshold);
 		rabbitList.add(rabbit);
-		space.addRabbit(rabbit);
+		rabbitSpace.addRabbit(rabbit);
 	}
 
 	public String[] getInitParam() {
