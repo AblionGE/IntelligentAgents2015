@@ -30,8 +30,11 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private static final int BIRTH_THRESHOLD = 21;
 	private static final int INIT_GRASS = 1000;
 	private static final int GROWTH_RATE_GRASS = 1; // unit per run
-	private static final int LOSS_RATE_ENERGY = 1; // unit of energy lost per run
-	private static final int LOSS_REPRODUCTION_ENERGY = 5; // unit of energy lost per reproduction
+	private static final int LOSS_RATE_ENERGY = 1; // unit of energy lost per
+													// run
+	private static final int LOSS_REPRODUCTION_ENERGY = 5; // unit of energy
+															// lost per
+															// reproduction
 	private static final String NAME_DISPLAY = "Rabbits and Grass Simulation Window";
 
 	private DisplaySurface displaySurf;
@@ -86,13 +89,12 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private void buildDisplay() {
 		ColorMap map = new ColorMap();
 
-		for(int i = 1; i<16; i++){
-			map.mapColor(i, new Color(0, (int)(i * 8 + 127), 0));
+		for (int i = 1; i < 16; i++) {
+			map.mapColor(i, new Color(0, (int) (i * 8 + 127), 0));
 		}
 		map.mapColor(0, Color.black);
 
-		Value2DDisplay displayGrass = 
-				new Value2DDisplay(rabbitSpace.getGrassSpace(), map);
+		Value2DDisplay displayGrass = new Value2DDisplay(rabbitSpace.getGrassSpace(), map);
 
 		Object2DDisplay displayRabbits = new Object2DDisplay(rabbitSpace.getRabbitSpace());
 		displayRabbits.setObjectList(rabbitList);
@@ -106,8 +108,8 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		class RabbitsGrassSimulationStep extends BasicAction {
 			public void execute() {
 				SimUtilities.shuffle(rabbitList);
-				for(int i =0; i < rabbitList.size(); i++){
-					RabbitsGrassSimulationAgent rabbit = (RabbitsGrassSimulationAgent)rabbitList.get(i);
+				for (int i = 0; i < rabbitList.size(); i++) {
+					RabbitsGrassSimulationAgent rabbit = (RabbitsGrassSimulationAgent) rabbitList.get(i);
 					rabbit.step();
 				}
 
@@ -115,7 +117,8 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 				giveBirthToRabbits();
 				// TODO : grow grass
 
-				displaySurf.updateDisplay();       }
+				displaySurf.updateDisplay();
+			}
 		}
 
 		schedule.scheduleActionBeginning(0, new RabbitsGrassSimulationStep());
@@ -140,33 +143,34 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 
 	private void addNewRabbit() {
-		RabbitsGrassSimulationAgent rabbit = new RabbitsGrassSimulationAgent(minEnergy, maxEnergy, lossRateEnergy, birthThreshold, lossReproductionEnergy);
+		RabbitsGrassSimulationAgent rabbit = new RabbitsGrassSimulationAgent(minEnergy, maxEnergy, lossRateEnergy,
+				birthThreshold, lossReproductionEnergy);
 		rabbitList.add(rabbit);
 		rabbitSpace.addRabbit(rabbit);
 	}
 
-	private void reapDeadRabbits(){
-		for(int i = (rabbitList.size() - 1); i >= 0 ; i--){
-			RabbitsGrassSimulationAgent rabbit = (RabbitsGrassSimulationAgent)rabbitList.get(i);
-			if(rabbit.getEnergy() < 1){
+	private void reapDeadRabbits() {
+		for (int i = (rabbitList.size() - 1); i >= 0; i--) {
+			RabbitsGrassSimulationAgent rabbit = (RabbitsGrassSimulationAgent) rabbitList.get(i);
+			if (rabbit.getEnergy() < 1) {
 				rabbitSpace.removeRabbitAt(rabbit.getX(), rabbit.getY());
 				rabbitList.remove(i);
 			}
 		}
 	}
-	
+
 	private void giveBirthToRabbits() {
-		for(int i = (rabbitList.size() - 1); i >= 0 ; i--){
-			RabbitsGrassSimulationAgent rabbit = (RabbitsGrassSimulationAgent)rabbitList.get(i);
-			if(rabbit.isReproducing()) {
+		for (int i = (rabbitList.size() - 1); i >= 0; i--) {
+			RabbitsGrassSimulationAgent rabbit = (RabbitsGrassSimulationAgent) rabbitList.get(i);
+			if (rabbit.isReproducing()) {
 				addNewRabbit();
 			}
 		}
 	}
 
 	public String[] getInitParam() {
-		String[] init_param = { "xSize", "ySize", "NumRabbits", "BirthThreshold", "InitGrass", "GrowthRateGrass", "LossRateEnergy", "LossReproductionEnergy",
-				"MinEnergy", "MaxEnergy" };
+		String[] init_param = { "xSize", "ySize", "NumRabbits", "BirthThreshold", "InitGrass", "GrowthRateGrass",
+				"LossRateEnergy", "LossReproductionEnergy", "MinEnergy", "MaxEnergy" };
 		return init_param;
 	}
 

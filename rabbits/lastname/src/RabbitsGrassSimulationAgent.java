@@ -25,7 +25,8 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	private int ID;
 	private RabbitsGrassSimulationSpace rabbitSpace;
 
-	public RabbitsGrassSimulationAgent(int minEnergy, int maxEnergy, int lossRateEnergy, int birthThreshold, int lossReproductionEnergy) {
+	public RabbitsGrassSimulationAgent(int minEnergy, int maxEnergy, int lossRateEnergy, int birthThreshold,
+			int lossReproductionEnergy) {
 		x = -1;
 		y = -1;
 		energy = (int) ((Math.random() * (maxEnergy - minEnergy)) + minEnergy);
@@ -95,13 +96,13 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 		newY = (newY + grid.getSizeY()) % grid.getSizeY();
 
 		// Reproduce the rabbit
-		if(energy >= birthThreshold) {
+		if (energy >= birthThreshold) {
 			reproductionStatus = true;
 			energy -= lossReproductionEnergy;
 		}
 
 		// Move the rabbit
-		if(tryMove(newX, newY)){
+		if (tryMove(newX, newY)) {
 			energy += rabbitSpace.eatGrassAt(x, y);
 		} else {
 			// TODO : handle collision?
@@ -115,7 +116,7 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 		return reproductionStatus;
 	}
 
-	private boolean tryMove(int newX, int newY){
+	private boolean tryMove(int newX, int newY) {
 		return rabbitSpace.moveRabbitAt(x, y, newX, newY);
 	}
 

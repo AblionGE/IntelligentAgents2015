@@ -88,9 +88,9 @@ public class RabbitsGrassSimulationSpace {
 
 	public boolean moveRabbitAt(int x, int y, int newX, int newY) {
 		boolean retVal = false;
-		if(!isCellOccupied(newX, newY)){
-			RabbitsGrassSimulationAgent rabbit = (RabbitsGrassSimulationAgent)rabbitSpace.getObjectAt(x, y);
-			removeRabbitAt(x,y);
+		if (!isCellOccupied(newX, newY)) {
+			RabbitsGrassSimulationAgent rabbit = (RabbitsGrassSimulationAgent) rabbitSpace.getObjectAt(x, y);
+			removeRabbitAt(x, y);
 			rabbit.setXY(newX, newY);
 			rabbitSpace.putObjectAt(newX, newY, rabbit);
 			retVal = true;
@@ -98,7 +98,7 @@ public class RabbitsGrassSimulationSpace {
 		return retVal;
 	}
 
-	public int eatGrassAt(int x, int y){
+	public int eatGrassAt(int x, int y) {
 		int grass = getGrassAt(x, y);
 		grassSpace.putObjectAt(x, y, new Integer(0));
 		return grass;
