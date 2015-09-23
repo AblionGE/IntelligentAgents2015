@@ -2,6 +2,7 @@ import java.awt.Color;
 
 import uchicago.src.sim.gui.Drawable;
 import uchicago.src.sim.gui.SimGraphics;
+import uchicago.src.sim.space.Object2DGrid;
 
 /**
  * Class that implements the simulation agent for the rabbits grass simulation.
@@ -78,6 +79,25 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 		System.out.println(getID() + " at " + x + ", " + y + " has " + getEnergy());
 	}
 
-	// TODO : code a "step" -> move, eat grass, make a child
+	public void step() {
+		// TODO : code a "step" -> move, eat grass, make a child
+		int newX = x + vX;
+		int newY = y + vY;
+
+		Object2DGrid grid = rabbitSpace.getRabbitSpace();
+		newX = (newX + grid.getSizeX()) % grid.getSizeX();
+		newY = (newY + grid.getSizeY()) % grid.getSizeY();
+
+		if(tryMove(newX, newY)){
+			energy += rabbitSpace.eatGrassAt(x, y);
+		}
+		setVxVy();
+		
+		// TODO : Add make a child, lower energy?
+	}
+
+	private boolean tryMove(int newX, int newY){
+		return rabbitSpace.moveRabbitAt(x, y, newX, newY);
+	}
 
 }

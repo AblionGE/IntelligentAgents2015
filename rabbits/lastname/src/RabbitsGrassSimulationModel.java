@@ -1,10 +1,15 @@
+import java.awt.Color;
 import java.util.ArrayList;
 
+import uchicago.src.sim.engine.BasicAction;
 import uchicago.src.sim.engine.Schedule;
 import uchicago.src.sim.engine.SimInit;
 import uchicago.src.sim.engine.SimModelImpl;
 import uchicago.src.sim.gui.ColorMap;
 import uchicago.src.sim.gui.DisplaySurface;
+import uchicago.src.sim.gui.Object2DDisplay;
+import uchicago.src.sim.gui.Value2DDisplay;
+import uchicago.src.sim.util.SimUtilities;
 
 /**
  * Class that implements the simulation model for the rabbits grass simulation.
@@ -55,7 +60,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 		displaySurf.display();
 	}
-	
+
 	public void setup() {
 		rabbitSpace = null;
 		rabbitList = new ArrayList<RabbitsGrassSimulationAgent>();
@@ -76,20 +81,47 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 	private void buildDisplay() {
 		ColorMap map = new ColorMap();
-		
-		// TODO : To complete...
+
+		for(int i = 1; i<16; i++){
+			map.mapColor(i, new Color(0, (int)(i * 8 + 127), 0));
+		}
+		map.mapColor(0, Color.white);
+
+		Value2DDisplay displayGrass = 
+				new Value2DDisplay(rabbitSpace.getGrassSpace(), map);
+
+		Object2DDisplay displayRabbits = new Object2DDisplay(rabbitSpace.getRabbitSpace());
+		displayRabbits.setObjectList(rabbitList);
+
+		displaySurf.addDisplayable(displayGrass, "Grass");
+		displaySurf.addDisplayable(displayRabbits, "Rabbits");
 
 	}
 
 	private void builSchedule() {
-		// TODO : To complete...
+		class RabbitsGrassSimulationStep extends BasicAction {
+			public void execute() {
+				SimUtilities.shuffle(rabbitList);
+				for(int i =0; i < rabbitList.size(); i++){
+					RabbitsGrassSimulationAgent rabbit = (RabbitsGrassSimulationAgent)rabbitList.get(i);
+					rabbit.step();
+				}
+
+				// TODO : Remove dead rabbits and grow grass
+
+				displaySurf.updateDisplay();       }
+		}
+
+		schedule.scheduleActionBeginning(0, new RabbitsGrassSimulationStep());
+		
+		// TODO : Option count population
 
 	}
 
 	private void buildModel() {
 		rabbitSpace = new RabbitsGrassSimulationSpace(xSize, ySize);
 
-		// TODO : spread grass
+		rabbitSpace.spreadGrass(initGrass);
 
 		for (int i = 0; i < numRabbits; i++) {
 			addNewRabbit();
