@@ -22,49 +22,79 @@ public class RabbitsGrassSimulationSpace {
 		}
 
 	}
-	
+
 	public void spreadGrass(int grass) {
-		// spread grass
-	}
-	
-	public int getGrassAt(int x, int y) {
-		
-		return 0;
+		for (int i = 0; i < grass; i++) {
+			int x = (int) (Math.random() * (grassSpace.getSizeX()));
+			int y = (int) (Math.random() * (grassSpace.getSizeY()));
+
+			int currentGrass = getGrassAt(x, y);
+
+			grassSpace.putObjectAt(x, y, new Integer(currentGrass + 1));
+		}
+
 	}
 
-	public int getRabbitAt(int x, int y) {
-		
-		return 0;
+	public int getGrassAt(int x, int y) {
+		int grass = 0;
+		if (grassSpace.getObjectAt(x, y) != null) {
+			grass = (Integer) grassSpace.getObjectAt(x, y);
+		}
+		return grass;
 	}
-	
+
+	public RabbitsGrassSimulationAgent getRabbitAt(int x, int y) {
+		RabbitsGrassSimulationAgent rabbit = null;
+		if (rabbitSpace.getObjectAt(x, y) != null) {
+			rabbit = (RabbitsGrassSimulationAgent) rabbitSpace.getObjectAt(x, y);
+		}
+		return rabbit;
+	}
+
 	public Object2DGrid getRabbitSpace() {
 		return rabbitSpace;
 	}
-	
+
 	public Object2DGrid getGrassSpace() {
 		return grassSpace;
 	}
-	
+
 	public boolean isCellOccupied(int x, int y) {
-		//TODO
-		return false;
+		if (rabbitSpace.getObjectAt(x, y) == null) {
+			return false;
+		}
+		return true;
 	}
-	
-	public void addRabbit(RabbitsGrassSimulationAgent rabbit) {
-		//TODO
+
+	public boolean addRabbit(RabbitsGrassSimulationAgent rabbit) {
+		boolean returnValue = false;
+		int count = 0;
+		int countLimit = 10 * rabbitSpace.getSizeX() * rabbitSpace.getSizeY();
+		
+		while (!returnValue && count < countLimit) {
+			count++;
+			int x = (int) (Math.random() * (rabbitSpace.getSizeX()));
+			int y = (int) (Math.random() * (rabbitSpace.getSizeY()));
+			
+			if (!isCellOccupied(x, y)) {
+				rabbitSpace.putObjectAt(x, y, rabbit);
+				returnValue = true;
+			}
+		}
+		return returnValue;
 	}
-	
+
 	public boolean moveRabbitAt(int x, int y, int newX, int newY) {
-		//TODO
+		// TODO
 		return false;
 	}
-	
+
 	public int getTotalGrass() {
-		//TODO
+		// TODO
 		return 0;
 	}
-	
+
 	public void removeRabbitAt(int x, int y) {
-		//TODO
+		// TODO
 	}
 }
