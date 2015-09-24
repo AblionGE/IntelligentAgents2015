@@ -27,7 +27,7 @@ import uchicago.src.sim.util.SimUtilities;
 public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 	private static final String NAME = "Rabbits and Grass Simulation";
-	private static final int NUM_RABBITS = 100;
+	private static final int NUM_RABBITS = 1;
 	private static final int X_SIZE = 20;
 	private static final int Y_SIZE = 20;
 	private static final int MIN_INIT_ENERGY = 10;
@@ -200,6 +200,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 
 	public void setNumRabbits(int numRabbits) {
+		if ((numRabbits < 0) || (numRabbits > xSize * ySize)) {
+			System.out.println("numRabbits should be positive and less than the size of the grid! It is set to 1.");
+			numRabbits = 1;
+		}
 		this.numRabbits = numRabbits;
 	}
 
@@ -208,6 +212,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 
 	public void setxSize(int xSize) {
+		if (xSize < 1) {
+			System.out.println("xSize should be positive! It is set to " + X_SIZE + ".");
+			xSize = X_SIZE;
+		}
 		this.xSize = xSize;
 	}
 
@@ -216,6 +224,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 
 	public void setySize(int ySize) {
+		if (ySize < 0) {
+			System.out.println("ySize should be positive! It is set to " + Y_SIZE + ".");
+			ySize = Y_SIZE;
+		}
 		this.ySize = ySize;
 	}
 
@@ -224,6 +236,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 
 	public void setMinInitEnergy(int minEnergy) {
+		if (minEnergy < 0) {
+			System.out.println("minEnergy should be positive! It is set to " + MIN_INIT_ENERGY + ".");
+			minEnergy = MIN_INIT_ENERGY;
+		}
 		this.minInitEnergy = minEnergy;
 	}
 
@@ -232,6 +248,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 
 	public void setMaxInitEnergy(int maxEnergy) {
+		if (maxEnergy < 0) {
+			System.out.println("maxEnergy should be positive! It is set to " + MAX_INIT_ENERGY + ".");
+			maxEnergy = MAX_INIT_ENERGY;
+		}
 		this.maxInitEnergy = maxEnergy;
 	}
 
@@ -240,6 +260,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 
 	public void setBirthThreshold(int birthThreshold) {
+		if (birthThreshold < 0) {
+			System.out.println("birthThreshold should be positive! It is set to " + BIRTH_THRESHOLD + ".");
+			birthThreshold = BIRTH_THRESHOLD;
+		}
 		this.birthThreshold = birthThreshold;
 	}
 
@@ -248,6 +272,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 
 	public void setInitGrass(int initGrass) {
+		if (growthRateGrass < 0) {
+			System.out.println("initGrass should be positive! It is set to " + INIT_GRASS + ".");
+			initGrass = INIT_GRASS;
+		}
 		this.initGrass = initGrass;
 	}
 
@@ -256,6 +284,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 
 	public void setGrowthRateGrass(int growthRateGrass) {
+		if (growthRateGrass < 0) {
+			System.out.println("growthRateGrass should be positive! It is set to " + GROWTH_RATE_GRASS + ".");
+			growthRateGrass = GROWTH_RATE_GRASS;
+		}
 		this.growthRateGrass = growthRateGrass;
 	}
 
@@ -264,6 +296,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 
 	public void setLossRateEnergy(int lossRateEnergy) {
+		if (lossRateEnergy < 0) {
+			System.out.println("lossRateEnergy should be positive! It is set to " + LOSS_RATE_ENERGY + ".");
+			lossRateEnergy = LOSS_RATE_ENERGY;
+		}
 		this.lossRateEnergy = lossRateEnergy;
 	}
 
@@ -272,6 +308,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 
 	public void setLossReproductionEnergy(int lossReproductionEnergy) {
+		if (lossReproductionEnergy < 0) {
+			System.out.println("lossReproductionEnergy should be positive! It is set to " + LOSS_REPRODUCTION_ENERGY + ".");
+			lossReproductionEnergy = LOSS_REPRODUCTION_ENERGY;
+		}
 		this.lossReproductionEnergy = lossReproductionEnergy;
 	}
 }
