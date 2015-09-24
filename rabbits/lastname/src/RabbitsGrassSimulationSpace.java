@@ -97,11 +97,19 @@ public class RabbitsGrassSimulationSpace {
 		}
 		return retVal;
 	}
+	
+	public void removeRabbitAt(int x, int y) {
+		rabbitSpace.putObjectAt(x, y, null);
+	}
 
 	public int eatGrassAt(int x, int y) {
 		int grass = getGrassAt(x, y);
 		grassSpace.putObjectAt(x, y, new Integer(0));
 		return grass;
+	}
+	
+	public void grassGrow(int grass) {
+		
 	}
 
 	public int getTotalGrass() {
@@ -114,9 +122,5 @@ public class RabbitsGrassSimulationSpace {
 			}
 		}
 		return total;
-	}
-
-	public void removeRabbitAt(int x, int y) {
-		rabbitSpace.putObjectAt(x, y, null);
 	}
 }

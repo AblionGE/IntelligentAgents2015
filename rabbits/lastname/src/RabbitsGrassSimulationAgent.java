@@ -42,7 +42,7 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	public void draw(SimGraphics simG) {
 		// TODO : We could add images instead of simple colored circles
 		if (energy >= birthThreshold) {
-			simG.drawCircle(Color.GREEN);
+			simG.drawCircle(Color.BLUE);
 		} else {
 			simG.drawCircle(Color.RED);
 		}
