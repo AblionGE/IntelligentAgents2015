@@ -25,11 +25,11 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private static final int NUM_RABBITS = 100;
 	private static final int X_SIZE = 20;
 	private static final int Y_SIZE = 20;
-	private static final int MIN_ENERGY = 10;
-	private static final int MAX_ENERGY = 20;
-	private static final int BIRTH_THRESHOLD = 21;
+	private static final int MIN_INIT_ENERGY = 10;
+	private static final int MAX_INIT_ENERGY = 20;
+	private static final int BIRTH_THRESHOLD = 20;
 	private static final int INIT_GRASS = 1000;
-	private static final int GROWTH_RATE_GRASS = 1; // unit per run
+	private static final int GROWTH_RATE_GRASS = 100; // unit per run
 	private static final int LOSS_RATE_ENERGY = 1; // unit of energy lost per
 													// run
 	private static final int LOSS_REPRODUCTION_ENERGY = 5; // unit of energy
@@ -44,8 +44,8 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private RabbitsGrassSimulationSpace rabbitSpace;
 	private int xSize = X_SIZE;
 	private int ySize = Y_SIZE;
-	private int minEnergy = MIN_ENERGY;
-	private int maxEnergy = MAX_ENERGY;
+	private int minInitEnergy = MIN_INIT_ENERGY;
+	private int maxInitEnergy = MAX_INIT_ENERGY;
 	private int birthThreshold = BIRTH_THRESHOLD;
 	private int initGrass = INIT_GRASS;
 	private int growthRateGrass = GROWTH_RATE_GRASS;
@@ -115,7 +115,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 				reapDeadRabbits();
 				giveBirthToRabbits();
-				
+
 				rabbitSpace.spreadGrass(growthRateGrass);
 
 				displaySurf.updateDisplay();
@@ -133,7 +133,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 		rabbitSpace.spreadGrass(initGrass);
 
-		for (int i = 0; i < numRabbits && i < xSize*ySize; i++) {
+		for (int i = 0; i < numRabbits && i < xSize * ySize; i++) {
 			addNewRabbit();
 		}
 
@@ -144,7 +144,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 
 	private void addNewRabbit() {
-		RabbitsGrassSimulationAgent rabbit = new RabbitsGrassSimulationAgent(minEnergy, maxEnergy, lossRateEnergy,
+		RabbitsGrassSimulationAgent rabbit = new RabbitsGrassSimulationAgent(minInitEnergy, maxInitEnergy, lossRateEnergy,
 				birthThreshold, lossReproductionEnergy);
 		rabbitList.add(rabbit);
 		rabbitSpace.addRabbit(rabbit);
@@ -171,7 +171,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 	public String[] getInitParam() {
 		String[] init_param = { "xSize", "ySize", "NumRabbits", "BirthThreshold", "InitGrass", "GrowthRateGrass",
-				"LossRateEnergy", "LossReproductionEnergy", "MinEnergy", "MaxEnergy" };
+				"LossRateEnergy", "LossReproductionEnergy", "MinInitEnergy", "MaxInitEnergy" };
 		return init_param;
 	}
 
@@ -207,20 +207,20 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		this.ySize = ySize;
 	}
 
-	public int getMinEnergy() {
-		return minEnergy;
+	public int getMinInitEnergy() {
+		return minInitEnergy;
 	}
 
-	public void setMinEnergy(int minEnergy) {
-		this.minEnergy = minEnergy;
+	public void setMinInitEnergy(int minEnergy) {
+		this.minInitEnergy = minEnergy;
 	}
 
-	public int getMaxEnergy() {
-		return maxEnergy;
+	public int getMaxInitEnergy() {
+		return maxInitEnergy;
 	}
 
-	public void setMaxEnergy(int maxEnergy) {
-		this.maxEnergy = maxEnergy;
+	public void setMaxInitEnergy(int maxEnergy) {
+		this.maxInitEnergy = maxEnergy;
 	}
 
 	public int getBirthThreshold() {

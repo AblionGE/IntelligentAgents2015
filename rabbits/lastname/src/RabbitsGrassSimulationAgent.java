@@ -88,12 +88,25 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 
 	public void step() {
 		reproductionStatus = false;
-		int newX = x + vX;
-		int newY = y + vY;
+		boolean hasMoved = false;
+		int attempts = 5;
 
-		Object2DGrid grid = rabbitSpace.getRabbitSpace();
-		newX = (newX + grid.getSizeX()) % grid.getSizeX();
-		newY = (newY + grid.getSizeY()) % grid.getSizeY();
+		while ((attempts > 0) && !hasMoved) {
+			attempts--;
+			setVxVy();
+			int newX = x + vX;
+			int newY = y + vY;
+
+			Object2DGrid grid = rabbitSpace.getRabbitSpace();
+			newX = (newX + grid.getSizeX()) % grid.getSizeX();
+			newY = (newY + grid.getSizeY()) % grid.getSizeY();
+
+			// Move the rabbit
+			if (tryMove(newX, newY)) {
+				energy += rabbitSpace.eatGrassAt(x, y);
+				hasMoved = true;
+			}
+		}
 
 		// Reproduce the rabbit
 		if (energy >= birthThreshold) {
@@ -101,15 +114,7 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 			energy -= lossReproductionEnergy;
 		}
 
-		// Move the rabbit
-		if (tryMove(newX, newY)) {
-			energy += rabbitSpace.eatGrassAt(x, y);
-		} else {
-			// TODO : handle collision?
-		}
-
 		energy -= lossRateEnergy;
-		setVxVy();
 	}
 
 	public boolean isReproducing() {
