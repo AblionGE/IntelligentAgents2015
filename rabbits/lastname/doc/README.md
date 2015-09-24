@@ -22,4 +22,4 @@ To acquire the required software under ArchLinux:
 
 ## Compose several markdown files
 
-To organize the order of included files, simply edit report.md and add the filename where you want it
+To organize the order of included files, simply edit report_orga and add the filename where you want it
