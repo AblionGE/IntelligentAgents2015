@@ -134,7 +134,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 		rabbitSpace.spreadGrass(initGrass);
 
-		for (int i = 0; i < numRabbits; i++) {
+		for (int i = 0; i < numRabbits && i < xSize*ySize; i++) {
 			addNewRabbit();
 		}
 
