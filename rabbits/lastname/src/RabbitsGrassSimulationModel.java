@@ -1,5 +1,10 @@
 import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+
+import javax.imageio.ImageIO;
 
 import uchicago.src.sim.engine.BasicAction;
 import uchicago.src.sim.engine.Schedule;
@@ -51,6 +56,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private int growthRateGrass = GROWTH_RATE_GRASS;
 	private int lossRateEnergy = LOSS_RATE_ENERGY;
 	private int lossReproductionEnergy = LOSS_REPRODUCTION_ENERGY;
+	private BufferedImage img = null;
 
 	public static void main(String[] args) {
 
@@ -78,6 +84,12 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			displaySurf.dispose();
 		}
 		displaySurf = null;
+
+		// Load image of rabbit
+		try {
+			img = ImageIO.read(new File("./img/rabbit.jpg"));
+		} catch (IOException e) {
+		}
 
 		// Create basics elements
 		displaySurf = new DisplaySurface(this, NAME_DISPLAY);
@@ -144,8 +156,8 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 
 	private void addNewRabbit() {
-		RabbitsGrassSimulationAgent rabbit = new RabbitsGrassSimulationAgent(minInitEnergy, maxInitEnergy, lossRateEnergy,
-				birthThreshold, lossReproductionEnergy);
+		RabbitsGrassSimulationAgent rabbit = new RabbitsGrassSimulationAgent(minInitEnergy, maxInitEnergy,
+				lossRateEnergy, birthThreshold, lossReproductionEnergy, img);
 		rabbitList.add(rabbit);
 		rabbitSpace.addRabbit(rabbit);
 	}

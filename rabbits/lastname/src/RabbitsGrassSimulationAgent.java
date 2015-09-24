@@ -1,4 +1,13 @@
 import java.awt.Color;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
+import java.awt.image.ImageProducer;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 
 import uchicago.src.sim.gui.Drawable;
 import uchicago.src.sim.gui.SimGraphics;
@@ -24,9 +33,10 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	private static int IDNumber = 0;
 	private int ID;
 	private RabbitsGrassSimulationSpace rabbitSpace;
+	private BufferedImage img = null;
 
 	public RabbitsGrassSimulationAgent(int minEnergy, int maxEnergy, int lossRateEnergy, int birthThreshold,
-			int lossReproductionEnergy) {
+			int lossReproductionEnergy, BufferedImage img) {
 		x = -1;
 		y = -1;
 		energy = (int) ((Math.random() * (maxEnergy - minEnergy)) + minEnergy);
@@ -37,14 +47,14 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 		setVxVy();
 		IDNumber++;
 		ID = IDNumber;
+		this.img = img;
 	}
 
 	public void draw(SimGraphics simG) {
-		// TODO : We could add images instead of simple colored circles
-		if (energy >= birthThreshold) {
-			simG.drawCircle(Color.BLUE);
+		if (img != null) {
+			simG.drawImageToFit(img);
 		} else {
-			simG.drawCircle(Color.RED);
+			simG.drawRect(Color.WHITE);
 		}
 	}
 
