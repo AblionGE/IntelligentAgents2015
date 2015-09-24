@@ -1,4 +1,4 @@
-# Report of Lab1 Program Parallelization on PC clusters
+# Report of Intelligent Agents - Lab1
 
 ## Build
 
