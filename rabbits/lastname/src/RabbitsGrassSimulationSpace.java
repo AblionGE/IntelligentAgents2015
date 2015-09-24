@@ -105,8 +105,15 @@ public class RabbitsGrassSimulationSpace {
 	}
 
 	public int getTotalGrass() {
-		// TODO
-		return 0;
+		int total = 0;
+		for (int i = 0; i < grassSpace.getSizeX(); i++) {
+			for (int j = 0; j < grassSpace.getSizeY(); j++) {
+				if (grassSpace.getObjectAt(i, j) != null) {
+					total = total + (Integer) grassSpace.getObjectAt(i, j);
+				}
+			}
+		}
+		return total;
 	}
 
 	public void removeRabbitAt(int x, int y) {
