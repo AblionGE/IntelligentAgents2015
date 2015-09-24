@@ -107,10 +107,6 @@ public class RabbitsGrassSimulationSpace {
 		grassSpace.putObjectAt(x, y, new Integer(0));
 		return grass;
 	}
-	
-	public void grassGrow(int grass) {
-		
-	}
 
 	public int getTotalGrass() {
 		int total = 0;

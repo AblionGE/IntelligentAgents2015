@@ -116,8 +116,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 				reapDeadRabbits();
 				giveBirthToRabbits();
 				
-				// TODO : grow grass - decide how to do that
-				rabbitSpace.grassGrow(10);
+				rabbitSpace.spreadGrass(growthRateGrass);
 
 				displaySurf.updateDisplay();
 			}
