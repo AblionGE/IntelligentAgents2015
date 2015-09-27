@@ -241,8 +241,11 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 	public void setMinInitEnergy(int minEnergy) {
 		if (minEnergy < 0) {
-			System.out.println("minEnergy should be positive! It is set to " + MIN_INIT_ENERGY + ".");
+			System.out.println("minInitEnergy should be positive! It is set to " + MIN_INIT_ENERGY + ".");
 			minEnergy = MIN_INIT_ENERGY;
+		} else if (minEnergy > this.getMaxInitEnergy()) {
+			System.out.println("minInitEnergy should be smaller than maxInitEnergy. It is set to " + this.getMaxInitEnergy() + ".");
+			minEnergy = this.getMaxInitEnergy();
 		}
 		this.minInitEnergy = minEnergy;
 	}
@@ -253,8 +256,11 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 	public void setMaxInitEnergy(int maxEnergy) {
 		if (maxEnergy < 0) {
-			System.out.println("maxEnergy should be positive! It is set to " + MAX_INIT_ENERGY + ".");
+			System.out.println("maxInitEnergy should be positive! It is set to " + MAX_INIT_ENERGY + ".");
 			maxEnergy = MAX_INIT_ENERGY;
+		} else if (maxEnergy < this.getMinInitEnergy()) {
+			System.out.println("maxInitEnergy should be bigger than minInitEnergy. It is set to " + this.getMinInitEnergy() + ".");
+			maxEnergy = this.getMinInitEnergy();
 		}
 		this.maxInitEnergy = maxEnergy;
 	}
