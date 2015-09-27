@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
+import uchicago.src.reflector.RangePropertyDescriptor;
 import uchicago.src.sim.engine.BasicAction;
 import uchicago.src.sim.engine.Schedule;
 import uchicago.src.sim.engine.SimInit;
@@ -14,6 +15,7 @@ import uchicago.src.sim.gui.ColorMap;
 import uchicago.src.sim.gui.DisplaySurface;
 import uchicago.src.sim.gui.Object2DDisplay;
 import uchicago.src.sim.gui.Value2DDisplay;
+import uchicago.src.sim.util.ProbeUtilities;
 import uchicago.src.sim.util.SimUtilities;
 
 /**
@@ -30,11 +32,15 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private static final int NUM_RABBITS = 1;
 	private static final int X_SIZE = 20;
 	private static final int Y_SIZE = 20;
+	private static final int MAX_X_SIZE = 100;
+	private static final int MAX_Y_SIZE = 100;
 	private static final int MIN_INIT_ENERGY = 10;
 	private static final int MAX_INIT_ENERGY = 20;
 	private static final int BIRTH_THRESHOLD = 20;
-	private static final int INIT_GRASS = 1000;
-	private static final int GROWTH_RATE_GRASS = 100; // unit per run
+	private static final int MAX_BIRTH_THRESHOLD = 100;
+	private static final int INIT_GRASS = 500;
+	private static final int GROWTH_RATE_GRASS = 50; // unit per run
+	private static final int MAX_GROWTH_RATE_GRASS = X_SIZE * Y_SIZE; 
 	private static final int LOSS_RATE_ENERGY = 1; // unit of energy lost per
 													// run
 	private static final int LOSS_REPRODUCTION_ENERGY = 5; // unit of energy
@@ -63,7 +69,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		SimInit init = new SimInit();
 		RabbitsGrassSimulationModel model = new RabbitsGrassSimulationModel();
 		init.loadModel(model, "", false);
-
+		model.updatePanel();
 	}
 
 	public void begin() {
@@ -71,9 +77,12 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		builSchedule();
 		buildDisplay();
 
+		updatePanel();
+
 		displaySurf.display();
 	}
 
+	@Override
 	public void setup() {
 		rabbitSpace = null;
 		rabbitList = new ArrayList<RabbitsGrassSimulationAgent>();
@@ -84,7 +93,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			displaySurf.dispose();
 		}
 		displaySurf = null;
-		
+
 		RabbitsGrassSimulationAgent.setIDNumber(0);
 
 		// Load image of rabbit
@@ -98,6 +107,34 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 		// Register these elements
 		registerDisplaySurface(NAME_DISPLAY, displaySurf);
+		setDescriptors();
+
+	}
+
+	private void updatePanel() {
+		setDescriptors();
+		ProbeUtilities.updateModelProbePanel();
+	}
+
+	@SuppressWarnings("unchecked")
+	private void setDescriptors() {
+		descriptors.clear();
+
+		RangePropertyDescriptor numRabbits = new RangePropertyDescriptor("NumRabbits", 0, xSize * ySize,
+				xSize * ySize / 5);
+		descriptors.put("NumRabbits", numRabbits);
+
+		RangePropertyDescriptor xSize = new RangePropertyDescriptor("XSize", 0, MAX_X_SIZE, MAX_X_SIZE / 5);
+		descriptors.put("XSize", xSize);
+
+		RangePropertyDescriptor ySize = new RangePropertyDescriptor("YSize", 0, MAX_Y_SIZE, MAX_Y_SIZE / 5);
+		descriptors.put("YSize", ySize);
+
+		RangePropertyDescriptor growthRateGrass = new RangePropertyDescriptor("GrowthRateGrass", 0, MAX_GROWTH_RATE_GRASS, MAX_GROWTH_RATE_GRASS / 5);
+		descriptors.put("GrowthRateGrass", growthRateGrass);
+
+		RangePropertyDescriptor birthThreshold = new RangePropertyDescriptor("BirthThreshold", 0, MAX_BIRTH_THRESHOLD, MAX_BIRTH_THRESHOLD / 5);
+		descriptors.put("BirthThreshold", birthThreshold);
 	}
 
 	private void buildDisplay() {
@@ -106,7 +143,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		for (int i = 1; i < 16; i++) {
 			map.mapColor(i, new Color(0, (int) (i * 8 + 127), 0));
 		}
-		map.mapColor(0, Color.black);
+		map.mapColor(0, Color.WHITE);
 
 		Value2DDisplay displayGrass = new Value2DDisplay(rabbitSpace.getGrassSpace(), map);
 
@@ -115,7 +152,6 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 		displaySurf.addDisplayable(displayGrass, "Grass");
 		displaySurf.addDisplayable(displayRabbits, "Rabbits");
-
 	}
 
 	private void builSchedule() {
@@ -123,7 +159,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			public void execute() {
 				SimUtilities.shuffle(rabbitList);
 				for (int i = 0; i < rabbitList.size(); i++) {
-					RabbitsGrassSimulationAgent rabbit = (RabbitsGrassSimulationAgent) rabbitList.get(i);
+					RabbitsGrassSimulationAgent rabbit = rabbitList.get(i);
 					rabbit.step();
 				}
 
@@ -152,7 +188,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		}
 
 		for (int i = 0; i < rabbitList.size(); i++) {
-			RabbitsGrassSimulationAgent rabbit = (RabbitsGrassSimulationAgent) rabbitList.get(i);
+			RabbitsGrassSimulationAgent rabbit = rabbitList.get(i);
 			rabbit.report();
 		}
 	}
@@ -168,7 +204,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 	private void reapDeadRabbits() {
 		for (int i = (rabbitList.size() - 1); i >= 0; i--) {
-			RabbitsGrassSimulationAgent rabbit = (RabbitsGrassSimulationAgent) rabbitList.get(i);
+			RabbitsGrassSimulationAgent rabbit = rabbitList.get(i);
 			if (rabbit.getEnergy() < 1) {
 				rabbitSpace.removeRabbitAt(rabbit.getX(), rabbit.getY());
 				rabbitList.remove(i);
@@ -178,7 +214,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 	private void giveBirthToRabbits() {
 		for (int i = (rabbitList.size() - 1); i >= 0; i--) {
-			RabbitsGrassSimulationAgent rabbit = (RabbitsGrassSimulationAgent) rabbitList.get(i);
+			RabbitsGrassSimulationAgent rabbit = rabbitList.get(i);
 			if (rabbit.isReproducing()) {
 				addNewRabbit();
 			}
@@ -209,30 +245,33 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			numRabbits = 1;
 		}
 		this.numRabbits = numRabbits;
+		updatePanel();
 	}
 
-	public int getxSize() {
+	public int getXSize() {
 		return xSize;
 	}
 
-	public void setxSize(int xSize) {
+	public void setXSize(int xSize) {
 		if (xSize < 1) {
 			System.out.println("xSize should be positive! It is set to " + X_SIZE + ".");
 			xSize = X_SIZE;
 		}
 		this.xSize = xSize;
+		updatePanel();
 	}
 
-	public int getySize() {
+	public int getYSize() {
 		return ySize;
 	}
 
-	public void setySize(int ySize) {
+	public void setYSize(int ySize) {
 		if (ySize < 0) {
 			System.out.println("ySize should be positive! It is set to " + Y_SIZE + ".");
 			ySize = Y_SIZE;
 		}
 		this.ySize = ySize;
+		updatePanel();
 	}
 
 	public int getMinInitEnergy() {
@@ -244,10 +283,12 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			System.out.println("minInitEnergy should be positive! It is set to " + MIN_INIT_ENERGY + ".");
 			minEnergy = MIN_INIT_ENERGY;
 		} else if (minEnergy > this.getMaxInitEnergy()) {
-			System.out.println("minInitEnergy should be smaller than maxInitEnergy. It is set to " + this.getMaxInitEnergy() + ".");
+			System.out.println("minInitEnergy should be smaller than maxInitEnergy. It is set to "
+					+ this.getMaxInitEnergy() + ".");
 			minEnergy = this.getMaxInitEnergy();
 		}
 		this.minInitEnergy = minEnergy;
+		updatePanel();
 	}
 
 	public int getMaxInitEnergy() {
@@ -259,10 +300,12 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			System.out.println("maxInitEnergy should be positive! It is set to " + MAX_INIT_ENERGY + ".");
 			maxEnergy = MAX_INIT_ENERGY;
 		} else if (maxEnergy < this.getMinInitEnergy()) {
-			System.out.println("maxInitEnergy should be bigger than minInitEnergy. It is set to " + this.getMinInitEnergy() + ".");
+			System.out.println(
+					"maxInitEnergy should be bigger than minInitEnergy. It is set to " + this.getMinInitEnergy() + ".");
 			maxEnergy = this.getMinInitEnergy();
 		}
 		this.maxInitEnergy = maxEnergy;
+		updatePanel();
 	}
 
 	public int getBirthThreshold() {
@@ -275,6 +318,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			birthThreshold = BIRTH_THRESHOLD;
 		}
 		this.birthThreshold = birthThreshold;
+		updatePanel();
 	}
 
 	public int getInitGrass() {
@@ -287,6 +331,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			initGrass = INIT_GRASS;
 		}
 		this.initGrass = initGrass;
+		updatePanel();
 	}
 
 	public int getGrowthRateGrass() {
@@ -299,6 +344,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			growthRateGrass = GROWTH_RATE_GRASS;
 		}
 		this.growthRateGrass = growthRateGrass;
+		updatePanel();
 	}
 
 	public int getLossRateEnergy() {
@@ -311,6 +357,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			lossRateEnergy = LOSS_RATE_ENERGY;
 		}
 		this.lossRateEnergy = lossRateEnergy;
+		updatePanel();
 	}
 
 	public int getLossReproductionEnergy() {
@@ -319,9 +366,11 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 	public void setLossReproductionEnergy(int lossReproductionEnergy) {
 		if (lossReproductionEnergy < 0) {
-			System.out.println("lossReproductionEnergy should be positive! It is set to " + LOSS_REPRODUCTION_ENERGY + ".");
+			System.out.println(
+					"lossReproductionEnergy should be positive! It is set to " + LOSS_REPRODUCTION_ENERGY + ".");
 			lossReproductionEnergy = LOSS_REPRODUCTION_ENERGY;
 		}
 		this.lossReproductionEnergy = lossReproductionEnergy;
+		updatePanel();
 	}
 }
