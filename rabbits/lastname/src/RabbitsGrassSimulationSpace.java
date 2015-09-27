@@ -3,7 +3,7 @@ import uchicago.src.sim.space.Object2DGrid;
 /**
  * Class that implements the simulation space of the rabbits grass simulation.
  * 
- * @author
+ * @author Cynthia Oeschger and Marc Schaer
  */
 
 public class RabbitsGrassSimulationSpace {
