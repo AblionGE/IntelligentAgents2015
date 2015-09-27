@@ -36,7 +36,7 @@ We chose to avoid the following things to have a working application :
 * At each tick, if the rabbit has enough energy, it give birth to a new rabbit.
 * The energy lost during a reproduction cannot be bigger than the birth threshold.
 * A new born rabbit is initialized in the same way as the rabbits are at the beginning of a run.
-* If the rabbit cannot move, it eats the grass where it is.
+* If the rabbit cannot move, it does not eat.
 * The IDs given to each rabbit start from 0 each time the ```setup()``` function is called.
 * The user can set how many energy is lost by a rabbit at each tick.
 
