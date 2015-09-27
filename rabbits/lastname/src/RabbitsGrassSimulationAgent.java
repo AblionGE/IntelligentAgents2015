@@ -46,10 +46,11 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	}
 
 	public void draw(SimGraphics simG) {
+		// If the rabbt picture is loaded, use it, else use a blue Rect
 		if (img != null) {
 			simG.drawImageToFit(img);
 		} else {
-			simG.drawRect(Color.WHITE);
+			simG.drawRect(Color.BLUE);
 		}
 	}
 
@@ -66,6 +67,7 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 		y = newY;
 	}
 
+	// Choose a direction
 	public void setVxVy() {
 		vX = 0;
 		vY = 0;
@@ -94,10 +96,13 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	public void step() {
 		reproductionStatus = false;
 		boolean hasMoved = false;
+		
+		// attempts to move
 		int attempts = 5;
 
 		while ((attempts > 0) && !hasMoved) {
 			attempts--;
+			//Choose a direction
 			setVxVy();
 			int newX = x + vX;
 			int newY = y + vY;

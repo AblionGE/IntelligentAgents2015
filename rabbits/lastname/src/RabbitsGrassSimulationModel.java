@@ -66,19 +66,15 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private BufferedImage img = null;
 
 	public static void main(String[] args) {
-
 		SimInit init = new SimInit();
 		RabbitsGrassSimulationModel model = new RabbitsGrassSimulationModel();
 		init.loadModel(model, "", false);
-		model.updatePanel();
 	}
 
 	public void begin() {
 		buildModel();
 		builSchedule();
 		buildDisplay();
-
-		updatePanel();
 
 		displaySurf.display();
 	}
@@ -95,6 +91,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		}
 		displaySurf = null;
 
+		// At each setup, start IDs from 0
 		RabbitsGrassSimulationAgent.setIDNumber(0);
 
 		// Load image of rabbit
@@ -108,6 +105,8 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 		// Register these elements
 		registerDisplaySurface(NAME_DISPLAY, displaySurf);
+		
+		// Set descriptors to have sliders
 		setDescriptors();
 
 	}
@@ -146,6 +145,8 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		for (int i = 1; i < 16; i++) {
 			map.mapColor(i, new Color(0, (int) (i * 8 + 127), 0));
 		}
+		
+		// When noting, it is white
 		map.mapColor(0, Color.WHITE);
 
 		Value2DDisplay displayGrass = new Value2DDisplay(rabbitSpace.getGrassSpace(), map);

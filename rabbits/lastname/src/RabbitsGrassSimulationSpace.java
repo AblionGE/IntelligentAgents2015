@@ -15,12 +15,12 @@ public class RabbitsGrassSimulationSpace {
 		rabbitSpace = new Object2DGrid(xSize, ySize);
 		grassSpace = new Object2DGrid(xSize, ySize);
 
+		// put no grass everywhere
 		for (int i = 0; i < xSize; i++) {
 			for (int j = 0; j < ySize; j++) {
 				grassSpace.putObjectAt(i, j, new Integer(0));
 			}
 		}
-
 	}
 
 	public void spreadGrass(int grass) {
@@ -32,7 +32,6 @@ public class RabbitsGrassSimulationSpace {
 
 			grassSpace.putObjectAt(x, y, new Integer(currentGrass + 1));
 		}
-
 	}
 
 	public int getGrassAt(int x, int y) {
@@ -97,7 +96,7 @@ public class RabbitsGrassSimulationSpace {
 		}
 		return retVal;
 	}
-	
+
 	public void removeRabbitAt(int x, int y) {
 		rabbitSpace.putObjectAt(x, y, null);
 	}
