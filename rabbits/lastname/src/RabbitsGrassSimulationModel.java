@@ -13,6 +13,7 @@ import uchicago.src.sim.engine.BasicAction;
 import uchicago.src.sim.engine.Schedule;
 import uchicago.src.sim.engine.SimInit;
 import uchicago.src.sim.engine.SimModelImpl;
+import uchicago.src.sim.event.SliderListener;
 import uchicago.src.sim.gui.ColorMap;
 import uchicago.src.sim.gui.DisplaySurface;
 import uchicago.src.sim.gui.Object2DDisplay;
@@ -139,14 +140,76 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		registerDisplaySurface(NAME_DISPLAY, displaySurf);
 		this.registerMediaProducer("Plot", rabbitsAndGrassInSpace);
 
-		// Set descriptors to have sliders
+		modelManipulator.init();
+		
+		// Set descriptors and sliders
+		setSliders();
 		setDescriptors();
-
 	}
 
 	private void updatePanel() {
 		setDescriptors();
-		ProbeUtilities.updateModelProbePanel();
+		//FIXME
+		//ProbeUtilities.updateModelProbePanel();
+	}
+	
+	private void setSliders() {
+		
+		class NumberOfRabbitSlider extends SliderListener {
+			public void execute() {
+				if (isSlidingLeft) {
+					setNumRabbits(getNumRabbits()-value);
+				} else {
+					setNumRabbits(getNumRabbits()+value);
+				}
+			}
+		}
+		
+		class XSizeSlider extends SliderListener {
+			public void execute() {
+				if (isSlidingLeft) {
+					setXSize(getXSize()-value);
+				} else {
+					setXSize(getXSize()+value);
+				}
+			}
+		}
+		
+		class YSizeSlider extends SliderListener {
+			public void execute() {
+				if (isSlidingLeft) {
+					setYSize(getYSize()-value);
+				} else {
+					setYSize(getYSize()+value);
+				}
+			}
+		}
+		
+		class BirthThresholdSlider extends SliderListener {
+			public void execute() {
+				if (isSlidingLeft) {
+					setBirthThreshold(getBirthThreshold()-value);
+				} else {
+					setBirthThreshold(getBirthThreshold()+value);
+				}
+			}
+		}
+		
+		class GrassGrowthRateSlider extends SliderListener {
+			public void execute() {
+				if (isSlidingLeft) {
+					setGrowthRateGrass(getGrowthRateGrass()-value);
+				} else {
+					setGrowthRateGrass(getGrowthRateGrass()+value);
+				}
+			}
+		}
+		
+		modelManipulator.addSlider("Number Of Rabbits", 0, xSize * ySize, 25, new NumberOfRabbitSlider());
+		modelManipulator.addSlider("X Size", 0, MAX_X_SIZE, 10, new XSizeSlider());
+		modelManipulator.addSlider("Y Size", 0, MAX_Y_SIZE, 10, new YSizeSlider());
+		modelManipulator.addSlider("Birth Threshold", 0, MAX_BIRTH_THRESHOLD, 10, new BirthThresholdSlider());
+		modelManipulator.addSlider("Grass Growth Rate", 0, MAX_GROWTH_RATE_GRASS, 25, new GrassGrowthRateSlider());
 	}
 
 	@SuppressWarnings("unchecked")
