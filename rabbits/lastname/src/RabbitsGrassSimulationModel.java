@@ -39,17 +39,22 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private static final int NUM_RABBITS = 1;
 	private static final int MAX_NUM_RABBITS = MAX_X_SIZE * MAX_Y_SIZE / 10;
 	private static final int MIN_INIT_ENERGY = 10;
+	private static final int MAX_MIN_INIT_ENERGY = 100;
 	private static final int MAX_INIT_ENERGY = 20;
+	private static final int MAX_MAX_INIT_ENERGY = 100;
 	private static final int BIRTH_THRESHOLD = 20;
 	private static final int MAX_BIRTH_THRESHOLD = 100;
 	private static final int INIT_GRASS = 500;
+	private static final int MAX_INIT_GRASS = MAX_X_SIZE * MAX_Y_SIZE;
 	private static final int GROWTH_RATE_GRASS = 50; // unit per run
-	private static final int MAX_GROWTH_RATE_GRASS = X_SIZE * Y_SIZE;
+	private static final int MAX_GROWTH_RATE_GRASS = 200;
 	private static final int LOSS_RATE_ENERGY = 1; // unit of energy lost per
 													// run
+	private static final int MAX_LOSS_RATE_ENERGY = 100;
 	private static final int LOSS_REPRODUCTION_ENERGY = 5; // unit of energy
 															// lost per
 															// reproduction
+	private static final int MAX_LOSS_REPRODUCTION_ENERGY = 100;
 	private static final String NAME_DISPLAY = "Rabbits and Grass Simulation Window";
 
 	private DisplaySurface displaySurf;
@@ -139,27 +144,23 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		// Register these elements
 		registerDisplaySurface(NAME_DISPLAY, displaySurf);
 		this.registerMediaProducer("Plot", rabbitsAndGrassInSpace);
-		
+
 		modelManipulator.init();
 
 		// Set descriptors and sliders
-		setSliders();
 		setDescriptors();
+		setSliders();
 	}
 
 	private void updatePanel() {
-		setDescriptors();
-		// FIXME
-		//ProbeUtilities.updateModelProbePanel();
+		ProbeUtilities.updateModelProbePanel();
 	}
 
 	private void setSliders() {
-		
+
 		SliderListener numberOfRabbitSlider = new SliderListener() {
 			public void execute() {
-				if (isSlidingLeft) {
-					setNumRabbits(value);
-				} else {
+				if (isAdjusting) {
 					setNumRabbits(value);
 				}
 			}
@@ -167,53 +168,48 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 		SliderListener xSizeSlider = new SliderListener() {
 			public void execute() {
-				if (isSlidingLeft) {
-					setXSize(value);
-				} else {
+				if (isAdjusting) {
 					setXSize(value);
 				}
 			}
 		};
-		
+
 		SliderListener ySizeSlider = new SliderListener() {
 			public void execute() {
-				if (isSlidingLeft) {
-					setYSize(value);
-				} else {
+				if (isAdjusting) {
 					setYSize(value);
 				}
 			}
 		};
-		
+
 		SliderListener birthThresholdSlider = new SliderListener() {
 			public void execute() {
-				if (isSlidingLeft) {
+				if (isAdjusting) {
 					setBirthThreshold(value);
-				} else {
-					setBirthThreshold(value);
+
 				}
 			}
 		};
-		
+
 		SliderListener grassGrowthRateSlider = new SliderListener() {
 			public void execute() {
-				if (isSlidingLeft) {
+				if (isAdjusting) {
 					setGrowthRateGrass(value);
-				} else {
-					setGrowthRateGrass(value);
+
 				}
 			}
 		};
-		
+
+		// Apparently, setFirstVal() doesn't work
 		numberOfRabbitSlider.setFirstVal(getNumRabbits());
 		xSizeSlider.setFirstVal(getXSize());
 		ySizeSlider.setFirstVal(getYSize());
 		birthThresholdSlider.setFirstVal(getBirthThreshold());
 		grassGrowthRateSlider.setFirstVal(getGrowthRateGrass());
-		
+
 		modelManipulator.addSlider("Number Of Rabbits", 0, xSize * ySize, 25, numberOfRabbitSlider);
-		modelManipulator.addSlider("X Size", 0, MAX_X_SIZE, 10, xSizeSlider);
-		modelManipulator.addSlider("Y Size", 0, MAX_Y_SIZE, 10, ySizeSlider);
+		modelManipulator.addSlider("X Size", 1, MAX_X_SIZE, 10, xSizeSlider);
+		modelManipulator.addSlider("Y Size", 1, MAX_Y_SIZE, 10, ySizeSlider);
 		modelManipulator.addSlider("Birth Threshold", 0, MAX_BIRTH_THRESHOLD, 10, birthThresholdSlider);
 		modelManipulator.addSlider("Grass Growth Rate", 0, MAX_GROWTH_RATE_GRASS, 25, grassGrowthRateSlider);
 	}
@@ -239,6 +235,26 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		RangePropertyDescriptor birthThreshold = new RangePropertyDescriptor("BirthThreshold", 0, MAX_BIRTH_THRESHOLD,
 				MAX_BIRTH_THRESHOLD / 5);
 		descriptors.put("BirthThreshold", birthThreshold);
+
+		RangePropertyDescriptor initGrass = new RangePropertyDescriptor("InitGrass", 0, MAX_INIT_GRASS,
+				MAX_INIT_GRASS / 4);
+		descriptors.put("InitGrass", initGrass);
+
+		RangePropertyDescriptor lossRateEnergy = new RangePropertyDescriptor("LossRateEnergy", 0, MAX_LOSS_RATE_ENERGY,
+				MAX_LOSS_RATE_ENERGY / 5);
+		descriptors.put("LossRateEnergy", lossRateEnergy);
+
+		RangePropertyDescriptor lossReproductionEnergy = new RangePropertyDescriptor("LossReproductionEnergy", 0,
+				MAX_LOSS_REPRODUCTION_ENERGY, MAX_LOSS_REPRODUCTION_ENERGY / 5);
+		descriptors.put("LossReproductionEnergy", lossReproductionEnergy);
+
+		RangePropertyDescriptor maxInitEnergy = new RangePropertyDescriptor("MaxInitEnergy", 0, MAX_MAX_INIT_ENERGY,
+				MAX_MAX_INIT_ENERGY / 5);
+		descriptors.put("MaxInitEnergy", maxInitEnergy);
+
+		RangePropertyDescriptor minInitEnergy = new RangePropertyDescriptor("MinInitEnergy", 0, MAX_MIN_INIT_ENERGY,
+				MAX_MIN_INIT_ENERGY / 5);
+		descriptors.put("MinInitEnergy", minInitEnergy);
 	}
 
 	private void buildDisplay() {
