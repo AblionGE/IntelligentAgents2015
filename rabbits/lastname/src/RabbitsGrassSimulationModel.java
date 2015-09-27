@@ -139,9 +139,9 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		// Register these elements
 		registerDisplaySurface(NAME_DISPLAY, displaySurf);
 		this.registerMediaProducer("Plot", rabbitsAndGrassInSpace);
-
-		modelManipulator.init();
 		
+		modelManipulator.init();
+
 		// Set descriptors and sliders
 		setSliders();
 		setDescriptors();
@@ -149,67 +149,73 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 	private void updatePanel() {
 		setDescriptors();
-		//FIXME
+		// FIXME
 		//ProbeUtilities.updateModelProbePanel();
 	}
-	
+
 	private void setSliders() {
 		
-		class NumberOfRabbitSlider extends SliderListener {
+		SliderListener numberOfRabbitSlider = new SliderListener() {
 			public void execute() {
 				if (isSlidingLeft) {
-					setNumRabbits(getNumRabbits()-value);
+					setNumRabbits(value);
 				} else {
-					setNumRabbits(getNumRabbits()+value);
+					setNumRabbits(value);
 				}
 			}
-		}
-		
-		class XSizeSlider extends SliderListener {
+		};
+
+		SliderListener xSizeSlider = new SliderListener() {
 			public void execute() {
 				if (isSlidingLeft) {
-					setXSize(getXSize()-value);
+					setXSize(value);
 				} else {
-					setXSize(getXSize()+value);
+					setXSize(value);
 				}
 			}
-		}
+		};
 		
-		class YSizeSlider extends SliderListener {
+		SliderListener ySizeSlider = new SliderListener() {
 			public void execute() {
 				if (isSlidingLeft) {
-					setYSize(getYSize()-value);
+					setYSize(value);
 				} else {
-					setYSize(getYSize()+value);
+					setYSize(value);
 				}
 			}
-		}
+		};
 		
-		class BirthThresholdSlider extends SliderListener {
+		SliderListener birthThresholdSlider = new SliderListener() {
 			public void execute() {
 				if (isSlidingLeft) {
-					setBirthThreshold(getBirthThreshold()-value);
+					setBirthThreshold(value);
 				} else {
-					setBirthThreshold(getBirthThreshold()+value);
+					setBirthThreshold(value);
 				}
 			}
-		}
+		};
 		
-		class GrassGrowthRateSlider extends SliderListener {
+		SliderListener grassGrowthRateSlider = new SliderListener() {
 			public void execute() {
 				if (isSlidingLeft) {
-					setGrowthRateGrass(getGrowthRateGrass()-value);
+					setGrowthRateGrass(value);
 				} else {
-					setGrowthRateGrass(getGrowthRateGrass()+value);
+					setGrowthRateGrass(value);
 				}
 			}
-		}
+		};
 		
-		modelManipulator.addSlider("Number Of Rabbits", 0, xSize * ySize, 25, new NumberOfRabbitSlider());
-		modelManipulator.addSlider("X Size", 0, MAX_X_SIZE, 10, new XSizeSlider());
-		modelManipulator.addSlider("Y Size", 0, MAX_Y_SIZE, 10, new YSizeSlider());
-		modelManipulator.addSlider("Birth Threshold", 0, MAX_BIRTH_THRESHOLD, 10, new BirthThresholdSlider());
-		modelManipulator.addSlider("Grass Growth Rate", 0, MAX_GROWTH_RATE_GRASS, 25, new GrassGrowthRateSlider());
+		numberOfRabbitSlider.setFirstVal(getNumRabbits());
+		xSizeSlider.setFirstVal(getXSize());
+		ySizeSlider.setFirstVal(getYSize());
+		birthThresholdSlider.setFirstVal(getBirthThreshold());
+		grassGrowthRateSlider.setFirstVal(getGrowthRateGrass());
+		
+		modelManipulator.addSlider("Number Of Rabbits", 0, xSize * ySize, 25, numberOfRabbitSlider);
+		modelManipulator.addSlider("X Size", 0, MAX_X_SIZE, 10, xSizeSlider);
+		modelManipulator.addSlider("Y Size", 0, MAX_Y_SIZE, 10, ySizeSlider);
+		modelManipulator.addSlider("Birth Threshold", 0, MAX_BIRTH_THRESHOLD, 10, birthThresholdSlider);
+		modelManipulator.addSlider("Grass Growth Rate", 0, MAX_GROWTH_RATE_GRASS, 25, grassGrowthRateSlider);
 	}
 
 	@SuppressWarnings("unchecked")
