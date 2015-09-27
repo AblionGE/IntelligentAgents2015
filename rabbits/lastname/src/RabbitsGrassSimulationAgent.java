@@ -113,11 +113,10 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 
 			// Move the rabbit
 			if (tryMove(newX, newY)) {
+				energy += rabbitSpace.eatGrassAt(x, y);
 				hasMoved = true;
 			}
 		}
-		
-		energy += rabbitSpace.eatGrassAt(x, y);
 
 		// Reproduce the rabbit
 		if (energy >= birthThreshold) {
