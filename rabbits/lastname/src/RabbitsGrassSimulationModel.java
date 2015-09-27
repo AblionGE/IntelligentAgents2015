@@ -84,7 +84,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			return (double) rabbitList.size();
 		}
 	}
-	
+
 	class GrassInSpace implements DataSource, Sequence {
 
 		public Object execute() {
@@ -133,7 +133,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 		// Create basics elements
 		displaySurf = new DisplaySurface(this, NAME_DISPLAY);
-		rabbitsAndGrassInSpace = new OpenSequenceGraph("Number of Rabbits and Amount of Grass",this);
+		rabbitsAndGrassInSpace = new OpenSequenceGraph("Number of Rabbits and Amount of Grass", this);
 
 		// Register these elements
 		registerDisplaySurface(NAME_DISPLAY, displaySurf);
@@ -189,7 +189,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 		displaySurf.addDisplayable(displayGrass, "Grass");
 		displaySurf.addDisplayable(displayRabbits, "Rabbits");
-		
+
 		rabbitsAndGrassInSpace.addSequence("Number of Rabbits in Space", new RabbitsInSpace());
 		rabbitsAndGrassInSpace.addSequence("Amount of Grass", new GrassInSpace());
 	}
@@ -215,12 +215,12 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		schedule.scheduleActionBeginning(0, new RabbitsGrassSimulationStep());
 
 		class UpdateNumberOfRabbitsInSpace extends BasicAction {
-		      public void execute(){
-		    	  rabbitsAndGrassInSpace.step();
-		      }
-		    }
+			public void execute() {
+				rabbitsAndGrassInSpace.step();
+			}
+		}
 
-		    schedule.scheduleActionAtInterval(1, new UpdateNumberOfRabbitsInSpace());
+		schedule.scheduleActionAtInterval(1, new UpdateNumberOfRabbitsInSpace());
 
 	}
 
@@ -376,6 +376,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			birthThreshold = BIRTH_THRESHOLD;
 		}
 		this.birthThreshold = birthThreshold;
+		this.setLossReproductionEnergy(this.getLossReproductionEnergy());
 		updatePanel();
 	}
 
@@ -427,6 +428,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			System.out.println(
 					"lossReproductionEnergy should be positive! It is set to " + LOSS_REPRODUCTION_ENERGY + ".");
 			lossReproductionEnergy = LOSS_REPRODUCTION_ENERGY;
+		} else if (lossReproductionEnergy > this.getBirthThreshold()) {
+			System.out.println("lossReproductionEnergy should be smaller or equal to the birth threshold ("
+					+ this.getBirthThreshold() + "). It is set to " + this.getBirthThreshold() + ".");
+			lossReproductionEnergy = this.getBirthThreshold();
 		}
 		this.lossReproductionEnergy = lossReproductionEnergy;
 		updatePanel();
