@@ -67,7 +67,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private int lossRateEnergy = LOSS_RATE_ENERGY;
 	private int lossReproductionEnergy = LOSS_REPRODUCTION_ENERGY;
 	private BufferedImage img = null;
-	private OpenSequenceGraph numberOfRabbitsInSpace;
+	private OpenSequenceGraph rabbitsAndGrassInSpace;
 
 	public static void main(String[] args) {
 		SimInit init = new SimInit();
@@ -85,6 +85,17 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			return (double) rabbitList.size();
 		}
 	}
+	
+	class GrassInSpace implements DataSource, Sequence {
+
+		public Object execute() {
+			return new Double(getSValue());
+		}
+
+		public double getSValue() {
+			return (double) rabbitSpace.getTotalGrass();
+		}
+	}
 
 	public void begin() {
 		buildModel();
@@ -92,7 +103,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		buildDisplay();
 
 		displaySurf.display();
-		numberOfRabbitsInSpace.display();
+		rabbitsAndGrassInSpace.display();
 	}
 
 	@Override
@@ -107,10 +118,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		}
 		displaySurf = null;
 
-		if (numberOfRabbitsInSpace != null) {
-			numberOfRabbitsInSpace.dispose();
+		if (rabbitsAndGrassInSpace != null) {
+			rabbitsAndGrassInSpace.dispose();
 		}
-		numberOfRabbitsInSpace = null;
+		rabbitsAndGrassInSpace = null;
 
 		// At each setup, start IDs from 0
 		RabbitsGrassSimulationAgent.setIDNumber(0);
@@ -123,11 +134,11 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 		// Create basics elements
 		displaySurf = new DisplaySurface(this, NAME_DISPLAY);
-		numberOfRabbitsInSpace = new OpenSequenceGraph("Number of Rabbits",this);
+		rabbitsAndGrassInSpace = new OpenSequenceGraph("Number of Rabbits and Amount of Grass",this);
 
 		// Register these elements
 		registerDisplaySurface(NAME_DISPLAY, displaySurf);
-		this.registerMediaProducer("Plot", numberOfRabbitsInSpace);
+		this.registerMediaProducer("Plot", rabbitsAndGrassInSpace);
 
 		// Set descriptors to have sliders
 		setDescriptors();
@@ -180,7 +191,8 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		displaySurf.addDisplayable(displayGrass, "Grass");
 		displaySurf.addDisplayable(displayRabbits, "Rabbits");
 		
-		numberOfRabbitsInSpace.addSequence("Number of Rabbits in Space", new RabbitsInSpace());
+		rabbitsAndGrassInSpace.addSequence("Number of Rabbits in Space", new RabbitsInSpace());
+		rabbitsAndGrassInSpace.addSequence("Amount of Grass", new GrassInSpace());
 	}
 
 	private void builSchedule() {
@@ -205,7 +217,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 		class UpdateNumberOfRabbitsInSpace extends BasicAction {
 		      public void execute(){
-		    	  numberOfRabbitsInSpace.step();
+		    	  rabbitsAndGrassInSpace.step();
 		      }
 		    }
 
