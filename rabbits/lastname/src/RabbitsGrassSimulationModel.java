@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import javax.imageio.ImageIO;
 
 import uchicago.src.reflector.RangePropertyDescriptor;
+import uchicago.src.sim.analysis.DataSource;
+import uchicago.src.sim.analysis.OpenSequenceGraph;
+import uchicago.src.sim.analysis.Sequence;
 import uchicago.src.sim.engine.BasicAction;
 import uchicago.src.sim.engine.Schedule;
 import uchicago.src.sim.engine.SimInit;
@@ -64,11 +67,23 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private int lossRateEnergy = LOSS_RATE_ENERGY;
 	private int lossReproductionEnergy = LOSS_REPRODUCTION_ENERGY;
 	private BufferedImage img = null;
+	private OpenSequenceGraph numberOfRabbitsInSpace;
 
 	public static void main(String[] args) {
 		SimInit init = new SimInit();
 		RabbitsGrassSimulationModel model = new RabbitsGrassSimulationModel();
 		init.loadModel(model, "", false);
+	}
+
+	class RabbitsInSpace implements DataSource, Sequence {
+
+		public Object execute() {
+			return new Double(getSValue());
+		}
+
+		public double getSValue() {
+			return (double) rabbitList.size();
+		}
 	}
 
 	public void begin() {
@@ -77,6 +92,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		buildDisplay();
 
 		displaySurf.display();
+		numberOfRabbitsInSpace.display();
 	}
 
 	@Override
@@ -91,6 +107,11 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		}
 		displaySurf = null;
 
+		if (numberOfRabbitsInSpace != null) {
+			numberOfRabbitsInSpace.dispose();
+		}
+		numberOfRabbitsInSpace = null;
+
 		// At each setup, start IDs from 0
 		RabbitsGrassSimulationAgent.setIDNumber(0);
 
@@ -102,10 +123,12 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 		// Create basics elements
 		displaySurf = new DisplaySurface(this, NAME_DISPLAY);
+		numberOfRabbitsInSpace = new OpenSequenceGraph("Number of Rabbits",this);
 
 		// Register these elements
 		registerDisplaySurface(NAME_DISPLAY, displaySurf);
-		
+		this.registerMediaProducer("Plot", numberOfRabbitsInSpace);
+
 		// Set descriptors to have sliders
 		setDescriptors();
 
@@ -145,7 +168,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		for (int i = 1; i < 16; i++) {
 			map.mapColor(i, new Color(0, (int) (i * 8 + 127), 0));
 		}
-		
+
 		// When noting, it is white
 		map.mapColor(0, Color.WHITE);
 
@@ -156,6 +179,8 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 		displaySurf.addDisplayable(displayGrass, "Grass");
 		displaySurf.addDisplayable(displayRabbits, "Rabbits");
+		
+		numberOfRabbitsInSpace.addSequence("Number of Rabbits in Space", new RabbitsInSpace());
 	}
 
 	private void builSchedule() {
@@ -178,7 +203,13 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 		schedule.scheduleActionBeginning(0, new RabbitsGrassSimulationStep());
 
-		// TODO : Sliders and optional population count plot
+		class UpdateNumberOfRabbitsInSpace extends BasicAction {
+		      public void execute(){
+		    	  numberOfRabbitsInSpace.step();
+		      }
+		    }
+
+		    schedule.scheduleActionAtInterval(1, new UpdateNumberOfRabbitsInSpace());
 
 	}
 
@@ -266,7 +297,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			xSize = X_SIZE;
 		}
 		this.xSize = xSize;
-		
+
 		// To update the panel with new values if necessary
 		this.setNumRabbits(this.getNumRabbits());
 
