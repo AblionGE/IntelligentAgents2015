@@ -29,18 +29,19 @@ import uchicago.src.sim.util.SimUtilities;
 public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 	private static final String NAME = "Rabbits and Grass Simulation";
-	private static final int NUM_RABBITS = 1;
 	private static final int X_SIZE = 20;
 	private static final int Y_SIZE = 20;
 	private static final int MAX_X_SIZE = 100;
 	private static final int MAX_Y_SIZE = 100;
+	private static final int NUM_RABBITS = 1;
+	private static final int MAX_NUM_RABBITS = MAX_X_SIZE * MAX_Y_SIZE / 10;
 	private static final int MIN_INIT_ENERGY = 10;
 	private static final int MAX_INIT_ENERGY = 20;
 	private static final int BIRTH_THRESHOLD = 20;
 	private static final int MAX_BIRTH_THRESHOLD = 100;
 	private static final int INIT_GRASS = 500;
 	private static final int GROWTH_RATE_GRASS = 50; // unit per run
-	private static final int MAX_GROWTH_RATE_GRASS = X_SIZE * Y_SIZE; 
+	private static final int MAX_GROWTH_RATE_GRASS = X_SIZE * Y_SIZE;
 	private static final int LOSS_RATE_ENERGY = 1; // unit of energy lost per
 													// run
 	private static final int LOSS_REPRODUCTION_ENERGY = 5; // unit of energy
@@ -120,8 +121,8 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private void setDescriptors() {
 		descriptors.clear();
 
-		RangePropertyDescriptor numRabbits = new RangePropertyDescriptor("NumRabbits", 0, xSize * ySize,
-				xSize * ySize / 5);
+		RangePropertyDescriptor numRabbits = new RangePropertyDescriptor("NumRabbits", 0, MAX_NUM_RABBITS,
+				MAX_NUM_RABBITS / 5);
 		descriptors.put("NumRabbits", numRabbits);
 
 		RangePropertyDescriptor xSize = new RangePropertyDescriptor("XSize", 0, MAX_X_SIZE, MAX_X_SIZE / 5);
@@ -130,10 +131,12 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		RangePropertyDescriptor ySize = new RangePropertyDescriptor("YSize", 0, MAX_Y_SIZE, MAX_Y_SIZE / 5);
 		descriptors.put("YSize", ySize);
 
-		RangePropertyDescriptor growthRateGrass = new RangePropertyDescriptor("GrowthRateGrass", 0, MAX_GROWTH_RATE_GRASS, MAX_GROWTH_RATE_GRASS / 5);
+		RangePropertyDescriptor growthRateGrass = new RangePropertyDescriptor("GrowthRateGrass", 0,
+				MAX_GROWTH_RATE_GRASS, MAX_GROWTH_RATE_GRASS / 5);
 		descriptors.put("GrowthRateGrass", growthRateGrass);
 
-		RangePropertyDescriptor birthThreshold = new RangePropertyDescriptor("BirthThreshold", 0, MAX_BIRTH_THRESHOLD, MAX_BIRTH_THRESHOLD / 5);
+		RangePropertyDescriptor birthThreshold = new RangePropertyDescriptor("BirthThreshold", 0, MAX_BIRTH_THRESHOLD,
+				MAX_BIRTH_THRESHOLD / 5);
 		descriptors.put("BirthThreshold", birthThreshold);
 	}
 
@@ -240,9 +243,13 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 
 	public void setNumRabbits(int numRabbits) {
-		if ((numRabbits < 0) || (numRabbits > xSize * ySize)) {
-			System.out.println("numRabbits should be positive and less than the size of the grid! It is set to 1.");
+		if (numRabbits < 0) {
+			System.out.println("numRabbits should be positive ! It is set to 1.");
 			numRabbits = 1;
+		} else if (numRabbits > xSize * ySize) {
+			System.out.println(
+					"numRabbits should less or equal than the size of the grid! It is set to " + xSize * ySize + ".");
+			numRabbits = xSize * ySize;
 		}
 		this.numRabbits = numRabbits;
 		updatePanel();
@@ -258,6 +265,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			xSize = X_SIZE;
 		}
 		this.xSize = xSize;
+		
+		// To update the panel with new values if necessary
+		this.setNumRabbits(this.getNumRabbits());
+
 		updatePanel();
 	}
 
@@ -271,6 +282,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			ySize = Y_SIZE;
 		}
 		this.ySize = ySize;
+
+		// To update the panel with new values if necessary
+		this.setNumRabbits(this.getNumRabbits());
+
 		updatePanel();
 	}
 
