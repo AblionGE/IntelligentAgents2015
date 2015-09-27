@@ -1,14 +1,5 @@
 import java.awt.Color;
-import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
-import java.awt.image.ImageProducer;
-import java.io.File;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-
 import uchicago.src.sim.gui.Drawable;
 import uchicago.src.sim.gui.SimGraphics;
 import uchicago.src.sim.space.Object2DGrid;
@@ -45,7 +36,11 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 		this.lossReproductionEnergy = lossReproductionEnergy;
 		reproductionStatus = false;
 		setVxVy();
-		IDNumber++;
+		if (IDNumber < Integer.MAX_VALUE) {
+			IDNumber++;
+		} else {
+			IDNumber = 0;
+		}
 		ID = IDNumber;
 		this.img = img;
 	}
@@ -125,6 +120,7 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 		}
 
 		energy -= lossRateEnergy;
+		report();
 	}
 
 	public boolean isReproducing() {
@@ -133,6 +129,10 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 
 	private boolean tryMove(int newX, int newY) {
 		return rabbitSpace.moveRabbitAt(x, y, newX, newY);
+	}
+
+	public static void setIDNumber(int iDNumber) {
+		IDNumber = iDNumber;
 	}
 
 }

@@ -84,6 +84,8 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 			displaySurf.dispose();
 		}
 		displaySurf = null;
+		
+		RabbitsGrassSimulationAgent.setIDNumber(0);
 
 		// Load image of rabbit
 		try {
@@ -158,8 +160,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private void addNewRabbit() {
 		RabbitsGrassSimulationAgent rabbit = new RabbitsGrassSimulationAgent(minInitEnergy, maxInitEnergy,
 				lossRateEnergy, birthThreshold, lossReproductionEnergy, img);
-		rabbitList.add(rabbit);
-		rabbitSpace.addRabbit(rabbit);
+		boolean isAdded = rabbitSpace.addRabbit(rabbit);
+		if (isAdded) {
+			rabbitList.add(rabbit);
+		}
 	}
 
 	private void reapDeadRabbits() {
