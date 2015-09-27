@@ -1,6 +1,5 @@
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -128,7 +127,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 		// Load image of rabbit
 		try {
-			img = ImageIO.read(new File("./img/rabbit.jpg"));
+			img = ImageIO.read(RabbitsGrassSimulationModel.class.getResource("/resources/rabbit.jpg"));
 		} catch (IOException e) {
 		}
 
