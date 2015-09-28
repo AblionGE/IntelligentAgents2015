@@ -158,30 +158,6 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 	private void setSliders() {
 
-		SliderListener numberOfRabbitSlider = new SliderListener() {
-			public void execute() {
-				if (isAdjusting) {
-					setNumRabbits(value);
-				}
-			}
-		};
-
-		SliderListener xSizeSlider = new SliderListener() {
-			public void execute() {
-				if (isAdjusting) {
-					setXSize(value);
-				}
-			}
-		};
-
-		SliderListener ySizeSlider = new SliderListener() {
-			public void execute() {
-				if (isAdjusting) {
-					setYSize(value);
-				}
-			}
-		};
-
 		SliderListener birthThresholdSlider = new SliderListener() {
 			public void execute() {
 				if (isAdjusting) {
@@ -201,15 +177,9 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		};
 
 		// Apparently, setFirstVal() doesn't work
-		numberOfRabbitSlider.setFirstVal(getNumRabbits());
-		xSizeSlider.setFirstVal(getXSize());
-		ySizeSlider.setFirstVal(getYSize());
 		birthThresholdSlider.setFirstVal(getBirthThreshold());
 		grassGrowthRateSlider.setFirstVal(getGrowthRateGrass());
 
-		modelManipulator.addSlider("Number Of Rabbits", 0, xSize * ySize, 25, numberOfRabbitSlider);
-		modelManipulator.addSlider("X Size", 1, MAX_X_SIZE, 10, xSizeSlider);
-		modelManipulator.addSlider("Y Size", 1, MAX_Y_SIZE, 10, ySizeSlider);
 		modelManipulator.addSlider("Birth Threshold", 0, MAX_BIRTH_THRESHOLD, 10, birthThresholdSlider);
 		modelManipulator.addSlider("Grass Growth Rate", 0, MAX_GROWTH_RATE_GRASS, 25, grassGrowthRateSlider);
 	}
