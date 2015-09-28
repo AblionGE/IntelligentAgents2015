@@ -13,14 +13,18 @@ We chose these default variables for our program :
 * **Number of rabbits** (initially) : 1
 * **Maximum number of rabbits** : 100 x 100 / 10
     * This is just to limit the number of rabbit to a decent number
-* **Initial Energy** : between 10 and 20
+* **Initial energy** : between 10 and 20
+* **Maximum initial energy** : 100
 * **Birth threshold** : 20
 * **Maximum birth threshold** : 100
 * **Initial grass** : 500
+* **Maximum initial grass** : size of the grid
 * **Growth rate for grass** : 50
-* **Maximum growth rate for grass** : 100 x 100 (size of the grid)
+* **Maximum growth rate for grass** : 200
 * **Energy loss rate** : 1
+* **Maximum energy loss rate** : 100
 * **Energy loss when reproduction** : 5
+* **Maximum energy loss when reproduction** : 100
 
 These variables are set to (especially the ones that limit the maximum values) avoid weird behaviors and to have a nice GUI. 
 
@@ -39,6 +43,9 @@ We chose to avoid the following things to have a working application :
 * If the rabbit cannot move, it does not eat.
 * The IDs given to each rabbit start from 0 each time the ```setup()``` function is called.
 * The user can set how many energy is lost by a rabbit at each tick.
+* During a run, the user can change the birth threshold and the grass growth rate to see the effect.
+    * It makes no sense to change the initial number of rabbits and the size of the grid during a run. These variables are taken into account at each ```setup()``` of the simulation.
+* The initial value of sliders cannot be set, so it is always the minimum possible value.
 
 # Conclusion
 
