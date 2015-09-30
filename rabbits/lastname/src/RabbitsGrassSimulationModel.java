@@ -34,27 +34,27 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private static final String NAME = "Rabbits and Grass Simulation";
 	private static final int X_SIZE = 20;
 	private static final int Y_SIZE = 20;
-	private static final int MAX_X_SIZE = 100;
-	private static final int MAX_Y_SIZE = 100;
+	private static final int MAX_X_SIZE = 101;
+	private static final int MAX_Y_SIZE = 101;
 	private static final int NUM_RABBITS = 1;
 	private static final int MAX_NUM_RABBITS = MAX_X_SIZE * MAX_Y_SIZE / 10;
 	private static final int MIN_INIT_ENERGY = 10;
-	private static final int MAX_MIN_INIT_ENERGY = 100;
+	//private static final int MAX_MIN_INIT_ENERGY = 100;
 	private static final int MAX_INIT_ENERGY = 20;
-	private static final int MAX_MAX_INIT_ENERGY = 100;
+	//private static final int MAX_MAX_INIT_ENERGY = 100;
 	private static final int BIRTH_THRESHOLD = 20;
-	private static final int MAX_BIRTH_THRESHOLD = 100;
+	private static final int MAX_BIRTH_THRESHOLD = 50;
 	private static final int INIT_GRASS = 500;
 	private static final int MAX_INIT_GRASS = MAX_X_SIZE * MAX_Y_SIZE;
 	private static final int GROWTH_RATE_GRASS = 50; // unit per run
 	private static final int MAX_GROWTH_RATE_GRASS = 200;
 	private static final int LOSS_RATE_ENERGY = 1; // unit of energy lost per
 													// run
-	private static final int MAX_LOSS_RATE_ENERGY = 100;
+	private static final int MAX_LOSS_RATE_ENERGY = 20;
 	private static final int LOSS_REPRODUCTION_ENERGY = 5; // unit of energy
 															// lost per
 															// reproduction
-	private static final int MAX_LOSS_REPRODUCTION_ENERGY = 100;
+	private static final int MAX_LOSS_REPRODUCTION_ENERGY = 20;
 	private static final String NAME_DISPLAY = "Rabbits and Grass Simulation Window";
 
 	private DisplaySurface displaySurf;
@@ -137,7 +137,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		} catch (IOException e) {
 		}
 
-		// Create basics elements
+		// Create basic elements
 		displaySurf = new DisplaySurface(this, NAME_DISPLAY);
 		rabbitsAndGrassInSpace = new OpenSequenceGraph("Number of Rabbits and Amount of Grass", this);
 
@@ -192,10 +192,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 				MAX_NUM_RABBITS / 5);
 		descriptors.put("NumRabbits", numRabbits);
 
-		RangePropertyDescriptor xSize = new RangePropertyDescriptor("XSize", 0, MAX_X_SIZE, MAX_X_SIZE / 5);
+		RangePropertyDescriptor xSize = new RangePropertyDescriptor("XSize", 1, MAX_X_SIZE, MAX_X_SIZE / 5);
 		descriptors.put("XSize", xSize);
 
-		RangePropertyDescriptor ySize = new RangePropertyDescriptor("YSize", 0, MAX_Y_SIZE, MAX_Y_SIZE / 5);
+		RangePropertyDescriptor ySize = new RangePropertyDescriptor("YSize", 1, MAX_Y_SIZE, MAX_Y_SIZE / 5);
 		descriptors.put("YSize", ySize);
 
 		RangePropertyDescriptor growthRateGrass = new RangePropertyDescriptor("GrowthRateGrass", 0,
@@ -218,13 +218,13 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 				MAX_LOSS_REPRODUCTION_ENERGY, MAX_LOSS_REPRODUCTION_ENERGY / 5);
 		descriptors.put("LossReproductionEnergy", lossReproductionEnergy);
 
-		RangePropertyDescriptor maxInitEnergy = new RangePropertyDescriptor("MaxInitEnergy", 0, MAX_MAX_INIT_ENERGY,
+		/*RangePropertyDescriptor maxInitEnergy = new RangePropertyDescriptor("MaxInitEnergy", 0, MAX_MAX_INIT_ENERGY,
 				MAX_MAX_INIT_ENERGY / 5);
 		descriptors.put("MaxInitEnergy", maxInitEnergy);
 
 		RangePropertyDescriptor minInitEnergy = new RangePropertyDescriptor("MinInitEnergy", 0, MAX_MIN_INIT_ENERGY,
 				MAX_MIN_INIT_ENERGY / 5);
-		descriptors.put("MinInitEnergy", minInitEnergy);
+		descriptors.put("MinInitEnergy", minInitEnergy);*/
 	}
 
 	private void buildDisplay() {
@@ -323,8 +323,8 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 
 	public String[] getInitParam() {
-		String[] init_param = { "xSize", "ySize", "NumRabbits", "BirthThreshold", "InitGrass", "GrowthRateGrass",
-				"LossRateEnergy", "LossReproductionEnergy", "MinInitEnergy", "MaxInitEnergy" };
+		String[] init_param = { "XSize", "YSize", "NumRabbits", "BirthThreshold", "InitGrass", "GrowthRateGrass",
+				"LossRateEnergy", "LossReproductionEnergy"};//, "MinInitEnergy", "MaxInitEnergy" };
 		return init_param;
 	}
 
@@ -387,7 +387,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		updatePanel();
 	}
 
-	public int getMinInitEnergy() {
+	/*public int getMinInitEnergy() {
 		return minInitEnergy;
 	}
 
@@ -419,7 +419,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		}
 		this.maxInitEnergy = maxEnergy;
 		updatePanel();
-	}
+	}*/
 
 	public int getBirthThreshold() {
 		return birthThreshold;

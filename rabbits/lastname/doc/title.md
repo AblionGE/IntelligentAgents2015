@@ -15,7 +15,7 @@ header-includes:
 ---
 
 \title{Intelligent Agents\\
-A Rabbits Grass Simulation}
+Assignment 1: A Rabbits Grass Simulation}
 \date{\today}
 \author{Cynthia Oeschger and Marc Schär}
 \maketitle
