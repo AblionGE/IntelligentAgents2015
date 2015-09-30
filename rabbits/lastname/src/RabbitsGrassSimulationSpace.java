@@ -176,10 +176,18 @@ public class RabbitsGrassSimulationSpace {
 		return total;
 	}
 
+	/**
+	 * 
+	 * @return the rabbitSpace
+	 */
 	public Object2DGrid getRabbitSpace() {
 		return rabbitSpace;
 	}
 
+	/**
+	 * 
+	 * @return the grassSpace
+	 */
 	public Object2DGrid getGrassSpace() {
 		return grassSpace;
 	}

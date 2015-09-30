@@ -79,23 +79,39 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		init.loadModel(model, "", false);
 	}
 
+	/**
+	 * RabbitsInSpace is the DataSource of rabbits for the plot. It permits to
+	 * get the number of rabbits.
+	 *
+	 */
 	class RabbitsInSpace implements DataSource, Sequence {
 
 		public Object execute() {
 			return new Double(getSValue());
 		}
 
+		/**
+		 * @return size of rabbitList
+		 */
 		public double getSValue() {
 			return (double) rabbitList.size();
 		}
 	}
 
+	/**
+	 * GrassInSpace is the DataSource of Grass for the plot. It permits to get
+	 * the amount of grass.
+	 *
+	 */
 	class GrassInSpace implements DataSource, Sequence {
 
 		public Object execute() {
 			return new Double(getSValue());
 		}
 
+		/**
+		 * @return total amount of grass on the grid
+		 */
 		public double getSValue() {
 			return (double) rabbitSpace.getTotalGrass();
 		}
@@ -211,7 +227,8 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 
 	/**
-	 * Distributes the amount of grass and rabbits with the initialization values
+	 * Distributes the amount of grass and rabbits with the initialization
+	 * values
 	 */
 	private void buildModel() {
 		rabbitSpace = new RabbitsGrassSimulationSpace(xSize, ySize);
@@ -310,7 +327,8 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 
 	/**
-	 * Removes all the rabbits that have an energy less than 1 from the simulation
+	 * Removes all the rabbits that have an energy less than 1 from the
+	 * simulation
 	 */
 	private void reapDeadRabbits() {
 		for (int i = (rabbitList.size() - 1); i >= 0; i--) {
@@ -323,7 +341,8 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	}
 
 	/**
-	 * Checks for all the rabbits that can reproduce and add the corresponding number of rabbits in the simulation
+	 * Checks for all the rabbits that can reproduce and add the corresponding
+	 * number of rabbits in the simulation
 	 */
 	private void giveBirthToRabbits() {
 		for (int i = (rabbitList.size() - 1); i >= 0; i--) {
@@ -344,7 +363,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	@Override
 	public String[] getInitParam() {
 		String[] init_param = { "XSize", "YSize", "NumRabbits", "BirthThreshold", "InitGrass", "GrowthRateGrass",
-				"LossRateEnergy", "LossReproductionEnergy"};//, "MinInitEnergy", "MaxInitEnergy" };
+				"LossRateEnergy", "LossReproductionEnergy" };// ,
+																// "MinInitEnergy",
+																// "MaxInitEnergy"
+																// };
 		return init_param;
 	}
 
@@ -353,14 +375,25 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		return NAME;
 	}
 
+	@Override
 	public Schedule getSchedule() {
 		return schedule;
 	}
 
+	/**
+	 * 
+	 * @return numRabbits
+	 */
 	public int getNumRabbits() {
 		return numRabbits;
 	}
 
+	/**
+	 * set numRabbits
+	 * If it is smaller than 0, it is set to 1.
+	 * If it is bigger than the size of the grid, it is set to the size of the grid
+	 * @param numRabbits
+	 */
 	public void setNumRabbits(int numRabbits) {
 		if (numRabbits < 0) {
 			System.out.println("numRabbits should be positive ! It is set to 1.");
@@ -374,10 +407,19 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		updatePanel();
 	}
 
+	/**
+	 * 
+	 * @return xSize
+	 */
 	public int getXSize() {
 		return xSize;
 	}
 
+	/**
+	 * set xSize
+	 * If it is smaller than 0, it is set to X_SIZE
+	 * @param xSize
+	 */
 	public void setXSize(int xSize) {
 		if (xSize < 1) {
 			System.out.println("xSize should be positive! It is set to " + X_SIZE + ".");
@@ -391,10 +433,19 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		updatePanel();
 	}
 
+	/**
+	 * ySize
+	 * @return
+	 */
 	public int getYSize() {
 		return ySize;
 	}
 
+	/**
+	 * set ySize
+	 * If it is smaller than 0, it is set to Y_SIZE
+	 * @param ySize
+	 */
 	public void setYSize(int ySize) {
 		if (ySize < 0) {
 			System.out.println("ySize should be positive! It is set to " + Y_SIZE + ".");
@@ -408,10 +459,19 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		updatePanel();
 	}
 
+	/**
+	 * 
+	 * @return birthThreshold
+	 */
 	public int getBirthThreshold() {
 		return birthThreshold;
 	}
 
+	/**
+	 * set birthThreshold
+	 * If it is smaller than 0, it is set to BRITH_THRESHOLD
+	 * @param birthThreshold
+	 */
 	public void setBirthThreshold(int birthThreshold) {
 		if (birthThreshold < 0) {
 			System.out.println("birthThreshold should be positive! It is set to " + BIRTH_THRESHOLD + ".");
@@ -422,12 +482,21 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		updatePanel();
 	}
 
+	/**
+	 * 
+	 * @return initGrass
+	 */
 	public int getInitGrass() {
 		return initGrass;
 	}
 
+	/**
+	 * Set initGrass
+	 * If it is smaller than 0, it is set to INIT_GRASS
+	 * @param initGrass
+	 */
 	public void setInitGrass(int initGrass) {
-		if (growthRateGrass < 0) {
+		if (initGrass < 0) {
 			System.out.println("initGrass should be positive! It is set to " + INIT_GRASS + ".");
 			initGrass = INIT_GRASS;
 		}
@@ -435,10 +504,19 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		updatePanel();
 	}
 
+	/**
+	 * 
+	 * @return growthRateGrass
+	 */
 	public int getGrowthRateGrass() {
 		return growthRateGrass;
 	}
 
+	/**
+	 * set growthRateGrass
+	 * If it is smaller than 0, it is set to GROWTH_RATE_GRASS
+	 * @param growthRateGrass
+	 */
 	public void setGrowthRateGrass(int growthRateGrass) {
 		if (growthRateGrass < 0) {
 			System.out.println("growthRateGrass should be positive! It is set to " + GROWTH_RATE_GRASS + ".");
@@ -448,10 +526,19 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		updatePanel();
 	}
 
+	/**
+	 * 
+	 * @return lossRateEnergy
+	 */
 	public int getLossRateEnergy() {
 		return lossRateEnergy;
 	}
 
+	/**
+	 * set setLossRateEnergy and verify that is bigger than 0.
+	 * If it is not, it set to the default value LOSS_RATE_ENERGY
+	 * @param lossRateEnergy
+	 */
 	public void setLossRateEnergy(int lossRateEnergy) {
 		if (lossRateEnergy < 0) {
 			System.out.println("lossRateEnergy should be positive! It is set to " + LOSS_RATE_ENERGY + ".");
@@ -461,10 +548,20 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		updatePanel();
 	}
 
+	/**
+	 * 
+	 * @return lossReproductionEnergy
+	 */
 	public int getLossReproductionEnergy() {
 		return lossReproductionEnergy;
 	}
 
+	/**
+	 * Set the LossReproductionEnergy and test if the value is correct
+	 * The correct values are smaller or equal to the birthThreshold (if not, set to birthThreshold)
+	 * and bigger than 0 (if not, set to LOSS_REPRODUCTION_ENERGY
+	 * @param lossReproductionEnergy
+	 */
 	public void setLossReproductionEnergy(int lossReproductionEnergy) {
 		if (lossReproductionEnergy < 0) {
 			System.out.println(
