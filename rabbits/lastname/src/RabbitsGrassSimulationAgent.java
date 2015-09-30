@@ -46,7 +46,7 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	}
 
 	public void draw(SimGraphics simG) {
-		// If the rabbt picture is loaded, use it, else use a blue Rect
+		// If the rabbit picture is loaded, use it, else use a blue Rect
 		if (img != null) {
 			simG.drawImageToFit(img);
 		} else {
