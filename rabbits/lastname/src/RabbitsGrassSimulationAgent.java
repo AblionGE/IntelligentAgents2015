@@ -26,6 +26,15 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 	private RabbitsGrassSimulationSpace rabbitSpace;
 	private BufferedImage img = null;
 
+	/**
+	 * 
+	 * @param minEnergy			lower bound for initialization energy
+	 * @param maxEnergy			upper bound for initialization energy
+	 * @param lossRateEnergy	amount of energy unit lost per time unit
+	 * @param birthThreshold	amount of energy needed to give birth
+	 * @param lossReproductionEnergy	amount of energy lost after reproduction
+	 * @param img				image of the agent
+	 */
 	public RabbitsGrassSimulationAgent(int minEnergy, int maxEnergy, int lossRateEnergy, int birthThreshold,
 			int lossReproductionEnergy, BufferedImage img) {
 		x = -1;
@@ -45,6 +54,10 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 		this.img = img;
 	}
 
+	/**
+	 * Displays the image of the agent
+	 * @param simG	Object where the image is displayed
+	 */
 	public void draw(SimGraphics simG) {
 		// If the rabbt picture is loaded, use it, else use a blue Rect
 		if (img != null) {
@@ -53,21 +66,10 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 			simG.drawRect(Color.BLUE);
 		}
 	}
-
-	public int getX() {
-		return x;
-	}
-
-	public int getY() {
-		return y;
-	}
-
-	public void setXY(int newX, int newY) {
-		x = newX;
-		y = newY;
-	}
-
-	// Choose a direction
+	
+	/**
+	 * Updates a random direction
+	 */
 	public void setVxVy() {
 		vX = 0;
 		vY = 0;
@@ -77,22 +79,20 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 		}
 	}
 
-	public String getID() {
-		return "rabbit number " + ID;
-	}
-
-	public int getEnergy() {
-		return energy;
-	}
-
-	public void setSpace(RabbitsGrassSimulationSpace newSpace) {
-		this.rabbitSpace = newSpace;
-	}
-
+	/**
+	 * Prints informations on this agent
+	 */
 	public void report() {
 		System.out.println(getID() + " at " + x + ", " + y + " has " + getEnergy());
 	}
 
+	/**
+	 * The agent does the following things:
+	 * 	- moves to a neighboring cell is it is possible
+	 * 	- eats the grass after moving
+	 * 	- loses an amount of energy
+	 * 	- reproduces if it has enough energy
+	 */
 	public void step() {
 		reproductionStatus = false;
 		boolean hasMoved = false;
@@ -125,15 +125,49 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 		}
 
 		energy -= lossRateEnergy;
-		report();
 	}
 
+	/**
+	 * 
+	 * @return true if the agent can give birth
+	 */
 	public boolean isReproducing() {
 		return reproductionStatus;
 	}
 
+	/**
+	 * 
+	 * @param newX destination's x coordinate
+	 * @param newY destination's y coordinate
+	 * @return true if the moving succeed
+	 */
 	private boolean tryMove(int newX, int newY) {
 		return rabbitSpace.moveRabbitAt(x, y, newX, newY);
+	}
+	
+	public int getX() {
+		return x;
+	}
+
+	public int getY() {
+		return y;
+	}
+
+	public void setXY(int newX, int newY) {
+		x = newX;
+		y = newY;
+	}
+	
+	public String getID() {
+		return "rabbit number " + ID;
+	}
+
+	public int getEnergy() {
+		return energy;
+	}
+
+	public void setSpace(RabbitsGrassSimulationSpace newSpace) {
+		this.rabbitSpace = newSpace;
 	}
 
 	public static void setIDNumber(int iDNumber) {

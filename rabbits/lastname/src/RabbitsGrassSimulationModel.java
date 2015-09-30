@@ -47,11 +47,11 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private static final int GROWTH_RATE_GRASS = 50; // unit per run
 	private static final int MAX_GROWTH_RATE_GRASS = 200;
 	private static final int LOSS_RATE_ENERGY = 1; // unit of energy lost per
-													// run
+	// run
 	private static final int MAX_LOSS_RATE_ENERGY = 20;
 	private static final int LOSS_REPRODUCTION_ENERGY = 5; // unit of energy
-															// lost per
-															// reproduction
+	// lost per
+	// reproduction
 	private static final int MAX_LOSS_REPRODUCTION_ENERGY = 20;
 	private static final int MAX_COLORS = 128;
 	private static final String NAME_DISPLAY = "Rabbits and Grass Simulation Window";
@@ -101,9 +101,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		}
 	}
 
+	@Override
 	public void begin() {
 		buildModel();
-		builSchedule();
+		buildSchedule();
 		buildDisplay();
 
 		displaySurf.display();
@@ -151,10 +152,85 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		setSliders();
 	}
 
-	private void updatePanel() {
-		ProbeUtilities.updateModelProbePanel();
+	/**
+	 * Initializes grass and rabbits display
+	 */
+	private void buildDisplay() {
+		ColorMap map = new ColorMap();
+
+		for (int i = 1; i < MAX_COLORS; i++) {
+			map.mapColor(i, new Color(0, (int) (i + 127), 0));
+		}
+
+		// When noting, it is white
+		map.mapColor(0, Color.WHITE);
+
+		Value2DDisplay displayGrass = new Value2DDisplay(rabbitSpace.getGrassSpace(), map);
+
+		Object2DDisplay displayRabbits = new Object2DDisplay(rabbitSpace.getRabbitSpace());
+		displayRabbits.setObjectList(rabbitList);
+
+		displaySurf.addDisplayable(displayGrass, "Grass");
+		displaySurf.addDisplayable(displayRabbits, "Rabbits");
+
+		rabbitsAndGrassInSpace.addSequence("Number of Rabbits in Space", new RabbitsInSpace());
+		rabbitsAndGrassInSpace.addSequence("Amount of Grass", new GrassInSpace());
 	}
 
+	/**
+	 * Setup of the schedule
+	 */
+	private void buildSchedule() {
+		class RabbitsGrassSimulationStep extends BasicAction {
+			public void execute() {
+				SimUtilities.shuffle(rabbitList);
+				for (int i = 0; i < rabbitList.size(); i++) {
+					RabbitsGrassSimulationAgent rabbit = rabbitList.get(i);
+					rabbit.step();
+				}
+
+				reapDeadRabbits();
+				giveBirthToRabbits();
+
+				rabbitSpace.spreadGrass(growthRateGrass);
+
+				displaySurf.updateDisplay();
+			}
+		}
+
+		schedule.scheduleActionBeginning(0, new RabbitsGrassSimulationStep());
+
+		class UpdateNumberOfRabbitsInSpace extends BasicAction {
+			public void execute() {
+				rabbitsAndGrassInSpace.step();
+			}
+		}
+
+		schedule.scheduleActionAtInterval(1, new UpdateNumberOfRabbitsInSpace());
+
+	}
+
+	/**
+	 * Distributes the amount of grass and rabbits with the initialization values
+	 */
+	private void buildModel() {
+		rabbitSpace = new RabbitsGrassSimulationSpace(xSize, ySize);
+
+		rabbitSpace.spreadGrass(initGrass);
+
+		for (int i = 0; i < numRabbits && i < xSize * ySize; i++) {
+			addNewRabbit();
+		}
+
+		for (int i = 0; i < rabbitList.size(); i++) {
+			RabbitsGrassSimulationAgent rabbit = rabbitList.get(i);
+			rabbit.report();
+		}
+	}
+
+	/**
+	 * Initialization of the sliders
+	 */
 	private void setSliders() {
 
 		SliderListener birthThresholdSlider = new SliderListener() {
@@ -183,6 +259,9 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		modelManipulator.addSlider("Grass Growth Rate", 0, MAX_GROWTH_RATE_GRASS, 25, grassGrowthRateSlider);
 	}
 
+	/**
+	 * Initialization of the descriptors
+	 */
 	@SuppressWarnings("unchecked")
 	private void setDescriptors() {
 		descriptors.clear();
@@ -218,73 +297,9 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		descriptors.put("LossReproductionEnergy", lossReproductionEnergy);
 	}
 
-	private void buildDisplay() {
-		ColorMap map = new ColorMap();
-
-		for (int i = 1; i < MAX_COLORS; i++) {
-			map.mapColor(i, new Color(0, (int) (i + 127), 0));
-		}
-
-		// When noting, it is white
-		map.mapColor(0, Color.WHITE);
-
-		Value2DDisplay displayGrass = new Value2DDisplay(rabbitSpace.getGrassSpace(), map);
-
-		Object2DDisplay displayRabbits = new Object2DDisplay(rabbitSpace.getRabbitSpace());
-		displayRabbits.setObjectList(rabbitList);
-
-		displaySurf.addDisplayable(displayGrass, "Grass");
-		displaySurf.addDisplayable(displayRabbits, "Rabbits");
-
-		rabbitsAndGrassInSpace.addSequence("Number of Rabbits in Space", new RabbitsInSpace());
-		rabbitsAndGrassInSpace.addSequence("Amount of Grass", new GrassInSpace());
-	}
-
-	private void builSchedule() {
-		class RabbitsGrassSimulationStep extends BasicAction {
-			public void execute() {
-				SimUtilities.shuffle(rabbitList);
-				for (int i = 0; i < rabbitList.size(); i++) {
-					RabbitsGrassSimulationAgent rabbit = rabbitList.get(i);
-					rabbit.step();
-				}
-
-				reapDeadRabbits();
-				giveBirthToRabbits();
-
-				rabbitSpace.spreadGrass(growthRateGrass);
-
-				displaySurf.updateDisplay();
-			}
-		}
-
-		schedule.scheduleActionBeginning(0, new RabbitsGrassSimulationStep());
-
-		class UpdateNumberOfRabbitsInSpace extends BasicAction {
-			public void execute() {
-				rabbitsAndGrassInSpace.step();
-			}
-		}
-
-		schedule.scheduleActionAtInterval(1, new UpdateNumberOfRabbitsInSpace());
-
-	}
-
-	private void buildModel() {
-		rabbitSpace = new RabbitsGrassSimulationSpace(xSize, ySize);
-
-		rabbitSpace.spreadGrass(initGrass);
-
-		for (int i = 0; i < numRabbits && i < xSize * ySize; i++) {
-			addNewRabbit();
-		}
-
-		for (int i = 0; i < rabbitList.size(); i++) {
-			RabbitsGrassSimulationAgent rabbit = rabbitList.get(i);
-			rabbit.report();
-		}
-	}
-
+	/**
+	 * Add a rabbit in the simulation
+	 */
 	private void addNewRabbit() {
 		RabbitsGrassSimulationAgent rabbit = new RabbitsGrassSimulationAgent(minInitEnergy, maxInitEnergy,
 				lossRateEnergy, birthThreshold, lossReproductionEnergy, img);
@@ -294,6 +309,9 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		}
 	}
 
+	/**
+	 * Removes all the rabbits that have an energy less than 1 from the simulation
+	 */
 	private void reapDeadRabbits() {
 		for (int i = (rabbitList.size() - 1); i >= 0; i--) {
 			RabbitsGrassSimulationAgent rabbit = rabbitList.get(i);
@@ -304,6 +322,9 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		}
 	}
 
+	/**
+	 * Checks for all the rabbits that can reproduce and add the corresponding number of rabbits in the simulation
+	 */
 	private void giveBirthToRabbits() {
 		for (int i = (rabbitList.size() - 1); i >= 0; i--) {
 			RabbitsGrassSimulationAgent rabbit = rabbitList.get(i);
@@ -313,12 +334,21 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		}
 	}
 
+	/**
+	 * Updates the population plot
+	 */
+	private void updatePanel() {
+		ProbeUtilities.updateModelProbePanel();
+	}
+
+	@Override
 	public String[] getInitParam() {
 		String[] init_param = { "XSize", "YSize", "NumRabbits", "BirthThreshold", "InitGrass", "GrowthRateGrass",
 				"LossRateEnergy", "LossReproductionEnergy"};//, "MinInitEnergy", "MaxInitEnergy" };
 		return init_param;
 	}
 
+	@Override
 	public String getName() {
 		return NAME;
 	}

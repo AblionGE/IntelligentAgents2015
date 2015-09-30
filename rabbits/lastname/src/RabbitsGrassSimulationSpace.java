@@ -11,6 +11,11 @@ public class RabbitsGrassSimulationSpace {
 	private Object2DGrid rabbitSpace;
 	private Object2DGrid grassSpace;
 
+	/**
+	 * 
+	 * @param xSize	horizontal size of the grid
+	 * @param ySize	vertical size of the grid
+	 */
 	public RabbitsGrassSimulationSpace(int xSize, int ySize) {
 		rabbitSpace = new Object2DGrid(xSize, ySize);
 		grassSpace = new Object2DGrid(xSize, ySize);
@@ -23,6 +28,10 @@ public class RabbitsGrassSimulationSpace {
 		}
 	}
 
+	/**
+	 * Distributes randomly an amount of grass over the grid
+	 * @param grass	amount of grass to distribute
+	 */
 	public void spreadGrass(int grass) {
 		for (int i = 0; i < grass; i++) {
 			int attempts = 5;
@@ -44,6 +53,12 @@ public class RabbitsGrassSimulationSpace {
 		}
 	}
 
+	/**
+	 * 
+	 * @param 	x	horizontal position of the cell
+	 * @param 	y	vertical position of the cell
+	 * @return	the amount of grass in the cell
+	 */
 	public int getGrassAt(int x, int y) {
 		int grass = 0;
 		if (grassSpace.getObjectAt(x, y) != null) {
@@ -52,6 +67,12 @@ public class RabbitsGrassSimulationSpace {
 		return grass;
 	}
 
+	/**
+	 * 
+	 * @param 	x	horizontal position of the cell
+	 * @param 	y	vertical position of the cell
+	 * @return	agent contained in the cell
+	 */
 	public RabbitsGrassSimulationAgent getRabbitAt(int x, int y) {
 		RabbitsGrassSimulationAgent rabbit = null;
 		if (rabbitSpace.getObjectAt(x, y) != null) {
@@ -60,14 +81,12 @@ public class RabbitsGrassSimulationSpace {
 		return rabbit;
 	}
 
-	public Object2DGrid getRabbitSpace() {
-		return rabbitSpace;
-	}
-
-	public Object2DGrid getGrassSpace() {
-		return grassSpace;
-	}
-
+	/**
+	 * 
+	 * @param 	x	horizontal position of the cell
+	 * @param 	y	vertical position of the cell
+	 * @return	true if an agent occupies the cell
+	 */
 	public boolean isCellOccupied(int x, int y) {
 		if (rabbitSpace.getObjectAt(x, y) == null) {
 			return false;
@@ -75,6 +94,11 @@ public class RabbitsGrassSimulationSpace {
 		return true;
 	}
 
+	/**
+	 * Add an agent in a random free cell in the grid
+	 * @param rabbit	agent to add in the grid
+	 * @return			true if succeed to add the agent
+	 */
 	public boolean addRabbit(RabbitsGrassSimulationAgent rabbit) {
 		boolean returnValue = false;
 		int count = 0;
@@ -95,6 +119,14 @@ public class RabbitsGrassSimulationSpace {
 		return returnValue;
 	}
 
+	/**
+	 * 
+	 * @param 	x	horizontal position of the initial cell
+	 * @param 	y	vertical position of the initial cell
+	 * @param 	newX	horizontal position of the destination cell
+	 * @param 	newY	vertical position of the destination cell
+	 * @return	true if succeed to move
+	 */
 	public boolean moveRabbitAt(int x, int y, int newX, int newY) {
 		boolean retVal = false;
 		if (!isCellOccupied(newX, newY)) {
@@ -107,16 +139,31 @@ public class RabbitsGrassSimulationSpace {
 		return retVal;
 	}
 
+	/**
+	 * Removes the agent contained in the cell
+	 * @param 	x	horizontal position of the cell
+	 * @param 	y	vertical position of the cell
+	 */
 	public void removeRabbitAt(int x, int y) {
 		rabbitSpace.putObjectAt(x, y, null);
 	}
 
+	/**
+	 * Removes the whole grass contained in the cell
+	 * @param 	x	horizontal position of the cell
+	 * @param 	y	vertical position of the cell
+	 * @return	the amount of grass that was in the cell
+	 */
 	public int eatGrassAt(int x, int y) {
 		int grass = getGrassAt(x, y);
 		grassSpace.putObjectAt(x, y, new Integer(0));
 		return grass;
 	}
 
+	/**
+	 * 
+	 * @return the total amount of grass contained in the grid
+	 */
 	public int getTotalGrass() {
 		int total = 0;
 		for (int i = 0; i < grassSpace.getSizeX(); i++) {
@@ -127,5 +174,13 @@ public class RabbitsGrassSimulationSpace {
 			}
 		}
 		return total;
+	}
+
+	public Object2DGrid getRabbitSpace() {
+		return rabbitSpace;
+	}
+
+	public Object2DGrid getGrassSpace() {
+		return grassSpace;
 	}
 }
