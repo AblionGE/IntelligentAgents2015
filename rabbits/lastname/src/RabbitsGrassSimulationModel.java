@@ -53,6 +53,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 															// lost per
 															// reproduction
 	private static final int MAX_LOSS_REPRODUCTION_ENERGY = 20;
+	private static final int MAX_COLORS = 128;
 	private static final String NAME_DISPLAY = "Rabbits and Grass Simulation Window";
 
 	private DisplaySurface displaySurf;
@@ -220,8 +221,8 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private void buildDisplay() {
 		ColorMap map = new ColorMap();
 
-		for (int i = 1; i < 16; i++) {
-			map.mapColor(i, new Color(0, (int) (i * 8 + 127), 0));
+		for (int i = 1; i < MAX_COLORS; i++) {
+			map.mapColor(i, new Color(0, (int) (i + 127), 0));
 		}
 
 		// When noting, it is white

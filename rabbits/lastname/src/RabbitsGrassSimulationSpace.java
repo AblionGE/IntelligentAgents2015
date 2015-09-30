@@ -25,12 +25,22 @@ public class RabbitsGrassSimulationSpace {
 
 	public void spreadGrass(int grass) {
 		for (int i = 0; i < grass; i++) {
-			int x = (int) (Math.random() * (grassSpace.getSizeX()));
-			int y = (int) (Math.random() * (grassSpace.getSizeY()));
+			int attempts = 5;
+			boolean found = false;
 
-			int currentGrass = getGrassAt(x, y);
-
-			grassSpace.putObjectAt(x, y, new Integer(currentGrass + 1));
+			// We try to add grass to an element of the grid 5 times
+			// if it is not added, we simply skip this piece of grass
+			while (attempts > 0 && !found) {
+				int x = (int) (Math.random() * (grassSpace.getSizeX()));
+				int y = (int) (Math.random() * (grassSpace.getSizeY()));
+				int currentGrass = getGrassAt(x, y);
+				// We have 127 levels of Color for each element of the grid
+				if (currentGrass < 127) {
+					found = true;
+					grassSpace.putObjectAt(x, y, new Integer(currentGrass + 1));
+				}
+				attempts--;
+			}
 		}
 	}
 
