@@ -7,3 +7,6 @@ Assignment 1:
 - If a rabbit wins enough energy to give birth at run i, then he will only give birth at run i+1 (like this, we are able to see in green in the display when a rabbit will give birth).
 - when a rabbit gives birth, he loses 'lossReproductionEnergy' amount of energy.
 - a new born rabbit is initialized in the same way as the rabbits are at the beginning.
+
+Assignment 2:
+
