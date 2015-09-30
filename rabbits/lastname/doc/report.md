@@ -19,17 +19,33 @@ In addition to the compulsory variables defined in the assignment, here are the 
 
 ## Structure
 
-MainRabbit: Main class that lauches the simulation
+```MainRabbit```: Main class that launches the simulation
 
-RabbitsGrassSimulationModel: Class that implements the simulation model
+```RabbitsGrassSimulationModel```: Class that implements the RePast simulation model. It contains the required methods for a RePast simulation as well as the settings for the sliders and the population plot.
 
-RabbitsGrassSimulationAgent: Class that represents an agent of the simulation, here a rabbit
+```RabbitsGrassSimulationAgent```: Class that represents an agent of the simulation which is a rabbit. The main functions are:
 
-RabbitsGrassSimulationSpace: Class that represents the space of the simulation
+* ```draw(SimGraphics simG)```: displays the image of a rabbit
+* ```setVxVy()```: function that chooses randomly a direction between north, south, west and east
+* ```report()```: prints informations about the agent in the console
+* ```step()```: function called at each time run. The rabbit moves to a neighbouring cell if possible, eats the grass after moving, loses an amount of energy and reproduces if it has enough energy.
+* ```isReproducing()```: returns true if the rabbit has enough energy to give birth
+
+```RabbitsGrassSimulationSpace```: Class that represents the environment of the simulation. The main functions are:
+
+* ```spreadGrass(int grass)```: distributes randomly the amount of grass specified in the function's parameter over the grid
+* ```getGrassAt(int x, int y)```: returns the amount of grass in the cell specified by the coordinates ```x``` and ```y```
+* ```getRabbitAt(int x, int y)```: returns the ```RabbitsGrassSimulationAgent``` present in the cell specified by the coordinates ```x``` and ```y``` and ```null``` if there is none
+* ```isCellOccupied(int x, int y)```: returns true if there is a ```RabbitsGrassSimulationAgent``` in the cell
+* ```addRabbit(RabbitsGrassSimulationAgent rabbit)```: adds a rabbit randomly in a free cell of the grid
+* ```moveRabbitAt(int x, int y, int newX, int newY)```: if the cell specified by ```newX``` and ```newY``` is free, moves the rabbit located in ```x``` and ```y``` to ```newX``` and ```newY``` and returns true. Returns false if the destination cell is already occupied.
+* ```removeRabbitAt(int x, int y)```: free the cell specified by the coordinates ```x``` and ```y```
+* ```eatGrassAt(int x, int y)```: returns the amount of grass contained in the cell specified by ```x``` and ```y``` and removes all the grass from this cells
+* ```getTotalGrass()```: returns the total amount of grass present in th grid
 
 # Strategies
 
-Here are the choices that we have made for our application:
+Here are the choices that we have made for our application to avoid unexpected behaviours:
 
 ## GUI:
 
@@ -56,8 +72,10 @@ Here are the choices that we have made for our application:
 * A new born rabbit is initialized in the same way as the rabbits are at the beginning of a run.
 
 
-# Results
-
 # Conclusion
 
-We observed during this assignment the variations between number of rabbits and amount of grass. The plot helped us to confirm this feeling.
+We observed during this assignment the variations between number of rabbits and amount of grass. The plot helped us to confirm this feeling.  
+We can observe that the number of rabbits as well as the number of grass units varies in a kind of sinusoidal fashion. Indeed, as the number of rabbits grows, they eat more grass. Then, the amount of grass decreases which implies that the rabbits don't have enough food any more and die one after another. As there is less rabbits, the amount of grass increases and the circuit starts again.
+
+
+

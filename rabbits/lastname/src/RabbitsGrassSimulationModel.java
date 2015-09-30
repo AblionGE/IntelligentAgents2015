@@ -39,9 +39,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 	private static final int NUM_RABBITS = 1;
 	private static final int MAX_NUM_RABBITS = MAX_X_SIZE * MAX_Y_SIZE / 10;
 	private static final int MIN_INIT_ENERGY = 10;
-	//private static final int MAX_MIN_INIT_ENERGY = 100;
 	private static final int MAX_INIT_ENERGY = 20;
-	//private static final int MAX_MAX_INIT_ENERGY = 100;
 	private static final int BIRTH_THRESHOLD = 20;
 	private static final int MAX_BIRTH_THRESHOLD = 50;
 	private static final int INIT_GRASS = 500;
@@ -217,14 +215,6 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 		RangePropertyDescriptor lossReproductionEnergy = new RangePropertyDescriptor("LossReproductionEnergy", 0,
 				MAX_LOSS_REPRODUCTION_ENERGY, MAX_LOSS_REPRODUCTION_ENERGY / 5);
 		descriptors.put("LossReproductionEnergy", lossReproductionEnergy);
-
-		/*RangePropertyDescriptor maxInitEnergy = new RangePropertyDescriptor("MaxInitEnergy", 0, MAX_MAX_INIT_ENERGY,
-				MAX_MAX_INIT_ENERGY / 5);
-		descriptors.put("MaxInitEnergy", maxInitEnergy);
-
-		RangePropertyDescriptor minInitEnergy = new RangePropertyDescriptor("MinInitEnergy", 0, MAX_MIN_INIT_ENERGY,
-				MAX_MIN_INIT_ENERGY / 5);
-		descriptors.put("MinInitEnergy", minInitEnergy);*/
 	}
 
 	private void buildDisplay() {
@@ -386,40 +376,6 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
 		updatePanel();
 	}
-
-	/*public int getMinInitEnergy() {
-		return minInitEnergy;
-	}
-
-	public void setMinInitEnergy(int minEnergy) {
-		if (minEnergy < 0) {
-			System.out.println("minInitEnergy should be positive! It is set to " + MIN_INIT_ENERGY + ".");
-			minEnergy = MIN_INIT_ENERGY;
-		} else if (minEnergy > this.getMaxInitEnergy()) {
-			System.out.println("minInitEnergy should be smaller than maxInitEnergy. It is set to "
-					+ this.getMaxInitEnergy() + ".");
-			minEnergy = this.getMaxInitEnergy();
-		}
-		this.minInitEnergy = minEnergy;
-		updatePanel();
-	}
-
-	public int getMaxInitEnergy() {
-		return maxInitEnergy;
-	}
-
-	public void setMaxInitEnergy(int maxEnergy) {
-		if (maxEnergy < 0) {
-			System.out.println("maxInitEnergy should be positive! It is set to " + MAX_INIT_ENERGY + ".");
-			maxEnergy = MAX_INIT_ENERGY;
-		} else if (maxEnergy < this.getMinInitEnergy()) {
-			System.out.println(
-					"maxInitEnergy should be bigger than minInitEnergy. It is set to " + this.getMinInitEnergy() + ".");
-			maxEnergy = this.getMinInitEnergy();
-		}
-		this.maxInitEnergy = maxEnergy;
-		updatePanel();
-	}*/
 
 	public int getBirthThreshold() {
 		return birthThreshold;

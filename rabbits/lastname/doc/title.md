@@ -9,7 +9,7 @@ header-includes:
   - \chead{}
   - \rhead{\today}
   - \fancyhfoffset{0pt}
-  - \usepackage[top=3cm,bottom=3cm,right=3cm,left=3cm]{geometry}
+  - \usepackage[top=3cm,bottom=3cm,right=1cm,left=1cm]{geometry}
   - \usepackage[utf8]{inputenc}
   - \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 ---
