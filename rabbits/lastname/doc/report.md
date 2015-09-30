@@ -12,6 +12,7 @@ In addition to the compulsory variables defined in the assignment, here are the 
 * **Maximum number of rabbits** : 1'000
 * **Maximum birth threshold** : 20
 * **Maximum growth rate for grass** : 200
+* **Maximum grass per element of the grid** : 128
 * **Initial unit of grass** : maximum is 10'000
 * **Energy lost per time unit** : maximum is 20
 * **Energy loss for reproduction** : maximum is 20
@@ -33,7 +34,7 @@ In addition to the compulsory variables defined in the assignment, here are the 
 
 ```RabbitsGrassSimulationSpace```: Class that represents the environment of the simulation. The main functions are:
 
-* ```spreadGrass(int grass)```: distributes randomly the amount of grass specified in the function's parameter over the grid
+* ```spreadGrass(int grass)```: distributes randomly the amount of grass specified in the function's parameter over the grid. One element of the grid can contain at most 127 unit of grass so it tries to spread a unit of grass at most 5 times and then it simply skips it.
 * ```getGrassAt(int x, int y)```: returns the amount of grass in the cell specified by the coordinates ```x``` and ```y```
 * ```getRabbitAt(int x, int y)```: returns the ```RabbitsGrassSimulationAgent``` present in the cell specified by the coordinates ```x``` and ```y``` and ```null``` if there is none
 * ```isCellOccupied(int x, int y)```: returns true if there is a ```RabbitsGrassSimulationAgent``` in the cell
@@ -70,6 +71,7 @@ Here are the choices that we have made for our application to avoid unexpected b
 * If a rabbit cannot move, it does not eat.
 * At each time unit, if the rabbit has reached the *birth threshold* amount of energy, it gives birth to a new rabbit and loses *loss energy reproduction* amount of energy.
 * A new born rabbit is initialized in the same way as the rabbits are at the beginning of a run.
+* An element of the grid can contain at most 127 unit of grass to be able to have a green screen (and not a black one when there is more grass).
 
 
 # Conclusion
