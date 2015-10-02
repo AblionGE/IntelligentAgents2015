@@ -38,6 +38,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 			City currentCity = vehicle.getCurrentCity();
 			action = new Move(currentCity.randomNeighbor(random));
 		} else {
+			//Here we need to decide if the task should be taken or not.
 			action = new Pickup(availableTask);
 		}
 		return action;
