@@ -19,8 +19,8 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 	private Random random;
 	private double pPickup;
-	private Integer[][] p;
-	private Double[][] r;
+	private Double[][] p;
+	private Integer[][] r;
 
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
@@ -32,16 +32,17 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		this.random = new Random();
 		this.pPickup = discount;
 
+		/***************Matrices r and p**********************/
 		// Set matrices r (rewards) and p (probability to have a task from city1 to city2)
 		List<City> cities = topology.cities();
 		int idC1 = 0;
 		int idC2 = 0;
-		r = new Double[cities.size()+1][cities.size()+1];
-		p = new Integer[cities.size()+1][cities.size()+1];
+		r = new Integer[cities.size()+1][cities.size()+1];
+		p = new Double[cities.size()+1][cities.size()+1];
 		for (City c1 : cities) {
 			for (City c2 : cities) {
-				r[idC1][idC2] = td.probability(c1, c2);
-				p[idC1][idC2] = td.reward(c1, c2);
+				r[idC1][idC2] = td.reward(c1, c2);
+				p[idC1][idC2] = td.probability(c1, c2);
 				idC2++;
 			}
 			idC1++;
@@ -49,13 +50,17 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		}
 		//FIXME : to remove
 		//printMatrix(r, cities.size(), cities.size());
+		/*****************************************************/
 		
-		// Transition matrix T(s,a)
-		// 				C1	C2	... Cn
+		
+		/*************Transition matrix T(s,a)****************/
+		//FIXME : I think this matrix is useless...
+		
+		// 						C1	C2	... Cn
 		//noDeliver
-		//DeliverToC1
+		//DeliverTo (C+1)%size
 		//...
-		//DeliverToCn
+		//DeliverTo (C+n)%size
 		City[][] Tsa = new City[cities.size()][cities.size()];
 		// First line of the matrix (closer city)
 		for (int i = 0; i < cities.size(); i++) {
@@ -69,7 +74,26 @@ public class ReactiveTemplate implements ReactiveBehavior {
 			}
 		}
 		//FIXME : to remove
-		printTas(Tsa, cities.size(), cities.size());
+		//printTas(Tsa, cities.size(), cities.size());
+		/*****************************************************/
+		
+		/***********************Matrix Rsa********************/
+		Integer R[][] = new Integer[cities.size()][cities.size()];
+		
+		// When the action is to move without taking the task
+		// the reward is 0.
+		for (int i = 0; i < cities.size(); i++) {
+			R[i][0] = 0;
+		}
+		
+		// Otherwise, we take the reward from matrix r
+		for (int i = 0; i < cities.size(); i++) {
+			for (int j = 1; j < cities.size(); j++) {
+				R[i][j] = r[i][(i+j)%cities.size()];
+			}
+		}
+		printMatrix(R, cities.size(), cities.size());
+		/*****************************************************/
 	}
 
 	@Override
