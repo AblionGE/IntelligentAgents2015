@@ -21,6 +21,8 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	private double pPickup;
 	private Double[][] p;
 	private Integer[][] r;
+	List<City> cities;
+	private int numCities;
 
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
@@ -31,14 +33,15 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 		this.random = new Random();
 		this.pPickup = discount;
+		cities = topology.cities();
+		numCities = cities.size();
 
 		/***************Matrices r and p**********************/
 		// Set matrices r (rewards) and p (probability to have a task from city1 to city2)
-		List<City> cities = topology.cities();
 		int idC1 = 0;
 		int idC2 = 0;
-		r = new Integer[cities.size()+1][cities.size()+1];
-		p = new Double[cities.size()+1][cities.size()+1];
+		r = new Integer[numCities][numCities];
+		p = new Double[numCities][numCities];
 		for (City c1 : cities) {
 			for (City c2 : cities) {
 				r[idC1][idC2] = td.reward(c1, c2);
@@ -49,13 +52,13 @@ public class ReactiveTemplate implements ReactiveBehavior {
 			idC2 = 0;
 		}
 		//FIXME : to remove
-		//printMatrix(r, cities.size(), cities.size());
+		//printMatrix(r, numCities, numCities);
 		/*****************************************************/
-		
-		
+
+
 		/*************Transition matrix T(s,a)****************/
-		//FIXME : I think this matrix is useless...
-		
+		/*//FIXME : I think this matrix is useless... Me too
+
 		// 						C1	C2	... Cn
 		//noDeliver
 		//DeliverTo (C+1)%size
@@ -66,7 +69,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		for (int i = 0; i < cities.size(); i++) {
 			Tsa[0][i] = closestNeighbour(cities.get(i));
 		}
-		
+
 		// Rest of the matrix
 		for (int i = 1; i < cities.size(); i++) {
 			for (int j = 0; j < cities.size(); j++) {
@@ -74,25 +77,58 @@ public class ReactiveTemplate implements ReactiveBehavior {
 			}
 		}
 		//FIXME : to remove
-		//printTas(Tsa, cities.size(), cities.size());
+		//printTas(Tsa, cities.size(), cities.size());*/
 		/*****************************************************/
-		
-		/***********************Matrix Rsa********************/
-		Integer R[][] = new Integer[cities.size()][cities.size()];
-		
+
+		/***********************Matrix R(s,a)*****************/
+		Double R[][] = new Double[numCities*(numCities-1)][2];
+
 		// When the action is to move without taking the task
-		// the reward is 0.
-		for (int i = 0; i < cities.size(); i++) {
-			R[i][0] = 0;
+		// the reward is -distance.
+		for (int i = 0; i < R.length; i++) {
+			int sd[] = sourceAndDestinationFromIndex(i, numCities);
+			R[i][0] = -distanceBetween(sd[0], sd[1]);
 		}
-		
-		// Otherwise, we take the reward from matrix r
-		for (int i = 0; i < cities.size(); i++) {
-			for (int j = 1; j < cities.size(); j++) {
-				R[i][j] = r[i][(i+j)%cities.size()];
+
+		// Otherwise, we take the reward from matrix r minus the distance
+		for (int i = 0; i < R.length; i++) {
+			int sd[] = sourceAndDestinationFromIndex(i, numCities);
+			R[i][1] = r[sd[0]][sd[1]] - distanceBetween(sd[0], sd[1]);
+		}
+		//FIXME: to remove
+		//printMatrix(R, numCities*(numCities-1), 2);
+		/*****************************************************/
+
+		/***********************Matrix T(s,a,s')**************/
+		Double T[][][] = new Double[numCities*(numCities-1)][2][numCities*(numCities-1)];
+
+		// When the action is to move without taking the task
+		for (int i = 0; i < T.length; i++) {
+			for (int j = 0; j < T.length; j++) {
+				int sdA[] = sourceAndDestinationFromIndex(i, numCities);
+				int sdB[] = sourceAndDestinationFromIndex(j, numCities);
+
+				if(sdA[1] == sdB[0] && areClosestNeighbour(sdA[0], sdA[1])) {
+					T[i][0][j] = new Double(1);
+				} else {
+					T[i][0][j] = new Double(0);
+				}
 			}
 		}
-		printMatrix(R, cities.size(), cities.size());
+
+		// When the action is to deliver the task
+		for (int i = 0; i < T.length; i++) {
+			for (int j = 0; j < T.length; j++) {
+				int sdA[] = sourceAndDestinationFromIndex(i, numCities);
+				int sdB[] = sourceAndDestinationFromIndex(j, numCities);
+
+				if(sdA[1] == sdB[0]) {
+					T[i][1][j] = p[sdA[0]][sdA[1]];
+				} else {
+					T[i][1][j] = new Double(0);
+				}
+			}
+		}
 		/*****************************************************/
 	}
 
@@ -111,7 +147,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		}
 		return action;
 	}
-	
+
 	private City closestNeighbour(City city) {
 		City closestNeighbour = null;
 		double minDistance = -1;
@@ -126,7 +162,30 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		}
 		return closestNeighbour;
 	}
-	
+
+	// From an array with entries:
+	//  city 0 -> city 1
+	//  city 0 -> city 2
+	//  ...
+	//  city n -> city n-1
+	// Returns the source and destination corresponding to the index
+	private int[] sourceAndDestinationFromIndex(int index, int size) {
+		int source = (int) Math.floor(index/(size-1));
+		int destination = (index+source)%size;
+		if(destination >= source) {
+			destination = (destination+1)%size;
+		}
+		return new int[]{source, destination};
+	}
+
+	private double distanceBetween(int cityA, int cityB) {
+		return cities.get(cityA).distanceTo(cities.get(cityB));
+	}
+
+	private boolean areClosestNeighbour(int cityA, int cityB) {
+		return cities.get(cityA).equals(closestNeighbour(cities.get(cityB)));
+	}
+
 	private void printMatrix(Number[][] matrix, int sizeX, int sizeY) {
 		int i = 0;
 		int j = 0;
@@ -137,7 +196,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 			System.out.println("");
 		}
 	}
-	
+
 	private void printTas(City[][] cities, int sizeX, int sizeY) {
 		int i = 0;
 		int j = 0;
