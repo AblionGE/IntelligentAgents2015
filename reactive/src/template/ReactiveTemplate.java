@@ -23,6 +23,11 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	private Integer[][] r;
 	List<City> cities;
 	private int numCities;
+	private static final double EPSILON = 0.0001;
+	private int numStates;
+	private int numActions;
+	private double gamma = 0.5;
+	double[] V;
 
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
@@ -35,6 +40,9 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		this.pPickup = discount;
 		cities = topology.cities();
 		numCities = cities.size();
+		
+		numStates = numCities*(numCities-1);
+		numActions = 2;
 
 		/***************Matrices r and p**********************/
 		// Set matrices r (rewards) and p (probability to have a task from city1 to city2)
@@ -56,17 +64,17 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		/*****************************************************/
 
 		/***********************Matrix R(s,a)*****************/
-		Double R[][] = new Double[2][numCities*(numCities-1)];
+		Double R[][] = new Double[numActions][numStates];
 
 		// When the action is to move without taking the task
 		// the reward is -distance.
-		for (int i = 0; i < R.length; i++) {
+		for (int i = 0; i < numStates; i++) {
 			int sd[] = sourceAndDestinationFromIndex(i, numCities);
 			R[0][i] = -distanceBetween(sd[0], sd[1]);
 		}
 
 		// Otherwise, we take the reward from matrix r minus the distance
-		for (int i = 0; i < R.length; i++) {
+		for (int i = 0; i < numStates; i++) {
 			int sd[] = sourceAndDestinationFromIndex(i, numCities);
 			R[1][i] = r[sd[0]][sd[1]] - distanceBetween(sd[0], sd[1]);
 		}
@@ -75,11 +83,11 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		/*****************************************************/
 
 		/***********************Matrix T(s,a,s')**************/
-		Double T[][][] = new Double[numCities*(numCities-1)][2][numCities*(numCities-1)];
+		Double T[][][] = new Double[numStates][2][numStates];
 
 		// When the action is to move without taking the task
-		for (int i = 0; i < T.length; i++) {
-			for (int j = 0; j < T.length; j++) {
+		for (int i = 0; i < numStates; i++) {
+			for (int j = 0; j < numStates; j++) {
 				int sdA[] = sourceAndDestinationFromIndex(i, numCities);
 				int sdB[] = sourceAndDestinationFromIndex(j, numCities);
 
@@ -92,8 +100,8 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		}
 
 		// When the action is to deliver the task
-		for (int i = 0; i < T.length; i++) {
-			for (int j = 0; j < T.length; j++) {
+		for (int i = 0; i < numStates; i++) {
+			for (int j = 0; j < numStates; j++) {
 				int sdA[] = sourceAndDestinationFromIndex(i, numCities);
 				int sdB[] = sourceAndDestinationFromIndex(j, numCities);
 
@@ -107,9 +115,31 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		/*****************************************************/
 		
 		/********************Compute V(S)*********************/
-		Double[] V = new Double[numCities];
-		for (int i = 0; i < numCities ; i++) {
+		V = new double[numStates];
+		double[] oldV = new double[numStates];
+		
+		// Initialize V
+		for (int i = 0; i < numStates ; i++) {
 			V[i] = 0.0;
+			oldV[i] = 1.0;
+		}
+		
+		double[][] Q = new double[numStates][numActions];
+		
+		while (computeDifference(oldV, V) > EPSILON) {
+			oldV = V;
+			for (int i = 0; i < numStates; i++) {
+				for (int j = 0; j < numActions; j++) {
+					//sum over s'
+					double TsaV = 0;
+					for (int k = 0; k < numStates; k++) {
+						TsaV = TsaV + (T[i][j][k]*oldV[k]);
+					}
+					
+					Q[i][j] = R[j][i] + gamma * TsaV;
+				}
+				V[i] = max(Q[i]);
+			}
 		}
 		/*****************************************************/
 	}
@@ -128,6 +158,26 @@ public class ReactiveTemplate implements ReactiveBehavior {
 			System.out.println("delivery : " + availableTask.deliveryCity.name);
 		}
 		return action;
+	}
+	
+	private double max(double vector[]) {
+		double max = -1;
+		for (int i = 0; i < vector.length; i++) {
+			if (vector[i] > max) {
+				max = vector[i];
+			}
+		}
+		return max;
+		
+	}
+	private double computeDifference(double[] oldV, double[] newV) {
+		double max = new Double(-1);
+		for (int i = 0; i < oldV.length; i++) {
+			if (Math.abs(oldV[i] - newV[i]) < max || max == -1) {
+				max = Math.abs(oldV[i] - newV[i]);
+			}
+		}
+		return max;
 	}
 
 	private City closestNeighbour(City city) {
