@@ -56,19 +56,19 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		/*****************************************************/
 
 		/***********************Matrix R(s,a)*****************/
-		Double R[][] = new Double[numCities*(numCities-1)][2];
+		Double R[][] = new Double[2][numCities*(numCities-1)];
 
 		// When the action is to move without taking the task
 		// the reward is -distance.
 		for (int i = 0; i < R.length; i++) {
 			int sd[] = sourceAndDestinationFromIndex(i, numCities);
-			R[i][0] = -distanceBetween(sd[0], sd[1]);
+			R[0][i] = -distanceBetween(sd[0], sd[1]);
 		}
 
 		// Otherwise, we take the reward from matrix r minus the distance
 		for (int i = 0; i < R.length; i++) {
 			int sd[] = sourceAndDestinationFromIndex(i, numCities);
-			R[i][1] = r[sd[0]][sd[1]] - distanceBetween(sd[0], sd[1]);
+			R[1][i] = r[sd[0]][sd[1]] - distanceBetween(sd[0], sd[1]);
 		}
 		//FIXME: to remove
 		//printMatrix(R, numCities*(numCities-1), 2);
@@ -103,6 +103,13 @@ public class ReactiveTemplate implements ReactiveBehavior {
 					T[i][1][j] = new Double(0);
 				}
 			}
+		}
+		/*****************************************************/
+		
+		/********************Compute V(S)*********************/
+		Double[] V = new Double[numCities];
+		for (int i = 0; i < numCities ; i++) {
+			V[i] = 0.0;
 		}
 		/*****************************************************/
 	}
