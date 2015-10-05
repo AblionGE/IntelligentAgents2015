@@ -55,31 +55,6 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		//printMatrix(r, numCities, numCities);
 		/*****************************************************/
 
-
-		/*************Transition matrix T(s,a)****************/
-		/*//FIXME : I think this matrix is useless... Me too
-
-		// 						C1	C2	... Cn
-		//noDeliver
-		//DeliverTo (C+1)%size
-		//...
-		//DeliverTo (C+n)%size
-		City[][] Tsa = new City[cities.size()][cities.size()];
-		// First line of the matrix (closer city)
-		for (int i = 0; i < cities.size(); i++) {
-			Tsa[0][i] = closestNeighbour(cities.get(i));
-		}
-
-		// Rest of the matrix
-		for (int i = 1; i < cities.size(); i++) {
-			for (int j = 0; j < cities.size(); j++) {
-				Tsa[i][j] = cities.get((j+i)%cities.size());
-			}
-		}
-		//FIXME : to remove
-		//printTas(Tsa, cities.size(), cities.size());*/
-		/*****************************************************/
-
 		/***********************Matrix R(s,a)*****************/
 		Double R[][] = new Double[numCities*(numCities-1)][2];
 
