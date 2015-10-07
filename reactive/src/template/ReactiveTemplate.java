@@ -26,17 +26,16 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	private static final double EPSILON = 0.0001;
 	private int numStates;
 	private int numActions;
-	private double gamma = 0.5;
 	double[] V;
 	int[] Best;
-	Topology topology;
+	Double discount;
 
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
 
 		// Reads the discount factor from the agents.xml file.
 		// If the property is not present it defaults to 0.95
-		Double discount = agent.readProperty("discount-factor", Double.class, 0.95);
+		discount = agent.readProperty("discount-factor", Double.class, 0.95);
 
 		this.random = new Random();
 		this.pPickup = discount;
@@ -141,7 +140,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 						TsaV = TsaV + (T[i][j][k] * oldV[k]);
 					}
 
-					Q[i][j] = R[j][i] + gamma * TsaV;
+					Q[i][j] = R[j][i] + discount * TsaV;
 				}
 				double[] best = max(Q[i]);
 				V[i] = best[0];
@@ -149,10 +148,10 @@ public class ReactiveTemplate implements ReactiveBehavior {
 			}
 		}
 
-		for (int i = 0; i < numStates; i++) {
+		/*for (int i = 0; i < numStates; i++) {
 			System.out.println("Best(x) = 0 means move without the task");
 			System.out.println("V[" + i + "] : " + V[i] + ", Best[" + i + "] : " + Best[i]);
-		}
+		}/*
 		/*****************************************************/
 	}
 
