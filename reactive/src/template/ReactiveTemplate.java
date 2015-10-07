@@ -161,18 +161,18 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		City currentCity = vehicle.getCurrentCity();
 
 		if (availableTask == null) {
-			System.out.println("There is no task from " + currentCity);
+			System.out.println("There is no task from " + currentCity + " for " + vehicle.name() );
 			action = new Move(closestNeighbour(currentCity));
 		} else {
 			int indexBest = indexFromSourceAndDestination(currentCity.id, availableTask.deliveryCity.id, numCities);
 
 			if (Best[indexBest] == 0) {
-				System.out.println("I do not take the task from " + availableTask.pickupCity + " to "
+				System.out.println(vehicle.name() + " does not take the task from " + availableTask.pickupCity + " to "
 						+ availableTask.deliveryCity);
 				action = new Move(closestNeighbour(currentCity));
 			} else {
 				System.out.println(
-						"I take the task from " + availableTask.pickupCity + " to " + availableTask.deliveryCity);
+						vehicle.name() + " takes the task from " + availableTask.pickupCity + " to " + availableTask.deliveryCity);
 				action = new Pickup(availableTask);
 			}
 		}
