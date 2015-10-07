@@ -28,6 +28,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	private int numActions;
 	private double gamma = 0.5;
 	double[] V;
+	int[] Best;
 
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
@@ -114,8 +115,9 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		}
 		/*****************************************************/
 		
-		/********************Compute V(S)*********************/
+		/********************Compute V(S) and Best(S)*********/
 		V = new double[numStates];
+		Best = new int[numStates];
 		double[] oldV = new double[numStates];
 		
 		// Initialize V
@@ -138,8 +140,14 @@ public class ReactiveTemplate implements ReactiveBehavior {
 					
 					Q[i][j] = R[j][i] + gamma * TsaV;
 				}
-				V[i] = max(Q[i]);
+				double[] best = max(Q[i]); 
+				V[i] = best[0];
+				Best[i] = (int) best[1];
 			}
+		}
+		
+		for (int i = 0; i < numStates; i++) {
+			System.out.println("V[" + i + "] : " + V[i] + ", Best[" + i + "] : " + Best[i]);
 		}
 		/*****************************************************/
 	}
@@ -160,14 +168,19 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		return action;
 	}
 	
-	private double max(double vector[]) {
+	private double[] max(double vector[]) {
 		double max = -1;
+		int index = -1;
+		double[] retVal = new double[2];
 		for (int i = 0; i < vector.length; i++) {
 			if (vector[i] > max) {
 				max = vector[i];
+				index = i;
 			}
 		}
-		return max;
+		retVal[0] = max;
+		retVal[1] = index;
+		return retVal;
 		
 	}
 	private double computeDifference(double[] oldV, double[] newV) {
