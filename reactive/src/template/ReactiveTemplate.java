@@ -32,7 +32,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
-
+		
 		// Reads the discount factor from the agents.xml file.
 		// If the property is not present it defaults to 0.95
 		discount = agent.readProperty("discount-factor", Double.class, 0.95);
@@ -62,27 +62,24 @@ public class ReactiveTemplate implements ReactiveBehavior {
 			idC1++;
 			idC2 = 0;
 		}
-		// FIXME : to remove
-		// printMatrix(r, numCities, numCities);
 		/*****************************************************/
 
-		/*********************** Matrix R(s,a) *****************/
+		/*********************** Matrix R(a,s) *****************/
 		Double R[][] = new Double[numActions][numStates];
+		Vehicle vehicle = agent.vehicles().get(0); //FIXME may contain more vehicles
 
 		// When the action is to move without taking the task
-		// the reward is -distance.
+		// the reward is -distance*(cost/km).
 		for (int i = 0; i < numStates; i++) {
 			int sd[] = sourceAndDestinationFromIndex(i, numCities);
-			R[0][i] = -distanceBetween(sd[0], sd[1]);
+			R[0][i] = -distanceBetween(sd[0], sd[1])*vehicle.costPerKm();
 		}
 
-		// Otherwise, we take the reward from matrix r minus the distance
+		// Otherwise, we take the reward from matrix r minus the travel cost
 		for (int i = 0; i < numStates; i++) {
 			int sd[] = sourceAndDestinationFromIndex(i, numCities);
-			R[1][i] = r[sd[0]][sd[1]] - distanceBetween(sd[0], sd[1]);
+			R[1][i] = r[sd[0]][sd[1]] - distanceBetween(sd[0], sd[1])*vehicle.costPerKm();
 		}
-		// FIXME: to remove
-		// printMatrix(R, numActions, numStates);
 		/*****************************************************/
 
 		/*********************** Matrix T(s,a,s') **************/
@@ -144,14 +141,14 @@ public class ReactiveTemplate implements ReactiveBehavior {
 				}
 				double[] best = max(Q[i]);
 				V[i] = best[0];
-				Best[i] = (int) best[1];
+				Best[i] = (int)best[1];
 			}
 		}
 
-		/*for (int i = 0; i < numStates; i++) {
-			System.out.println("Best(x) = 0 means move without the task");
+		System.out.println("Best(x) = 0 means move without the task");
+		for (int i = 0; i < numStates; i++) {
 			System.out.println("V[" + i + "] : " + V[i] + ", Best[" + i + "] : " + Best[i]);
-		}/*
+		}
 		/*****************************************************/
 	}
 
@@ -239,7 +236,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		int startIndexCitySource = citySource * (numberOfCities - 1);
 		int returnedIndex = startIndexCitySource + cityDestination;
 		if (citySource > cityDestination) {
-			returnedIndex--;
+			returnedIndex++;
 		}
 		return returnedIndex;
 	}
