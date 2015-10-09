@@ -2,14 +2,13 @@ package template;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 
-import logist.simulation.Vehicle;
 import logist.agent.Agent;
 import logist.behavior.ReactiveBehavior;
 import logist.plan.Action;
 import logist.plan.Action.Move;
 import logist.plan.Action.Pickup;
+import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.task.TaskDistribution;
 import logist.topology.Topology;
@@ -17,8 +16,6 @@ import logist.topology.Topology.City;
 
 public class ReactiveTemplate implements ReactiveBehavior {
 
-	private Random random;
-	private double pPickup;
 	private Double[][] p;
 	private Integer[][] r;
 	List<City> cities;
@@ -36,9 +33,6 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		// Reads the discount factor from the agents.xml file.
 		// If the property is not present it defaults to 0.95
 		discount = agent.readProperty("discount-factor", Double.class, 0.95);
-
-		this.random = new Random();
-		this.pPickup = discount;
 
 		cities = topology.cities();
 		numCities = cities.size();
@@ -83,6 +77,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		/*****************************************************/
 
 		/*********************** Matrix T(s,a,s') **************/
+		//FIXME : Are we OK with the way to compute probabilities here ?
 		Double T[][][] = new Double[numStates][2][numStates];
 
 		// When the action is to move without taking the task
@@ -119,7 +114,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		Best = new int[numStates];
 		double[] oldV = new double[numStates];
 
-		// Initialize V
+		// Initialise V
 		for (int i = 0; i < numStates; i++) {
 			V[i] = 0.0;
 			oldV[i] = 1.0;
@@ -236,7 +231,11 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		int startIndexCitySource = citySource * (numberOfCities - 1);
 		int returnedIndex = startIndexCitySource + cityDestination;
 		if (citySource > cityDestination) {
-			returnedIndex++;
+			// If the source id is bigger than the destination id,
+			// we must remove 1 because the source is not 
+			
+			// FIXME : Maybe problem of understanding between us
+			returnedIndex--;
 		}
 		return returnedIndex;
 	}
