@@ -80,7 +80,6 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		/*****************************************************/
 
 		/*********************** Matrix T(s,a,s') **************/
-		// FIXME : Are we OK with the way to compute probabilities here ?
 		Double T[][][] = new Double[numStates][2][numStates];
 
 		// When the action is to move without taking the task
@@ -157,18 +156,20 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		int indexBest;
 
 		if (availableTask == null) {
+			// If the task is null, move to the closest neighbour
 			indexBest = indexFromSourceAndDestination(currentCity.id, closestNeighbour(currentCity).id, numCities);
 			System.out.println(
 					vehicle.name() + "there is no task from " + currentCity + ". Profit : " + R[indexBest][0]);
 			action = new Move(closestNeighbour(currentCity));
 		} else {
-
 			indexBest = indexFromSourceAndDestination(currentCity.id, availableTask.deliveryCity.id, numCities);
 			if (Best[indexBest] == 0) {
+				// If the best solution is to move, move to the closest neighbour
 				System.out.println(vehicle.name() + " does not take the task from " + availableTask.pickupCity + " to "
 						+ availableTask.deliveryCity + ". Profit : " + R[indexBest][0]);
 				action = new Move(closestNeighbour(currentCity));
 			} else {
+				// else pickup the task
 				System.out.println(vehicle.name() + " takes the task from " + availableTask.pickupCity + " to "
 						+ availableTask.deliveryCity + ". Profit : " + R[indexBest][1]);
 				action = new Pickup(availableTask);
@@ -177,6 +178,11 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		return action;
 	}
 
+	/**
+	 * Gives the maximum value of a vector with its index
+	 * @param vector
+	 * @return max value of a vector with its index
+	 */
 	private double[] max(double vector[]) {
 		double max = Double.MIN_VALUE;
 		int index = -1;
@@ -193,6 +199,12 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 	}
 
+	/**
+	 * Computes the maximum difference between two elements of two vectors
+	 * @param oldV
+	 * @param newV
+	 * @return the maximum difference between two elements of two vectors
+	 */
 	private double computeDifference(double[] oldV, double[] newV) {
 		double max = new Double(-1);
 		for (int i = 0; i < oldV.length; i++) {
@@ -203,6 +215,11 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		return max;
 	}
 
+	/**
+	 * Gives the closest neighbour of a city
+	 * @param city
+	 * @return the closest neighbour of a city
+	 */
 	private City closestNeighbour(City city) {
 		City closestNeighbour = null;
 		double minDistance = -1;
@@ -218,9 +235,30 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		return closestNeighbour;
 	}
 
+	/**
+	 * Gives the source and the destination from an index from our matrix construction
+	 * @param index
+	 * @param size
+	 * 
+	 * Construction :
+	 * 
+	 * From an array with entries:
+	 * city 0 -> city 1
+	 * city 0 -> city 2
+	 * ...
+	 * city 1 -> city 0
+	 * city 1 -> city 2
+	 * ...
+	 * city n -> city n-1
+	 * 
+	 * @return
+	 */
 	// From an array with entries:
 	// city 0 -> city 1
 	// city 0 -> city 2
+	// ...
+	// city 1 -> city 0
+	// city 1 -> city 2
 	// ...
 	// city n -> city n-1
 	// Returns the source and destination corresponding to the index
@@ -233,25 +271,59 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		return new int[] { source, destination };
 	}
 
+	/**
+	 * Gives the index from a source and a destination in our matrix construction
+	 * 
+	 * Construction :
+	 * 
+	 * From an array with entries:
+	 * city 0 -> city 1
+	 * city 0 -> city 2
+	 * ...
+	 * city 1 -> city 0
+	 * city 1 -> city 2
+	 * ...
+	 * city n -> city n-1
+	 * 
+	 * @param citySource
+	 * @param cityDestination
+	 * @param numberOfCities
+	 * @return
+	 */
 	private int indexFromSourceAndDestination(int citySource, int cityDestination, int numberOfCities) {
 		int startIndexCitySource = citySource * (numberOfCities - 1);
 		int returnedIndex = startIndexCitySource + cityDestination;
 		if (citySource > cityDestination) {
 			// If the source id is bigger than the destination id,
-			// we must remove 1 because the source is not
+			// we must remove 1 because the element city i -> city i doesn't exist
 			returnedIndex--;
 		}
 		return returnedIndex;
 	}
 
+	/**
+	 * Returns the distance between 2 cities
+	 * @param cityA
+	 * @param cityB
+	 * @return distance between 2 cities
+	 */
 	private double distanceBetween(int cityA, int cityB) {
 		return cities.get(cityA).distanceTo(cities.get(cityB));
 	}
 
+	/**
+	 * Returns a boolean that indicates if two cities are closest neighbours
+	 * @param cityA
+	 * @param cityB
+	 * @return boolean that indicates if two cities are closest neighbours
+	 */
 	private boolean areClosestNeighbour(int cityA, int cityB) {
 		return cities.get(cityA).equals(closestNeighbour(cities.get(cityB)));
 	}
 
+	/******The following functions are used for debugging purpose*******/
+		
+	@SuppressWarnings("unused")
 	private void printMatrix(Number[][] matrix, int sizeX, int sizeY) {
 		int i = 0;
 		int j = 0;
@@ -263,6 +335,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private void printTas(City[][] cities, int sizeX, int sizeY) {
 		int i = 0;
 		int j = 0;
