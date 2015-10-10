@@ -58,21 +58,21 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		}
 		/*****************************************************/
 
-		/*********************** Matrix R(a,s) *****************/
-		Double R[][] = new Double[numActions][numStates];
+		/*********************** Matrix R(s,a) *****************/
+		Double R[][] = new Double[numStates][numActions];
 		Vehicle vehicle = agent.vehicles().get(0); //FIXME may contain more vehicles
 
 		// When the action is to move without taking the task
 		// the reward is -distance*(cost/km).
 		for (int i = 0; i < numStates; i++) {
 			int sd[] = sourceAndDestinationFromIndex(i, numCities);
-			R[0][i] = -distanceBetween(sd[0], sd[1])*vehicle.costPerKm();
+			R[i][0] = -distanceBetween(sd[0], sd[1])*vehicle.costPerKm();
 		}
 
 		// Otherwise, we take the reward from matrix r minus the travel cost
 		for (int i = 0; i < numStates; i++) {
 			int sd[] = sourceAndDestinationFromIndex(i, numCities);
-			R[1][i] = r[sd[0]][sd[1]] - distanceBetween(sd[0], sd[1])*vehicle.costPerKm();
+			R[i][1] = r[sd[0]][sd[1]] - distanceBetween(sd[0], sd[1])*vehicle.costPerKm();
 		}
 		/*****************************************************/
 
@@ -132,7 +132,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 						TsaV = TsaV + (T[i][j][k] * oldV[k]);
 					}
 
-					Q[i][j] = R[j][i] + discount * TsaV;
+					Q[i][j] = R[i][j] + discount * TsaV;
 				}
 				double[] best = max(Q[i]);
 				V[i] = best[0];
