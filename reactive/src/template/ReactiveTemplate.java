@@ -239,8 +239,6 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		if (citySource > cityDestination) {
 			// If the source id is bigger than the destination id,
 			// we must remove 1 because the source is not
-
-			// FIXME : Maybe problem of understanding between us
 			returnedIndex--;
 		}
 		return returnedIndex;
