@@ -1,4 +1,4 @@
-# Report of Intelligent Agents - Lab1
+# Report of Intelligent Agents - Lab2
 
 ## Build
 
