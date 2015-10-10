@@ -26,10 +26,11 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	double[] V;
 	int[] Best;
 	Double discount;
+	Double R[][];
 
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
-		
+
 		// Reads the discount factor from the agents.xml file.
 		// If the property is not present it defaults to 0.95
 		discount = agent.readProperty("discount-factor", Double.class, 0.95);
@@ -59,25 +60,27 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		/*****************************************************/
 
 		/*********************** Matrix R(s,a) *****************/
-		Double R[][] = new Double[numStates][numActions];
-		Vehicle vehicle = agent.vehicles().get(0); //FIXME may contain more vehicles
+		R = new Double[numStates][numActions];
+
+		// One agent has only one vehicle
+		Vehicle vehicle = agent.vehicles().get(0);
 
 		// When the action is to move without taking the task
 		// the reward is -distance*(cost/km).
 		for (int i = 0; i < numStates; i++) {
 			int sd[] = sourceAndDestinationFromIndex(i, numCities);
-			R[i][0] = -distanceBetween(sd[0], sd[1])*vehicle.costPerKm();
+			R[i][0] = -distanceBetween(sd[0], sd[1]) * vehicle.costPerKm();
 		}
 
 		// Otherwise, we take the reward from matrix r minus the travel cost
 		for (int i = 0; i < numStates; i++) {
 			int sd[] = sourceAndDestinationFromIndex(i, numCities);
-			R[i][1] = r[sd[0]][sd[1]] - distanceBetween(sd[0], sd[1])*vehicle.costPerKm();
+			R[i][1] = r[sd[0]][sd[1]] - distanceBetween(sd[0], sd[1]) * vehicle.costPerKm();
 		}
 		/*****************************************************/
 
 		/*********************** Matrix T(s,a,s') **************/
-		//FIXME : Are we OK with the way to compute probabilities here ?
+		// FIXME : Are we OK with the way to compute probabilities here ?
 		Double T[][][] = new Double[numStates][2][numStates];
 
 		// When the action is to move without taking the task
@@ -136,7 +139,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 				}
 				double[] best = max(Q[i]);
 				V[i] = best[0];
-				Best[i] = (int)best[1];
+				Best[i] = (int) best[1];
 			}
 		}
 
@@ -151,20 +154,23 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	public Action act(Vehicle vehicle, Task availableTask) {
 		Action action;
 		City currentCity = vehicle.getCurrentCity();
+		int indexBest;
 
 		if (availableTask == null) {
-			System.out.println("There is no task from " + currentCity + " for " + vehicle.name() );
+			indexBest = indexFromSourceAndDestination(currentCity.id, closestNeighbour(currentCity).id, numCities);
+			System.out.println(
+					vehicle.name() + "there is no task from " + currentCity + ". Profit : " + R[indexBest][0]);
 			action = new Move(closestNeighbour(currentCity));
 		} else {
-			int indexBest = indexFromSourceAndDestination(currentCity.id, availableTask.deliveryCity.id, numCities);
 
+			indexBest = indexFromSourceAndDestination(currentCity.id, availableTask.deliveryCity.id, numCities);
 			if (Best[indexBest] == 0) {
 				System.out.println(vehicle.name() + " does not take the task from " + availableTask.pickupCity + " to "
-						+ availableTask.deliveryCity);
+						+ availableTask.deliveryCity + ". Profit : " + R[indexBest][0]);
 				action = new Move(closestNeighbour(currentCity));
 			} else {
-				System.out.println(
-						vehicle.name() + " takes the task from " + availableTask.pickupCity + " to " + availableTask.deliveryCity);
+				System.out.println(vehicle.name() + " takes the task from " + availableTask.pickupCity + " to "
+						+ availableTask.deliveryCity + ". Profit : " + R[indexBest][1]);
 				action = new Pickup(availableTask);
 			}
 		}
@@ -232,8 +238,8 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		int returnedIndex = startIndexCitySource + cityDestination;
 		if (citySource > cityDestination) {
 			// If the source id is bigger than the destination id,
-			// we must remove 1 because the source is not 
-			
+			// we must remove 1 because the source is not
+
 			// FIXME : Maybe problem of understanding between us
 			returnedIndex--;
 		}
