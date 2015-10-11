@@ -54,7 +54,7 @@ This definition is used in the definition of *T(s,a,s')* :
 $$T(s(i,t_j),a,s'(k,t_l)) =
 \left\{
   \begin{array}{rcl}
-    p(i,j) & \mbox{for} & a = deliver_{ij}, \ j=k \ and \ t_j \neq null\\
+    p(i,j) & \mbox{for} & a = deliver_{ij}, \ j=k \ and \ t_j \neq null, \forall t_l\\
     1 & \mbox{for} & a = move_{ij}, \forall t_j, \forall t_l, \ j=k \  and \ j \ is \ the \ closest \ neighbour \ of \ i\\
     0 & & otherwise\\
   \end{array}\right.
