@@ -3,6 +3,8 @@ package template;
 import java.util.Iterator;
 import java.util.List;
 
+import com.sun.media.NBA;
+
 import logist.agent.Agent;
 import logist.behavior.ReactiveBehavior;
 import logist.plan.Action;
@@ -30,7 +32,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
-
+		
 		// Reads the discount factor from the agents.xml file.
 		// If the property is not present it defaults to 0.95
 		discount = agent.readProperty("discount-factor", Double.class, 0.95);
@@ -42,6 +44,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		numActions = 2;
 
 		/*************** Matrices r and p **********************/
+		Double[] pTask = new Double[numCities];
 		// Set matrices r (rewards) and p (probability to have a task from city1
 		// to city2)
 		int idC1 = 0;
@@ -49,9 +52,11 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		r = new Integer[numCities][numCities];
 		p = new Double[numCities][numCities];
 		for (City c1 : cities) {
+			pTask[idC1] = 0.0;
 			for (City c2 : cities) {
 				r[idC1][idC2] = td.reward(c1, c2);
 				p[idC1][idC2] = td.probability(c1, c2);
+				pTask[idC1] += p[idC1][idC2];
 				idC2++;
 			}
 			idC1++;
@@ -82,19 +87,22 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		/*********************** Matrix T(s,a,s') **************/
 		Double T[][][] = new Double[numStates][2][numStates];
 
-		/*// When the action is to move without taking the task
+		// When the action is to move without taking the task
 		for (int i = 0; i < numStates; i++) {
 			for (int j = 0; j < numStates; j++) {
 				int sdA[] = sourceAndDestinationFromIndex(i, numCities);
 				int sdB[] = sourceAndDestinationFromIndex(j, numCities);
 
-				if (sdA[1] == sdB[0] && areClosestNeighbour(sdB[0], sdB[1])) {
-					T[i][0][j] = new Double(1); // TODO plutôt 1/(nb voisins) ?
+				if (sdA[1] == sdB[0] && areClosestNeighbour(sdA[0], sdA[1])) {
+					T[i][0][j] = p[sdB[0]][sdB[1]];
+					if(areClosestNeighbour(sdB[0], sdB[1])) {
+						T[i][0][j] += (1-pTask[sdB[0]]);
+					}
 				} else {
 					T[i][0][j] = new Double(0);
 				}
 			}
-		}*/
+		}
 
 		// When the action is to deliver the task
 		for (int i = 0; i < numStates; i++) {
@@ -103,12 +111,12 @@ public class ReactiveTemplate implements ReactiveBehavior {
 				int sdB[] = sourceAndDestinationFromIndex(j, numCities);
 
 				if (sdA[1] == sdB[0]) {
-					// TODO fonction qui prend en compte p(i,j) mais aussi si i et j sont proche ou pas
 					T[i][1][j] = p[sdB[0]][sdB[1]];
-					T[i][0][j] = p[sdB[0]][sdB[1]];
+					if(areClosestNeighbour(sdB[0], sdB[1])) {
+						T[i][1][j] += (1-pTask[sdB[0]]);
+					}
 				} else {
 					T[i][1][j] = new Double(0);
-					T[i][0][j] = new Double(0);
 				}
 			}
 		}
@@ -320,6 +328,11 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	 */
 	private boolean areClosestNeighbour(int cityA, int cityB) {
 		return cities.get(cityA).equals(closestNeighbour(cities.get(cityB)));
+	}
+	
+	private boolean areNeighbours(int cityA, int cityB) {
+		List<City> neighbours = cities.get(cityA).neighbors();
+		return neighbours.contains(cities.get(cityB));
 	}
 
 	/******The following functions are used for debugging purpose*******/
