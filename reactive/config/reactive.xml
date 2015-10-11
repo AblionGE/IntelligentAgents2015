@@ -24,7 +24,7 @@
 		<!--
 			the probability that there is no task in a city
 		-->
-		<no-task distribution="uniform" min="0.2" max="0.4" />
+		<no-task distribution="uniform" min="0.001" max="0.1" />
 	</tasks>
 	
 	<!-- the companies and vehicles in the simulation -->
