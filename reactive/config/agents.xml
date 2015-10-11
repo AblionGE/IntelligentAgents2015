@@ -10,22 +10,22 @@
 		<set discount-factor=".85"/>
 	</agent>
 	
-	<agent name="reactive50">
+	<agent name="reactive05">
 		<set class-path="bin/"/>
 		<set class-name="template.ReactiveTemplate"/>
-		<set discount-factor=".50"/>
+		<set discount-factor=".05"/>
 	</agent>
 	
-	<agent name="reactive75">
+	<agent name="reactive85">
 		<set class-path="bin/"/>
 		<set class-name="template.ReactiveTemplate"/>
-		<set discount-factor=".75"/>
+		<set discount-factor=".85"/>
 	</agent>
 	
-	<agent name="reactive1">
+	<agent name="reactive65">
 		<set class-path="bin/"/>
 		<set class-name="template.ReactiveTemplate"/>
-		<set discount-factor="1"/>
+		<set discount-factor="0.65"/>
 	</agent>
 	
 </agents>
