@@ -32,7 +32,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
-		
+
 		// Reads the discount factor from the agents.xml file.
 		// If the property is not present it defaults to 0.95
 		discount = agent.readProperty("discount-factor", Double.class, 0.95);
@@ -62,6 +62,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 			idC1++;
 			idC2 = 0;
 		}
+		
 		/*****************************************************/
 
 		/*********************** Matrix R(s,a) *****************/
@@ -93,13 +94,10 @@ public class ReactiveTemplate implements ReactiveBehavior {
 				int sdA[] = sourceAndDestinationFromIndex(i, numCities);
 				int sdB[] = sourceAndDestinationFromIndex(j, numCities);
 
-				if (sdA[1] == sdB[0] && areClosestNeighbour(sdA[0], sdA[1])) {
+				if (sdA[1] == sdB[0] && areNeighbours(sdA[0], sdA[1])) {
 					T[i][0][j] = p[sdB[0]][sdB[1]];
-					if(areClosestNeighbour(sdB[0], sdB[1])) {
-						T[i][0][j] += (1-pTask[sdB[0]]);
-					}
 				} else {
-					T[i][0][j] = new Double(0);
+					T[i][0][j] = 0.0;
 				}
 			}
 		}
@@ -111,12 +109,9 @@ public class ReactiveTemplate implements ReactiveBehavior {
 				int sdB[] = sourceAndDestinationFromIndex(j, numCities);
 
 				if (sdA[1] == sdB[0]) {
-					T[i][1][j] = p[sdB[0]][sdB[1]];
-					if(areClosestNeighbour(sdB[0], sdB[1])) {
-						T[i][1][j] += (1-pTask[sdB[0]]);
-					}
+					T[i][1][j] = p[sdA[0]][sdA[1]];
 				} else {
-					T[i][1][j] = new Double(0);
+					T[i][1][j] = 0.0;
 				}
 			}
 		}
@@ -156,7 +151,8 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		}
 
 		System.out.println("Number of loops: " + loops);
-		System.out.println("Agent " + agent.id() + " with lambda=" + discount + "\nBest(x) = 0 means move without the task");
+		System.out.println(
+				"Agent " + agent.id() + " with lambda=" + discount + "\nBest(x) = 0 means move without the task");
 		for (int i = 0; i < numStates; i++) {
 			if (Best[i] == 0) {
 				System.out.println("V[" + i + "] : " + V[i] + ", Best[" + i + "] : " + Best[i]);
@@ -180,7 +176,8 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		} else {
 			indexBest = indexFromSourceAndDestination(currentCity.id, availableTask.deliveryCity.id, numCities);
 			if (Best[indexBest] == 0) {
-				// If the best solution is to move, move to the closest neighbour
+				// If the best solution is to move, move to the closest
+				// neighbour
 				System.out.println(vehicle.name() + " does not take the task from " + availableTask.pickupCity + " to "
 						+ availableTask.deliveryCity + ". Benefit : " + R[indexBest][0]);
 				action = new Move(closestNeighbour(currentCity));
@@ -196,6 +193,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 	/**
 	 * Gives the maximum value of a vector with its index
+	 * 
 	 * @param vector
 	 * @return max value of a vector with its index
 	 */
@@ -217,6 +215,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 	/**
 	 * Computes the maximum difference between two elements of two vectors
+	 * 
 	 * @param oldV
 	 * @param newV
 	 * @return the maximum difference between two elements of two vectors
@@ -235,6 +234,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 	/**
 	 * Gives the closest neighbour of a city
+	 * 
 	 * @param city
 	 * @return the closest neighbour of a city
 	 */
@@ -254,20 +254,16 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	}
 
 	/**
-	 * Gives the source and the destination from an index from our matrix construction
+	 * Gives the source and the destination from an index from our matrix
+	 * construction
+	 * 
 	 * @param index
 	 * @param size
 	 * 
-	 * Construction :
+	 *            Construction :
 	 * 
-	 * From an array with entries:
-	 * city 0 -> city 1
-	 * city 0 -> city 2
-	 * ...
-	 * city 1 -> city 0
-	 * city 1 -> city 2
-	 * ...
-	 * city n -> city n-1
+	 *            From an array with entries: city 0 -> city 1 city 0 -> city 2
+	 *            ... city 1 -> city 0 city 1 -> city 2 ... city n -> city n-1
 	 * 
 	 * @return the source and destination corresponding to the index
 	 */
@@ -281,18 +277,13 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	}
 
 	/**
-	 * Gives the index from a source and a destination in our matrix construction
+	 * Gives the index from a source and a destination in our matrix
+	 * construction
 	 * 
 	 * Construction :
 	 * 
-	 * From an array with entries:
-	 * city 0 -> city 1
-	 * city 0 -> city 2
-	 * ...
-	 * city 1 -> city 0
-	 * city 1 -> city 2
-	 * ...
-	 * city n -> city n-1
+	 * From an array with entries: city 0 -> city 1 city 0 -> city 2 ... city 1
+	 * -> city 0 city 1 -> city 2 ... city n -> city n-1
 	 * 
 	 * @param citySource
 	 * @param cityDestination
@@ -304,7 +295,8 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		int returnedIndex = startIndexCitySource + cityDestination;
 		if (citySource > cityDestination) {
 			// If the source id is bigger than the destination id,
-			// we must remove 1 because the element city i -> city i doesn't exist
+			// we must remove 1 because the element city i -> city i doesn't
+			// exist
 			returnedIndex--;
 		}
 		return returnedIndex;
@@ -312,6 +304,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 	/**
 	 * Returns the distance between 2 cities
+	 * 
 	 * @param cityA
 	 * @param cityB
 	 * @return distance between 2 cities
@@ -322,6 +315,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 	/**
 	 * Returns a boolean that indicates if two cities are closest neighbours
+	 * 
 	 * @param cityA
 	 * @param cityB
 	 * @return boolean that indicates if two cities are closest neighbours
@@ -329,13 +323,13 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	private boolean areClosestNeighbour(int cityA, int cityB) {
 		return cities.get(cityA).equals(closestNeighbour(cities.get(cityB)));
 	}
-	
+
 	private boolean areNeighbours(int cityA, int cityB) {
 		List<City> neighbours = cities.get(cityA).neighbors();
 		return neighbours.contains(cities.get(cityB));
 	}
 
-	/******The following functions are used for debugging purpose*******/
+	/****** The following functions are used for debugging purpose *******/
 
 	@SuppressWarnings("unused")
 	private void printMatrix(Number[][] matrix, int sizeX, int sizeY) {
