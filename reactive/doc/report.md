@@ -50,22 +50,18 @@ This definition is used in the definition of *T(s,a,s')* :
 
 - $p(i,j)$ : the probability that in city *i* there is a task to city *j*
 
-For T(s,a,s'), we have 5 cases :
+For T(s,a,s'), we have 3 cases :
 
-- We deliver the task from city *i* to city *j* and there is no task in city *j*
-- We deliver the task from city *i* to city *j* and there is a task in city *j*
-- We move from city *i* to city *j* and there is a task in city *j* (it does not depend on a possible task in city *i*)
-- We move from city *i* to city *j* and there is no task in city *j* (it does not depend on a possible task in city *i*)
-- All other cases that are improbable
+- We deliver the task from city *i* to city *j*
+- We move from city *i* to city *j* (it does not matter if there is a task or not in city *i*)
+- All other cases
 
 
 $$T(s(i,t_i),a,s'(j,t_j)) =
 \left\{
   \begin{array}{rcl}
-    p(i,j)*(1-\sum_kp(j,k)) & \mbox{for} & a = deliver_{ij}, t_i \neq null, t_j == null, t_i \ is \ for \ city \ j\\
-    p(i,j)*p(j,k) & \mbox{for} & a = deliver_{ij}, t_i \neq null, t_j \neq null, t_i \ is \ for \ city \ j\\
-    p(j,k) & \mbox{for} & a = move_{ij}, j \in Neighborhood(i), t_j \neq null\\
-    1-\sum_k(p(j,k)) & \mbox{for} & a = move_{ij}, j \in Neighborhood(i), t_j == null\\
+    p(i,j) & \mbox{for} & a = deliver_{ij}, t_i \neq null, t_i \ is \ for \ city \ j\\
+    p(j,k) & \mbox{for} & a = move_{ij}, j \in Neighborhood(i)\\
     0 & & otherwise\\
   \end{array}\right.
 $$
