@@ -82,19 +82,19 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		/*********************** Matrix T(s,a,s') **************/
 		Double T[][][] = new Double[numStates][2][numStates];
 
-		// When the action is to move without taking the task
+		/*// When the action is to move without taking the task
 		for (int i = 0; i < numStates; i++) {
 			for (int j = 0; j < numStates; j++) {
 				int sdA[] = sourceAndDestinationFromIndex(i, numCities);
 				int sdB[] = sourceAndDestinationFromIndex(j, numCities);
 
-				if (sdA[1] == sdB[0] && areClosestNeighbour(sdA[0], sdA[1])) {
-					T[i][0][j] = new Double(1);
+				if (sdA[1] == sdB[0] && areClosestNeighbour(sdB[0], sdB[1])) {
+					T[i][0][j] = new Double(1); // TODO plutôt 1/(nb voisins) ?
 				} else {
 					T[i][0][j] = new Double(0);
 				}
 			}
-		}
+		}*/
 
 		// When the action is to deliver the task
 		for (int i = 0; i < numStates; i++) {
@@ -103,9 +103,12 @@ public class ReactiveTemplate implements ReactiveBehavior {
 				int sdB[] = sourceAndDestinationFromIndex(j, numCities);
 
 				if (sdA[1] == sdB[0]) {
-					T[i][1][j] = p[sdA[0]][sdA[1]];
+					// TODO fonction qui prend en compte p(i,j) mais aussi si i et j sont proche ou pas
+					T[i][1][j] = p[sdB[0]][sdB[1]];
+					T[i][0][j] = p[sdB[0]][sdB[1]];
 				} else {
 					T[i][1][j] = new Double(0);
+					T[i][0][j] = new Double(0);
 				}
 			}
 		}
@@ -124,8 +127,9 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 		double[][] Q = new double[numStates][numActions];
 
+		int loops = 0;
 		while (computeDifference(oldV, V) > EPSILON) {
-			oldV = V;
+			oldV = V.clone();
 			for (int i = 0; i < numStates; i++) {
 				for (int j = 0; j < numActions; j++) {
 					// sum over s'
@@ -140,11 +144,15 @@ public class ReactiveTemplate implements ReactiveBehavior {
 				V[i] = best[0];
 				Best[i] = (int) best[1];
 			}
+			loops++;
 		}
 
-		System.out.println("Best(x) = 0 means move without the task");
+		System.out.println("Number of loops: " + loops);
+		System.out.println("Agent " + agent.id() + " with lambda=" + discount + "\nBest(x) = 0 means move without the task");
 		for (int i = 0; i < numStates; i++) {
-			System.out.println("V[" + i + "] : " + V[i] + ", Best[" + i + "] : " + Best[i]);
+			if (Best[i] == 0) {
+				System.out.println("V[" + i + "] : " + V[i] + ", Best[" + i + "] : " + Best[i]);
+			}
 		}
 		/*****************************************************/
 	}
@@ -207,9 +215,11 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	 */
 	private double computeDifference(double[] oldV, double[] newV) {
 		double max = new Double(-1);
+		double difference;
 		for (int i = 0; i < oldV.length; i++) {
-			if (Math.abs(oldV[i] - newV[i]) < max || max == -1) {
-				max = Math.abs(oldV[i] - newV[i]);
+			difference = Math.abs(oldV[i] - newV[i]);
+			if (difference > max || max == -1) {
+				max = difference;
 			}
 		}
 		return max;
@@ -251,17 +261,8 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	 * ...
 	 * city n -> city n-1
 	 * 
-	 * @return
+	 * @return the source and destination corresponding to the index
 	 */
-	// From an array with entries:
-	// city 0 -> city 1
-	// city 0 -> city 2
-	// ...
-	// city 1 -> city 0
-	// city 1 -> city 2
-	// ...
-	// city n -> city n-1
-	// Returns the source and destination corresponding to the index
 	private int[] sourceAndDestinationFromIndex(int index, int size) {
 		int source = (int) Math.floor(index / (size - 1));
 		int destination = (index + source) % size;
@@ -322,7 +323,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	}
 
 	/******The following functions are used for debugging purpose*******/
-		
+
 	@SuppressWarnings("unused")
 	private void printMatrix(Number[][] matrix, int sizeX, int sizeY) {
 		int i = 0;
