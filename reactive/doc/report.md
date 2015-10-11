@@ -8,9 +8,9 @@ In the next sections, we will define the representation of states and actions, t
 
 ## States
 
-The world perception of an agent is represented by a tuple *S(i,$t_j$)* where *i* is the current city of the agent and $t_j$ is a task to city *j*. We can note that $t_j$ can be *null* if there is no task in city *i*.
+The world perception of an agent is represented by a tuple *S(i,$t_i$)* where *i* is the current city of the agent and $t_i$ is a task to city from city *i*. We can note that $t_i$ can be *null*.
 
-In our matrices, it will correspond to rows or columns indicating the tuple $(i, t_j)$ like in this schema :
+In our matrices, we need to represent the task $t_i$ by $n-1$ columns (or rows) because we need to express the destinations of the task. Here is the schema of our matrices :
 
 ----------------------------------------------------------------------------------------
 City0$\rightarrow$City1 City0$\rightarrow$City2 ... City0$\rightarrow$CityN City1$\rightarrow$ City0 City1$\rightarrow$City2 ... Cityn$\rightarrow$CityN-1
@@ -32,7 +32,7 @@ Here are the definitions of both tables :
 
 This definition is used in the definition of *R(s,a)* :
 
-- $r(i,j)$ : the reward given by a task delivered from city *i* to city *j* (taken from $s=(i,t_j)$)
+- $r(i,j)$ : the reward given by a task delivered from city *i* to city *j* (taken from $s=(i,t_i)$, where $t_i$ is task for city *j*)
 - $cost(i,j)$ : the cost to travel from city *i* to city *j* ($distance * cost \ per \ km$)
 
 
@@ -48,14 +48,24 @@ $$
 
 This definition is used in the definition of *T(s,a,s')* :
 
-- $p(s,s')$ : the probability that in city *i* there is a task to city *j*
+- $p(i,j)$ : the probability that in city *i* there is a task to city *j*
+
+For T(s,a,s'), we have 5 cases :
+
+- We deliver the task from city *i* to city *j* and there is no task in city *j*
+- We deliver the task from city *i* to city *j* and there is a task in city *j*
+- We move from city *i* to city *j* and there is a task in city *j* (it does not depend on a possible task in city *i*)
+- We move from city *i* to city *j* and there is no task in city *j* (it does not depend on a possible task in city *i*)
+- All other cases that are improbable
 
 
-$$T(s(i,t_j),a,s'(k,t_l)) =
+$$T(s(i,t_i),a,s'(j,t_j)) =
 \left\{
   \begin{array}{rcl}
-    p(i,j) & \mbox{for} & a = deliver_{ij}, \ j=k \ and \ t_j \neq null, \forall t_l\\
-    1 & \mbox{for} & a = move_{ij}, \forall t_j, \forall t_l, \ j=k \  and \ j \ is \ the \ closest \ neighbour \ of \ i\\
+    p(i,j)*(1-\sum_kp(j,k)) & \mbox{for} & a = deliver_{ij}, t_i \neq null, t_j == null, t_i \ is \ for \ city \ j\\
+    p(i,j)*p(j,k) & \mbox{for} & a = deliver_{ij}, t_i \neq null, t_j \neq null, t_i \ is \ for \ city \ j\\
+    p(j,k) & \mbox{for} & a = move_{ij}, j \in Neighborhood(i), t_j \neq null\\
+    1-\sum_k(p(j,k)) & \mbox{for} & a = move_{ij}, j \in Neighborhood(i), t_j == null\\
     0 & & otherwise\\
   \end{array}\right.
 $$
