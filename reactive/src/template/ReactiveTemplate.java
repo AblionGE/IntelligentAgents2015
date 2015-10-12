@@ -24,8 +24,9 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	private int numActions;
 	private Random random;
 	private double pPickup;
+	private int nbOfActions = 0;
+	private Double generalReward = 0.0;
 	Double R[][];
-	Double generalReward = 0.0;
 
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
@@ -85,7 +86,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		}
 		/*****************************************************/
 
-		System.out.println("Random Agent " + agent.id() + " (vehicle " + agent.vehicles().get(0).name() + ") "
+		System.out.println("Random Agent " + agent.id() + " (vehicle " + agent.vehicles().get(0).name() + ")"
 				+ " with lambda=" + discount);
 	}
 
@@ -110,7 +111,9 @@ public class ReactiveTemplate implements ReactiveBehavior {
 			action = new Pickup(availableTask);
 			generalReward += R[indexBest][1];
 		}
+		nbOfActions++;
 		System.out.println("Random Agent, vehicle : " + vehicle.name() + ", general reward : " + generalReward);
+		System.out.println("Random Agent, vehicle : " + vehicle.name() + ", average reward : " + generalReward/nbOfActions);
 		return action;
 	}
 }

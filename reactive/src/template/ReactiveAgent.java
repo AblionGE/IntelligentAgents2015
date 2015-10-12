@@ -24,10 +24,12 @@ public class ReactiveAgent implements ReactiveBehavior {
 	private int numStates;
 	private int numActions;
 	double[] V;
+	private Double generalReward = 0.0;
+	private int nbOfActions = 0;
 	int[] Best;
 	Double discount;
 	Double R[][];
-	Double generalReward = 0.0;
+	
 
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
@@ -95,8 +97,8 @@ public class ReactiveAgent implements ReactiveBehavior {
 
 				if (sdA[1] == sdB[0] && areClosestNeighbours(sdA[0], sdA[1])) {
 					T[i][0][j] = p[sdB[0]][sdB[1]];
-					if(areClosestNeighbours(sdB[0], sdB[1])) {
-						T[i][0][j] += (1-pTask[sdB[0]]);
+					if (areClosestNeighbours(sdB[0], sdB[1])) {
+						T[i][0][j] += (1 - pTask[sdB[0]]);
 					}
 				} else {
 					T[i][0][j] = new Double(0);
@@ -111,9 +113,9 @@ public class ReactiveAgent implements ReactiveBehavior {
 				int sdB[] = sourceAndDestinationFromIndex(j, numCities);
 
 				if (sdA[1] == sdB[0]) {
-					T[i][1][j] = p[sdA[0]][sdA[1]]*p[sdB[0]][sdB[1]];
-					if(areClosestNeighbours(sdB[0], sdB[1])) {
-						T[i][1][j] += p[sdA[0]][sdA[1]]*(1-pTask[sdB[0]]);
+					T[i][1][j] = p[sdA[0]][sdA[1]] * p[sdB[0]][sdB[1]];
+					if (areClosestNeighbours(sdB[0], sdB[1])) {
+						T[i][1][j] += p[sdA[0]][sdA[1]] * (1 - pTask[sdB[0]]);
 					}
 				} else {
 					T[i][1][j] = 0.0;
@@ -196,7 +198,9 @@ public class ReactiveAgent implements ReactiveBehavior {
 				generalReward += R[indexBest][1];
 			}
 		}
+		nbOfActions++;
 		System.out.println("Reactive Agent, vehicle : " + vehicle.name() + ", general reward : " + generalReward);
+		System.out.println("Reactive Agent, vehicle : " + vehicle.name() + ", average reward : " + generalReward/nbOfActions);
 		return action;
 	}
 
@@ -331,6 +335,17 @@ public class ReactiveAgent implements ReactiveBehavior {
 	 */
 	private boolean areClosestNeighbours(int cityA, int cityB) {
 		return cities.get(cityA).equals(closestNeighbour(cities.get(cityB)));
+	}
+
+	/**
+	 * Returns a boolean that indicates if two cities are neighbours
+	 * 
+	 * @param cityA
+	 * @param cityB
+	 * @return boolean that indicates if two cities are neighbours
+	 */
+	private boolean areNeighbours(int cityA, int cityB) {
+		return cities.get(cityA).equals(cities.get(cityB));
 	}
 
 	/****** The following functions are used for debugging purpose *******/
