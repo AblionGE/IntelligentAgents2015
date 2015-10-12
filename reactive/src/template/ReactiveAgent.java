@@ -74,13 +74,13 @@ public class ReactiveAgent implements ReactiveBehavior {
 		// the reward is -distance*(cost/km).
 		for (int i = 0; i < numStates; i++) {
 			int sd[] = sourceAndDestinationFromIndex(i, numCities);
-			R[i][0] = -distanceBetween(sd[0], sd[1]) * vehicle.costPerKm();
+			R[i][0] = -distanceBetween(cities, sd[0], sd[1]) * vehicle.costPerKm();
 		}
 
 		// Otherwise, we take the reward from matrix r minus the travel cost
 		for (int i = 0; i < numStates; i++) {
 			int sd[] = sourceAndDestinationFromIndex(i, numCities);
-			R[i][1] = r[sd[0]][sd[1]] - distanceBetween(sd[0], sd[1]) * vehicle.costPerKm();
+			R[i][1] = r[sd[0]][sd[1]] - distanceBetween(cities, sd[0], sd[1]) * vehicle.costPerKm();
 		}
 		/*****************************************************/
 
@@ -196,7 +196,7 @@ public class ReactiveAgent implements ReactiveBehavior {
 				generalReward += R[indexBest][1];
 			}
 		}
-		System.out.println("Reactive Agent, vehicle : " + vehicle.name() + "), general reward : " + generalReward);
+		System.out.println("Reactive Agent, vehicle : " + vehicle.name() + ", general reward : " + generalReward);
 		return action;
 	}
 
@@ -318,7 +318,7 @@ public class ReactiveAgent implements ReactiveBehavior {
 	 * @param cityB
 	 * @return distance between 2 cities
 	 */
-	public static double distanceBetween(int cityA, int cityB) {
+	public static double distanceBetween(List<City> cities, int cityA, int cityB) {
 		return cities.get(cityA).distanceTo(cities.get(cityB));
 	}
 
