@@ -75,13 +75,13 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		// the reward is -distance*(cost/km).
 		for (int i = 0; i < numStates; i++) {
 			int sd[] = ReactiveAgent.sourceAndDestinationFromIndex(i, numCities);
-			R[i][0] = -ReactiveAgent.distanceBetween(sd[0], sd[1]) * vehicle.costPerKm();
+			R[i][0] = -ReactiveAgent.distanceBetween(cities, sd[0], sd[1]) * vehicle.costPerKm();
 		}
 
 		// Otherwise, we take the reward from matrix r minus the travel cost
 		for (int i = 0; i < numStates; i++) {
 			int sd[] = ReactiveAgent.sourceAndDestinationFromIndex(i, numCities);
-			R[i][1] = r[sd[0]][sd[1]] - ReactiveAgent.distanceBetween(sd[0], sd[1]) * vehicle.costPerKm();
+			R[i][1] = r[sd[0]][sd[1]] - ReactiveAgent.distanceBetween(cities, sd[0], sd[1]) * vehicle.costPerKm();
 		}
 		/*****************************************************/
 
@@ -110,7 +110,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 			action = new Pickup(availableTask);
 			generalReward += R[indexBest][1];
 		}
-		System.out.println("Random Agent, vehicle : " + vehicle.name() + "), general reward : " + generalReward);
+		System.out.println("Random Agent, vehicle : " + vehicle.name() + ", general reward : " + generalReward);
 		return action;
 	}
 }
