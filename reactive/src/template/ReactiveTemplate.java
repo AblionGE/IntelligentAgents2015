@@ -25,6 +25,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 	private Random random;
 	private double pPickup;
 	Double R[][];
+	Double generalReward = 0.0;
 
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
@@ -100,13 +101,16 @@ public class ReactiveTemplate implements ReactiveBehavior {
 			System.out.println(
 					vehicle.name() + " there is no task from " + currentCity + ". Benefit : " + R[indexBest][0]);
 			action = new Move(next);
+			generalReward += R[indexBest][0];
 		} else {
 			indexBest = ReactiveAgent.indexFromSourceAndDestination(currentCity.id, availableTask.deliveryCity.id,
 					numCities);
 			System.out.println(vehicle.name() + " takes the task from " + availableTask.pickupCity + " to "
 					+ availableTask.deliveryCity + ". Benefit : " + R[indexBest][1]);
 			action = new Pickup(availableTask);
+			generalReward += R[indexBest][1];
 		}
+		System.out.println("Random Agent, vehicle : " + vehicle.name() + "), general reward : " + generalReward);
 		return action;
 	}
 }

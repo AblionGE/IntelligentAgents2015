@@ -27,6 +27,7 @@ public class ReactiveAgent implements ReactiveBehavior {
 	int[] Best;
 	Double discount;
 	Double R[][];
+	Double generalReward = 0.0;
 
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
@@ -177,6 +178,7 @@ public class ReactiveAgent implements ReactiveBehavior {
 			System.out.println(
 					vehicle.name() + " there is no task from " + currentCity + ". Benefit : " + R[indexBest][0]);
 			action = new Move(closestNeighbour(currentCity));
+			generalReward += R[indexBest][0];
 		} else {
 			indexBest = indexFromSourceAndDestination(currentCity.id, availableTask.deliveryCity.id, numCities);
 			if (Best[indexBest] == 0) {
@@ -185,13 +187,16 @@ public class ReactiveAgent implements ReactiveBehavior {
 				System.out.println(vehicle.name() + " does not take the task from " + availableTask.pickupCity + " to "
 						+ availableTask.deliveryCity + ". Benefit : " + R[indexBest][0]);
 				action = new Move(closestNeighbour(currentCity));
+				generalReward += R[indexBest][0];
 			} else {
 				// else pickup the task
 				System.out.println(vehicle.name() + " takes the task from " + availableTask.pickupCity + " to "
 						+ availableTask.deliveryCity + ". Benefit : " + R[indexBest][1]);
 				action = new Pickup(availableTask);
+				generalReward += R[indexBest][1];
 			}
 		}
+		System.out.println("Reactive Agent, vehicle : " + vehicle.name() + "), general reward : " + generalReward);
 		return action;
 	}
 
