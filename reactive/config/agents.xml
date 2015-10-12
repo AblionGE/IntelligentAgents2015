@@ -19,13 +19,13 @@
 	<agent name="reactive65">
 		<set class-path="bin/"/>
 		<set class-name="template.ReactiveAgent"/>
-		<set discount-factor="0.65"/>
+		<set discount-factor="0.50"/>
 	</agent>
 		
 	<agent name="reactive85">
 		<set class-path="bin/"/>
 		<set class-name="template.ReactiveAgent"/>
-		<set discount-factor=".85"/>
+		<set discount-factor=".99"/>
 	</agent>
 	
 </agents>
