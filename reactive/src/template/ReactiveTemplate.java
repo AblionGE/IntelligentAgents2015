@@ -62,7 +62,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 			idC1++;
 			idC2 = 0;
 		}
-		
+
 		/*****************************************************/
 
 		/*********************** Matrix R(s,a) *****************/
@@ -94,10 +94,13 @@ public class ReactiveTemplate implements ReactiveBehavior {
 				int sdA[] = sourceAndDestinationFromIndex(i, numCities);
 				int sdB[] = sourceAndDestinationFromIndex(j, numCities);
 
-				if (sdA[1] == sdB[0] && areNeighbours(sdA[0], sdA[1])) {
+				if (sdA[1] == sdB[0] && areClosestNeighbour(sdA[0], sdA[1])) {
 					T[i][0][j] = p[sdB[0]][sdB[1]];
+					if(areClosestNeighbour(sdB[0], sdB[1])) {
+						T[i][0][j] += pTask[sdB[0]];
+					}
 				} else {
-					T[i][0][j] = 0.0;
+					T[i][0][j] = new Double(0);
 				}
 			}
 		}
@@ -111,7 +114,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 				if (sdA[1] == sdB[0]) {
 					T[i][1][j] = p[sdA[0]][sdA[1]]*p[sdB[0]][sdB[1]];
 					if(areClosestNeighbour(sdB[0], sdB[1])) {
-						T[i][1][j] += p[sdA[0]][sdA[1]]*(1-pTask[sdB[0]]);
+						T[i][1][j] += p[sdA[0]][sdA[1]]*pTask[sdB[0]];
 					}
 				} else {
 					T[i][1][j] = 0.0;
