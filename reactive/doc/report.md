@@ -60,8 +60,10 @@ For T(s,a,s'), we have 3 cases :
 $$T(s(i,t_i),a,s'(j,t_j)) =
 \left\{
   \begin{array}{rcl}
-    p(i,j) & \mbox{for} & a = deliver_{ij}, t_i \neq null, t_i \ is \ for \ city \ j\\
-    p(j,k) & \mbox{for} & a = move_{ij}, j \in Neighborhood(i)\\
+    p(i,j)*p(j,k) & \mbox{for} & a = deliver_{ij}, t_i \neq null, t_i \ is \ for \ city \ j, !closestNeighbours(j,k)\\
+    p(i,j)*(p(j,k)*p(noTask)) & \mbox{for} & a = deliver_{ij}, t_i \neq null, t_i \ is \ for \ city \ j, closestNeighbours(j,k)\\
+    p(j,k) & \mbox{for} & a = move_{ij}, closestNeighbour(i,j), !closestNeighbours(j,k)\\
+    p(j,k)*p(noTask) & \mbox{for} & a = move_{ij}, closestNeighbour(i,j), closestNeighbours(j,k)\\
     0 & & otherwise\\
   \end{array}\right.
 $$
