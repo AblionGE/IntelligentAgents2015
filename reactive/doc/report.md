@@ -19,8 +19,8 @@ City0$\rightarrow$City1 City0$\rightarrow$City2 ... City0$\rightarrow$CityN City
 ## Actions
 The two possible actions are :
 
-- $move_{ij}$ : Move to the closest neighbouring city (default action if there is no task)
-- $deliver_{ij}$ : Deliver the task using the shortest path
+- $m_{ij}$ : Move to the closest neighbouring city (default action if there is no task)
+- $d_{ij}$ : Deliver the task using the shortest path
 
 # Definitions of reward and probability transition tables
 
@@ -39,8 +39,8 @@ This definition is used in the definition of *R(s,a)* :
 $$R(s,a) =
 \left\{
   \begin{array}{rcl}
-    r(i,j) - cost(i,j) & \mbox{for} & a = deliver_{ij}\\
-    - cost(i,j) & \mbox{for} & a = move_{ij}\\
+    r(i,j) - cost(i,j) & \mbox{for} & a = d_{ij}\\
+    - cost(i,j) & \mbox{for} & a = m_{ij}\\
   \end{array}\right.
 $$
 
@@ -52,18 +52,20 @@ This definition is used in the definition of *T(s,a,s')* :
 
 For T(s,a,s'), we have 3 cases :
 
-- We deliver the task from city *i* to city *j*
-- We move from city *i* to city *j* (it does not matter if there is a task or not in city *i*)
+- We deliver the task from city *i* to city *j* and city *k* is not the closest neighbour of city *j*
+- We deliver the task from city *i* to city *j* and city *k* is the closest neighbour of city *j*
+- We move from city *i* to city *j* (it does not matter if there is a task or not in city *i*) and city *k* is not the closest neighbour of city *j*
+  - We move from city *i* to city *j* (it does not matter if there is a task or not in city *i*) and city *k* is the closest neighbour of city *j*
 - All other cases
 
 
 $$T(s(i,t_i),a,s'(j,t_j)) =
 \left\{
   \begin{array}{rcl}
-    p(i,j)*p(j,k) & \mbox{for} & a = deliver_{ij}, t_i \neq null, t_i \ is \ for \ city \ j, !closestNeighbours(j,k)\\
-    p(i,j)*(p(j,k)*p(noTask)) & \mbox{for} & a = deliver_{ij}, t_i \neq null, t_i \ is \ for \ city \ j, closestNeighbours(j,k)\\
-    p(j,k) & \mbox{for} & a = move_{ij}, closestNeighbour(i,j), !closestNeighbours(j,k)\\
-    p(j,k)*p(noTask) & \mbox{for} & a = move_{ij}, closestNeighbour(i,j), closestNeighbours(j,k)\\
+    p(i,j)*p(j,k) & \mbox{for} & a = d_{ij}, t_i \neq null, t_i \ is \ for \ city \ j, !closestNeighbours(j,k)\\
+    p(i,j)*(p(j,k)*p(noTask)) & \mbox{for} & a = d_{ij}, t_i \neq null, t_i \ is \ for \ city \ j, closestNeighbours(j,k)\\
+    p(j,k) & \mbox{for} & a = m_{ij}, closestNeighbour(i,j), !closestNeighbours(j,k)\\
+    p(j,k)*p(noTask) & \mbox{for} & a = m_{ij}, closestNeighbour(i,j), closestNeighbours(j,k)\\
     0 & & otherwise\\
   \end{array}\right.
 $$
