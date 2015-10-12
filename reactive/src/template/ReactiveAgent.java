@@ -333,11 +333,6 @@ public class ReactiveAgent implements ReactiveBehavior {
 		return cities.get(cityA).equals(closestNeighbour(cities.get(cityB)));
 	}
 
-	private boolean areNeighbours(int cityA, int cityB) {
-		List<City> neighbours = cities.get(cityA).neighbors();
-		return neighbours.contains(cities.get(cityB));
-	}
-
 	/****** The following functions are used for debugging purpose *******/
 
 	@SuppressWarnings("unused")
