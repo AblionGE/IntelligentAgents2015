@@ -49,6 +49,7 @@ $$
 This definition is used in the definition of *T(s,a,s')* :
 
 - $p(i,j)$ : the probability that in city *i* there is a task to city *j*
+- $CN(i,j)$ : *j* is the closest neighbour of *i*
 
 For T(s,a,s'), we have 3 cases :
 
@@ -62,10 +63,10 @@ For T(s,a,s'), we have 3 cases :
 $$T(s(i,t_i),a,s'(j,t_j)) =
 \left\{
   \begin{array}{rcl}
-    p(i,j)*p(j,k) & \mbox{for} & a = d_{ij}, t_i \neq null, t_i \ is \ for \ city \ j, !closestNeighbours(j,k)\\
-    p(i,j)*(p(j,k)*p(noTask)) & \mbox{for} & a = d_{ij}, t_i \neq null, t_i \ is \ for \ city \ j, closestNeighbours(j,k)\\
-    p(j,k) & \mbox{for} & a = m_{ij}, closestNeighbour(i,j), !closestNeighbours(j,k)\\
-    p(j,k)*p(noTask) & \mbox{for} & a = m_{ij}, closestNeighbour(i,j), closestNeighbours(j,k)\\
+    p(i,j)*p(j,k) & \mbox{for} & a = d_{ij}, t_i \neq null, t_i \ is \ for \ city \ j, !CN(j,k)\\
+    p(i,j)*(p(j,k)+(1-\sum_kp(j,k))) & \mbox{for} & a = d_{ij}, t_i \neq null, t_i \ is \ for \ city \ j, CN(j,k)\\
+    p(j,k) & \mbox{for} & a = m_{ij}, CN(i,j), !CN(j,k)\\
+    p(j,k)+(1-\sum_kp(j,k)) & \mbox{for} & a = m_{ij}, CN(i,j), CN(j,k)\\
     0 & & otherwise\\
   \end{array}\right.
 $$
@@ -74,5 +75,31 @@ $$
 
 In the implementation of the reactive agent, we coded all matrices presented above and the algorithm presentend in the assignment. All matrices are represented by arrays in 2 or 3 dimensions in the Java code. About the *value iteration* algorithm, we simply implemented it with loops and the *good enough* condition for stopping loops is that the biggest difference between an element of two succesive *V(S)* should be smaller than $\epsilon=0.0001$.
 
+  Each time the agent chooses an action, it watches the vector $Best(S)$ which gives the best action to take knowing the current state (its position and the presence of a task or not for a specific destination). If it decides to move (or because there is no task), it will move to the closest neighbouring city.
+
 # Results
-Here are the different graphs obtained running our implementation of the *value iteration* algorithm using *MDP*. For these, we have chosen different $\gamma$ values for 3 agents running simultaneously. We can note that each agent has only one vehicle in our implementation.
+Here are the different graphs obtained running our implementation of the *value iteration* algorithm using *MDP*. For these, we have chosen different $\gamma$ values for reactive and random agents that run simultaneously. We can note that each agent has only one vehicle in our implementation.
+
+For our tests, we used the following options on the map "*France*" with 4 agents described below.
+```xml
+<tasks number="10" rngSeed="3590420242192152424">
+    <probability distribution="uniform" min="0.0" max="1.0" />
+    <reward distribution="constant" policy="long-distances" min="1000" max="99999" />
+    <weight distribution="constant" value="3" />
+    <no-task distribution="uniform" min="0.2" max="0.4" />
+  </tasks>
+```
+Agents :
+
+- Vehicle 1 : random agent, $\gamma = 0.85$
+- Vehicle 2 : reactive agent, $\gamma = 0.05$
+- Vehicle 3 : reactive agent, $\gamma = 0.65$
+- Vehicle 4 : reactive agent, $\gamma = 0.85$
+
+
+\includegraphics[width=4cm]{img/1random3reactiveFranceproba02to04.png}
+
+## Comments
+We can observe on these different graphs (which represent the reward per km) that the random agent is in all cases worst than the reactive agents. Another observation is that the reward per km and the reward per task (both of them are strongly correlated) become quite constant in the time. It means that the agents will have a constant gain over time.
+
+About the choice of $\gamma$, we can observe that it does not influence so much the reward. Nevertheless, we observe something strange : it happens relatively often that when the $\gamma$ is small, the reward is slitely better than when the $\gamma$ is bigger. It surprises us because when $\gamma$ is bigger, the algorithm considers more step in the future to give the best action to the agent. Agents with a small $\gamma$ will take every task because it only consider a close future. On the contrary, agents with a bigger $\gamma$ should consider further in the future and take better decisions for having a better reward. We can maybe explain this behavior with the fact that rewards are a bit huge compared to the cost of travelling from one city to another (even if the city is the closest neighbour).
