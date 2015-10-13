@@ -1,8 +1,8 @@
 # Introduction
 
-In this programming exercise, we implement the Pickup and Delivery problem with reactive agents. These agents will decide to deliver or not a task in a city depending on an offline computation of a *Markov Decision Process*. This MDP permits the agents to know in each state what to do to maximise the benefit of each action according to the reward given by the task and the cost of going to a specific city.
+In this programming exercise, we implement the Pickup and Delivery problem with reactive agents. These agents will decide to deliver or not a task in a city depending on an offline computation of a *Markov Decision Process*. This reinforcement learning permits the agents to know at each state what to do next so to maximise the benefit, which is a trade off between the reward given by the task and the cost of travelling.
 
-In the next sections, we will define the representation of states and actions, then we will define of we build the different matrices that are necessary to have a reactive agent. Next, we will make some remarks about our code. Finally, we will present different results given by our program.
+In the next sections, we will define the representation of the states and actions, how we have build the different matrices that are necessary to have a reactive agent and make some remarks about our code. Finally, we will present different results given by our program.
 
 # Representation of states and actions
 

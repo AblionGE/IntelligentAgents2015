@@ -75,14 +75,14 @@ public class ReactiveAgent implements ReactiveBehavior {
 		// When the action is to move without taking the task
 		// the reward is -distance*(cost/km).
 		for (int i = 0; i < numStates; i++) {
-			int sd[] = sourceAndDestinationFromIndex(i, numCities);
-			R[i][0] = -distanceBetween(cities, sd[0], sd[1]) * vehicle.costPerKm();
+			int ct[] = cityAndTaskFromIndex(i, numCities);
+			R[i][0] = -distanceBetween(cities, ct[0], ct[1]) * vehicle.costPerKm();
 		}
 
 		// Otherwise, we take the reward from matrix r minus the travel cost
 		for (int i = 0; i < numStates; i++) {
-			int sd[] = sourceAndDestinationFromIndex(i, numCities);
-			R[i][1] = r[sd[0]][sd[1]] - distanceBetween(cities, sd[0], sd[1]) * vehicle.costPerKm();
+			int ct[] = cityAndTaskFromIndex(i, numCities);
+			R[i][1] = r[ct[0]][ct[1]] - distanceBetween(cities, ct[0], ct[1]) * vehicle.costPerKm();
 		}
 		/*****************************************************/
 
@@ -91,12 +91,13 @@ public class ReactiveAgent implements ReactiveBehavior {
 
 		// When the action is to move without taking the task
 		for (int i = 0; i < numStates; i++) {
-			int sdA[] = sourceAndDestinationFromIndex(i, numCities);
+			int ctA[] = cityAndTaskFromIndex(i, numCities);
 			for (int j = 0; j < numStates; j++) {
-				int sdB[] = sourceAndDestinationFromIndex(j, numCities);
+				int ctB[] = cityAndTaskFromIndex(j, numCities);
 
-				if(sdA[0]!=sdB[0] && areClosestNeighbours(sdA[0], sdB[0])) {
-					T[i][0][j] = p[sdB[0]][sdB[1]] / pTask[sdB[0]];
+				// Non zero only when B is the nearest neighbour of A
+				if(ctA[0]!=ctB[0] && areClosestNeighbours(ctA[0], ctB[0])) {
+					T[i][0][j] = p[ctB[0]][ctB[1]] / pTask[ctB[0]];
 				} else {
 					T[i][0][j] = new Double(0);
 				}
@@ -105,12 +106,13 @@ public class ReactiveAgent implements ReactiveBehavior {
 
 		// When the action is to deliver the task
 		for (int i = 0; i < numStates; i++) {
-			int sdA[] = sourceAndDestinationFromIndex(i, numCities);
+			int ctA[] = cityAndTaskFromIndex(i, numCities);
 			for (int j = 0; j < numStates; j++) {
-				int sdB[] = sourceAndDestinationFromIndex(j, numCities);
+				int ctB[] = cityAndTaskFromIndex(j, numCities);
 
-				if (sdA[0]!=sdB[0] && sdA[1] == sdB[0]) {
-					T[i][1][j] = p[sdB[0]][sdB[1]] / pTask[sdB[0]];
+				// Non zero only when task from A goes for B
+				if (ctA[0]!=ctB[0] && ctA[1] == ctB[0]) {
+					T[i][1][j] = p[ctB[0]][ctB[1]] / pTask[ctB[0]];
 				} else {
 					T[i][1][j] = 0.0;
 				}
@@ -170,13 +172,13 @@ public class ReactiveAgent implements ReactiveBehavior {
 
 		if (availableTask == null) {
 			// If the task is null, move to the closest neighbour
-			indexBest = indexFromSourceAndDestination(currentCity.id, closestNeighbour(currentCity).id, numCities);
+			indexBest = indexFromCityAndTask(currentCity.id, closestNeighbour(currentCity).id, numCities);
 			System.out.println(
 					vehicle.name() + " there is no task from " + currentCity + ". Benefit : " + R[indexBest][0]);
 			action = new Move(closestNeighbour(currentCity));
 			generalReward += R[indexBest][0];
 		} else {
-			indexBest = indexFromSourceAndDestination(currentCity.id, availableTask.deliveryCity.id, numCities);
+			indexBest = indexFromCityAndTask(currentCity.id, availableTask.deliveryCity.id, numCities);
 			if (Best[indexBest] == 0) {
 				// If the best solution is to move, move to the closest
 				// neighbour
@@ -253,7 +255,7 @@ public class ReactiveAgent implements ReactiveBehavior {
 	 * 
 	 * @return the source and destination corresponding to the index
 	 */
-	public static int[] sourceAndDestinationFromIndex(int index, int size) {
+	public static int[] cityAndTaskFromIndex(int index, int size) {
 		int source = (int) Math.floor(index / (size - 1));
 		int destination = (index + source) % size;
 		if (destination >= source) {
@@ -276,7 +278,7 @@ public class ReactiveAgent implements ReactiveBehavior {
 	 * @param numberOfCities
 	 * @return
 	 */
-	public static int indexFromSourceAndDestination(int citySource, int cityDestination, int numberOfCities) {
+	public static int indexFromCityAndTask(int citySource, int cityDestination, int numberOfCities) {
 		int startIndexCitySource = citySource * (numberOfCities - 1);
 		int returnedIndex = startIndexCitySource + cityDestination;
 		if (citySource > cityDestination) {

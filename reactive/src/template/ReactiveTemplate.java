@@ -75,13 +75,13 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		// When the action is to move without taking the task
 		// the reward is -distance*(cost/km).
 		for (int i = 0; i < numStates; i++) {
-			int sd[] = ReactiveAgent.sourceAndDestinationFromIndex(i, numCities);
+			int sd[] = ReactiveAgent.cityAndTaskFromIndex(i, numCities);
 			R[i][0] = -ReactiveAgent.distanceBetween(cities, sd[0], sd[1]) * vehicle.costPerKm();
 		}
 
 		// Otherwise, we take the reward from matrix r minus the travel cost
 		for (int i = 0; i < numStates; i++) {
-			int sd[] = ReactiveAgent.sourceAndDestinationFromIndex(i, numCities);
+			int sd[] = ReactiveAgent.cityAndTaskFromIndex(i, numCities);
 			R[i][1] = r[sd[0]][sd[1]] - ReactiveAgent.distanceBetween(cities, sd[0], sd[1]) * vehicle.costPerKm();
 		}
 		/*****************************************************/
@@ -98,13 +98,13 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 		if (availableTask == null || random.nextDouble() > pPickup) {
 			City next = currentCity.randomNeighbor(random);
-			indexBest = ReactiveAgent.indexFromSourceAndDestination(currentCity.id, next.id, numCities);
+			indexBest = ReactiveAgent.indexFromCityAndTask(currentCity.id, next.id, numCities);
 			System.out.println(
 					vehicle.name() + " there is no task from " + currentCity + ". Benefit : " + R[indexBest][0]);
 			action = new Move(next);
 			generalReward += R[indexBest][0];
 		} else {
-			indexBest = ReactiveAgent.indexFromSourceAndDestination(currentCity.id, availableTask.deliveryCity.id,
+			indexBest = ReactiveAgent.indexFromCityAndTask(currentCity.id, availableTask.deliveryCity.id,
 					numCities);
 			System.out.println(vehicle.name() + " takes the task from " + availableTask.pickupCity + " to "
 					+ availableTask.deliveryCity + ". Benefit : " + R[indexBest][1]);
