@@ -8,31 +8,29 @@ In the next sections, we will define the representation of the states and action
 
 ## States
 
-The world perception of an agent is represented by a tuple *S(i,$t_i$)* where *i* is the current city of the agent and $t_i$ is a task to city from city *i*. We can note that $t_i$ can be *null*.
+The state representation of the world is given by the tuples *S(i,$t_j$), $\forall$ 0 $\leq$ i,j < N, i$\neq$j* where *N* is the number of cities, *i* represents a city and $t_j$ represents a task to be delivered to city *j*. Note that $t_j$ can be *null* when no task is available.
 
-In our matrices, we need to represent the task $t_i$ by $n-1$ columns (or rows) because we need to express the destinations of the task. Here is the schema of our matrices :
+Here is the schema of the array of states used in the code, written in the form *i$\rightarrow$j*:
 
 ----------------------------------------------------------------------------------------
-City0$\rightarrow$City1 City0$\rightarrow$City2 ... City0$\rightarrow$CityN City1$\rightarrow$ City0 City1$\rightarrow$City2 ... Cityn$\rightarrow$CityN-1
+City0$\rightarrow$City1 City0$\rightarrow$City2 ... City0$\rightarrow$CityN City1$\rightarrow$ City0 City1$\rightarrow$City2 ... CityN$\rightarrow$CityN-1
 -------------- ------------ --- ------------ ------------- ------------ --- ------------
 
 ## Actions
-The two possible actions are :
+We have two possible actions which are :
 
-- $m_{ij}$ : Move to the closest neighbouring city (default action if there is no task)
-- $d_{ij}$ : Deliver the task using the shortest path
+- $m_{ij}$ : Move from city *i* to *j* where *j* is *i*'s nearest neighbour (default action if there is no task)
+- $d_{ij}$ : Deliver the task from *i* to *j* using the shortest path
 
 # Definitions of reward and probability transition tables
 
-To compute the *Value iteration* of the *Markov Decision Process*, we need first to compute the reward table *R(s,a)* and the transition table *T(s,a,s')*.
-
-Here are the definitions of both tables :
+To compute the *Value iteration* of the *Markov Decision Process*, we need first to compute the reward table *R(s,a)* and the transition table *T(s,a,s')*:
 
 ### The reward table *R(s,a)*
 
-This definition is used in the definition of *R(s,a)* :
+Here are the functions needed to build *R(s,a)* :
 
-- $r(i,j)$ : the reward given by a task delivered from city *i* to city *j* (taken from $s=(i,t_i)$, where $t_i$ is task for city *j*)
+- $r(i,j)$ : the reward given by a task *t_j* delivered from city *i* to city *j* (from state $s=(i,t_j)$)
 - $cost(i,j)$ : the cost to travel from city *i* to city *j* ($distance * cost \ per \ km$)
 
 
@@ -46,19 +44,22 @@ $$
 
 ### The transition table *T(s,a,s')*
 
-This definition is used in the definition of *T(s,a,s')* :
+Here are the functions needed to build *T(s,a,s')* :
 
-- $p(i,j)$ : the probability that in city *i* there is a task to city *j*
-- $CN(i,j)$ : *j* is the closest neighbour of *i*
+- $p(i,j)$ : the probability that in city *i* there is a task *t_j*
+- $P(i)$ = $\sum_{j=0,j\neq i}^N$ $p(i,j)$ : the probability that there is a task in city *i*
+- $CN(i,j)$ : true if *j* is the closest neighbour of *i*
 
-For T(s,a,s'), we have 3 cases :
+The probability to arrive in the state $s'(i,t_j)$ is $\frac{p(i,j)}{P(i)}$ with the property that $\sum_{s'} T(s,a,s') = 1$. T(s,a,s') depends on each actions:
 
+- if $a = m_{ij}$, the only non-zero entries correspond to the states $s(i,t_j)$ and $s'(k,t_l)$ such that *k* is *i*'s nearest neighbour.
+- if $a = d_{ij}$, the only non-zero entries correspond to the states $s(i,t_j)$ and $s'(j,t_k)$.
+<!--
 - We deliver the task from city *i* to city *j* and city *k* is not the closest neighbour of city *j*
 - We deliver the task from city *i* to city *j* and city *k* is the closest neighbour of city *j*
 - We move from city *i* to city *j* (it does not matter if there is a task or not in city *i*) and city *k* is not the closest neighbour of city *j*
   - We move from city *i* to city *j* (it does not matter if there is a task or not in city *i*) and city *k* is the closest neighbour of city *j*
 - All other cases
-
 
 $$T(s(i,t_i),a,s'(j,t_j)) =
 \left\{
@@ -69,16 +70,28 @@ $$T(s(i,t_i),a,s'(j,t_j)) =
     p(j,k)+(1-\sum_kp(j,k)) & \mbox{for} & a = m_{ij}, CN(i,j), CN(j,k)\\
     0 & & otherwise\\
   \end{array}\right.
+$$ -->
+
+$$T(s(i,t_j),a,s'(k,t_l)) =
+\left\{
+  \begin{array}{rcl}
+    \frac{p(k,l)}{P(k)} & \mbox{for} & a = m_{ij}, CN(i,k)\\
+    \frac{p(k,l)}{P(k)} & \mbox{for} & a = d_{ij}, i\neq j, k\neq l, j=k\\
+    0 & & otherwise\\
+  \end{array}\right.
 $$
 
 # Implementation
 
 In the implementation of the reactive agent, we coded all matrices presented above and the algorithm presentend in the assignment. All matrices are represented by arrays in 2 or 3 dimensions in the Java code. About the *value iteration* algorithm, we simply implemented it with loops and the *good enough* condition for stopping loops is that the biggest difference between an element of two succesive *V(S)* should be smaller than $\epsilon=0.0001$.
 
-  Each time the agent chooses an action, it watches the vector $Best(S)$ which gives the best action to take knowing the current state (its position and the presence of a task or not for a specific destination). If it decides to move (or because there is no task), it will move to the closest neighbouring city.
+The agent has two behaviours when arriving in a city *i*:
+
+- If there is no task (i.e. *t_j*=*null*), it goes to ne nearest city to lose as less money as possible
+- If there is a task *t_j* $\neq$ *null*, the agent chooses the best action *a* by picking in the vector $Best(S)$ the element corresponding to its state $s(i,t_j)$. If $a = m_{ik}$, the agent doesn't take the task and moves to the nearest city *k*. If $a = d_{ij}$, the agent delivers to city *j*.
 
 # Results
-Here are the different graphs obtained running our implementation of the *value iteration* algorithm using *MDP*. For these, we have chosen different $\gamma$ values for reactive and random agents that run simultaneously. We can note that each agent has only one vehicle in our implementation.
+Here are the different graphs of reward with reactive agents having learned their optimal stategy using *MDP*. They show reactive agents with different $\gamma$ values and random agents runned simultaneously. Note that each agent has only one vehicle in our implementation.
 
 For our tests, we used the following options on the map "*France*" with 4 agents described below.
 ```xml
@@ -91,7 +104,7 @@ For our tests, we used the following options on the map "*France*" with 4 agents
 ```
 Agents :
 
-- Vehicle 1 : random agent, $\gamma = 0.85$
+- Vehicle 1 : random agent
 - Vehicle 2 : reactive agent, $\gamma = 0.05$
 - Vehicle 3 : reactive agent, $\gamma = 0.65$
 - Vehicle 4 : reactive agent, $\gamma = 0.85$
