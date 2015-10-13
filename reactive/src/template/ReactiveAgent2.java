@@ -14,7 +14,8 @@ import logist.task.TaskDistribution;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
 
-public class ReactiveAgent implements ReactiveBehavior {
+// Reactive agent will state containing null tasks
+public class ReactiveAgent2 implements ReactiveBehavior {
 
 	private Double[][] p;
 	private Integer[][] r;
@@ -29,7 +30,7 @@ public class ReactiveAgent implements ReactiveBehavior {
 	int[] Best;
 	Double discount;
 	Double R[][];
-	
+
 
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
@@ -41,7 +42,7 @@ public class ReactiveAgent implements ReactiveBehavior {
 		cities = topology.cities();
 		numCities = cities.size();
 
-		numStates = numCities * (numCities - 1);
+		numStates = numCities * numCities;
 		numActions = 2;
 
 		/*************** Matrices r and p **********************/
@@ -75,14 +76,24 @@ public class ReactiveAgent implements ReactiveBehavior {
 		// When the action is to move without taking the task
 		// the reward is -distance*(cost/km).
 		for (int i = 0; i < numStates; i++) {
-			int sd[] = sourceAndDestinationFromIndex(i, numCities);
-			R[i][0] = -distanceBetween(cities, sd[0], sd[1]) * vehicle.costPerKm();
+			Integer sd[] = sourceAndDestinationFromIndex(i, numCities);
+			if(sd[1] != null) {
+				R[i][0] = -distanceBetween(cities, sd[0], sd[1]) * vehicle.costPerKm();
+			} else {
+				City A = cities.get(sd[0]);
+				City nNeighbour = closestNeighbour(A);
+				R[i][0] = -A.distanceTo(nNeighbour) * vehicle.costPerKm();
+			}
 		}
 
 		// Otherwise, we take the reward from matrix r minus the travel cost
 		for (int i = 0; i < numStates; i++) {
-			int sd[] = sourceAndDestinationFromIndex(i, numCities);
-			R[i][1] = r[sd[0]][sd[1]] - distanceBetween(cities, sd[0], sd[1]) * vehicle.costPerKm();
+			Integer sd[] = sourceAndDestinationFromIndex(i, numCities);
+			if(sd[1] != null) {
+				R[i][1] = r[sd[0]][sd[1]] - distanceBetween(cities, sd[0], sd[1]) * vehicle.costPerKm();
+			} else {
+				R[i][1] = -Double.MAX_VALUE;
+			}
 		}
 		/*****************************************************/
 
@@ -91,14 +102,15 @@ public class ReactiveAgent implements ReactiveBehavior {
 
 		// When the action is to move without taking the task
 		for (int i = 0; i < numStates; i++) {
-			int sdA[] = sourceAndDestinationFromIndex(i, numCities);
+			Integer sdA[] = sourceAndDestinationFromIndex(i, numCities);
 			for (int j = 0; j < numStates; j++) {
-				int sdB[] = sourceAndDestinationFromIndex(j, numCities);
-
+				Integer sdB[] = sourceAndDestinationFromIndex(j, numCities);
+				
 				if(sdA[0]!=sdB[0] && areClosestNeighbours(sdA[0], sdB[0])) {
-					T[i][0][j] = p[sdB[0]][sdB[1]];
-					if (areClosestNeighbours(sdB[0], sdB[1])) {
-						T[i][0][j] += (1 - pTask[sdB[0]]);
+					if(sdB[1] == null) {
+						T[i][0][j] = (1-pTask[sdB[0]]);
+					} else {
+						T[i][0][j] = p[sdB[0]][sdB[1]];
 					}
 				} else {
 					T[i][0][j] = new Double(0);
@@ -106,16 +118,18 @@ public class ReactiveAgent implements ReactiveBehavior {
 			}
 		}
 
+		System.out.println();
 		// When the action is to deliver the task
 		for (int i = 0; i < numStates; i++) {
-			int sdA[] = sourceAndDestinationFromIndex(i, numCities);
+			Integer sdA[] = sourceAndDestinationFromIndex(i, numCities);
 			for (int j = 0; j < numStates; j++) {
-				int sdB[] = sourceAndDestinationFromIndex(j, numCities);
+				Integer sdB[] = sourceAndDestinationFromIndex(j, numCities);
 
 				if (sdA[0]!=sdB[0] && sdA[1] == sdB[0]) {
-					T[i][1][j] = p[sdB[0]][sdB[1]];
-					if (areClosestNeighbours(sdB[0], sdB[1])) {
-						T[i][1][j] += (1 - pTask[sdB[0]]);
+					if(sdB[1] == null) {
+						T[i][1][j] = (1-pTask[sdB[0]]);
+					} else {
+						T[i][1][j] = p[sdB[0]][sdB[1]];
 					}
 				} else {
 					T[i][1][j] = 0.0;
@@ -246,6 +260,27 @@ public class ReactiveAgent implements ReactiveBehavior {
 	}
 
 	/**
+	 * Gives the closest neighbour of a city
+	 * 
+	 * @param city
+	 * @return the closest neighbour of a city
+	 */
+	private City closestNeighbour(City city) {
+		City closestNeighbour = null;
+		double minDistance = -1;
+		List<City> neighbours = city.neighbors();
+		Iterator<City> it = neighbours.iterator();
+		while (it.hasNext()) {
+			City neighbour = (City) it.next();
+			if (city.distanceTo(neighbour) < minDistance || minDistance < 0) {
+				minDistance = city.distanceTo(neighbour);
+				closestNeighbour = neighbour;
+			}
+		}
+		return closestNeighbour;
+	}
+
+	/**
 	 * Gives the source and the destination from an index from our matrix
 	 * construction
 	 * 
@@ -259,13 +294,16 @@ public class ReactiveAgent implements ReactiveBehavior {
 	 * 
 	 * @return the source and destination corresponding to the index
 	 */
-	public static int[] sourceAndDestinationFromIndex(int index, int size) {
-		int source = (int) Math.floor(index / (size - 1));
-		int destination = (index + source) % size;
+	public static Integer[] sourceAndDestinationFromIndex(int index, int size) {
+		int source = (int) Math.floor(index / size);
+		Integer destination = (index + source) % (size+1);
 		if (destination >= source) {
-			destination = (destination + 1) % size;
+			destination = (destination + 1) % (size+1);
 		}
-		return new int[] { source, destination };
+		if (destination==size) {
+			destination = null;
+		}
+		return new Integer[] { source, destination };
 	}
 
 	/**
@@ -304,27 +342,6 @@ public class ReactiveAgent implements ReactiveBehavior {
 	public static double distanceBetween(List<City> cities, int cityA, int cityB) {
 		return cities.get(cityA).distanceTo(cities.get(cityB));
 	}
-	
-	/**
-	 * Gives the closest neighbour of a city
-	 * 
-	 * @param city
-	 * @return the closest neighbour of a city
-	 */
-	private City closestNeighbour(City city) {
-		City closestNeighbour = null;
-		double minDistance = -1;
-		List<City> neighbours = city.neighbors();
-		Iterator<City> it = neighbours.iterator();
-		while (it.hasNext()) {
-			City neighbour = (City) it.next();
-			if (city.distanceTo(neighbour) < minDistance || minDistance < 0) {
-				minDistance = city.distanceTo(neighbour);
-				closestNeighbour = neighbour;
-			}
-		}
-		return closestNeighbour;
-	}
 
 	/**
 	 * Returns a boolean that indicates if two cities are closest neighbours
@@ -337,6 +354,16 @@ public class ReactiveAgent implements ReactiveBehavior {
 		return cities.get(cityB).equals(closestNeighbour(cities.get(cityA)));
 	}
 
+	/**
+	 * Returns a boolean that indicates if two cities are neighbours
+	 * 
+	 * @param cityA
+	 * @param cityB
+	 * @return boolean that indicates if two cities are neighbours
+	 */
+	private boolean areNeighbours(int cityA, int cityB) {
+		return cities.get(cityA).equals(cities.get(cityB));
+	}
 
 	/****** The following functions are used for debugging purpose *******/
 
