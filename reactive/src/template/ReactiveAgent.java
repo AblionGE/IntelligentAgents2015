@@ -39,13 +39,13 @@ public class ReactiveAgent extends ReactiveAbstractAgent implements ReactiveBeha
 
 		if (availableTask == null) {
 			// If the task is null, move to the closest neighbour
-			indexBest = indexFromCityAndTask(currentCity.id, closestNeighbour(currentCity).id, this.getNumCities());
+			indexBest = indexFromCityAndTask(currentCity.id, closestNeighbour(currentCity).id, numCities);
 			System.out.println(
 					vehicle.name() + " there is no task from " + currentCity + ". Benefit : " + R[indexBest][0]);
 			action = new Move(closestNeighbour(currentCity));
 			generalReward += R[indexBest][0];
 		} else {
-			indexBest = indexFromCityAndTask(currentCity.id, availableTask.deliveryCity.id, this.getNumCities());
+			indexBest = indexFromCityAndTask(currentCity.id, availableTask.deliveryCity.id, numCities);
 			if (Best[indexBest] == 0) {
 				// If the best solution is to move, move to the closest
 				// neighbour
@@ -73,9 +73,9 @@ public class ReactiveAgent extends ReactiveAbstractAgent implements ReactiveBeha
 
 		// When the action is to move without taking the task
 		for (int i = 0; i < numStates; i++) {
-			Integer ctA[] = cityAndTaskFromIndex(i, this.getNumCities());
+			Integer ctA[] = cityAndTaskFromIndex(i, numCities);
 			for (int j = 0; j < numStates; j++) {
-				Integer ctB[] = cityAndTaskFromIndex(j, this.getNumCities());
+				Integer ctB[] = cityAndTaskFromIndex(j, numCities);
 
 				// Probability is non zero only when B is the nearest neighbour
 				// of A
@@ -94,9 +94,9 @@ public class ReactiveAgent extends ReactiveAbstractAgent implements ReactiveBeha
 
 		// When the action is to deliver the task
 		for (int i = 0; i < numStates; i++) {
-			Integer ctA[] = cityAndTaskFromIndex(i, this.getNumCities());
+			Integer ctA[] = cityAndTaskFromIndex(i, numCities);
 			for (int j = 0; j < numStates; j++) {
-				Integer ctB[] = cityAndTaskFromIndex(j, this.getNumCities());
+				Integer ctB[] = cityAndTaskFromIndex(j, numCities);
 
 				// Probability is non zero only when task from A goes for B
 				if (ctA[0] != ctB[0] && ctA[1] == ctB[0]) {
