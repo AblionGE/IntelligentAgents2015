@@ -89,28 +89,37 @@ For our tests, we used the following options on the map "*France*" with 4 agents
   </tasks>
 ```
 
-In the following graphs representing *reward per km*, the blue line is always the random agent (85\% to take a task) and **TO COMPLETE**
-
+The following graphs represent the *reward per km* as a function of the *time* of simulations with a varying number of agents and different values for $\gamma$:
 \begin{figure}[h!]
-   \begin{minipage}[b]{0.40\linewidth}
-      \centering \includegraphics[scale=0.06]{img/1random3reactiveFranceproba02to04.png}
-      \caption{\it V1 ($\gamma=0.05$), V2 ($\gamma=0.45$)}
+   \begin{minipage}[b]{0.24\linewidth}
+      \centering \includegraphics[scale=0.24]{img/reactive65.png}
+      \caption{\it One Reactive agent: $\gamma=0.65$}
    \end{minipage}\hfill
-   \begin{minipage}[b]{0.48\linewidth}   
-      \centering \includegraphics[scale=0.06]{img/1random3reactiveFranceproba02to04.png}
-      \caption{\it V1 ($\gamma=0.05$), V2 ($\gamma=0.45$)}
+   \begin{minipage}[b]{0.24\linewidth}   
+      \centering \includegraphics[scale=0.24]{img/reactive65-65.png}
+      \caption{\it Two Reactive agents: $\gamma=0.65$}
    \end{minipage}
-   \begin{minipage}[b]{0.40\linewidth}
-      \centering \includegraphics[scale=0.06]{img/1random3reactiveFranceproba02to04.png}
-      \caption{\it V1 ($\gamma=0.05$), V2 ($\gamma=0.45$)}
+   \begin{minipage}[b]{0.24\linewidth}
+      \centering \includegraphics[scale=0.24]{img/reactive65-65-65.png}
+      \caption{\it Three Reactive agents: $\gamma=0.65$}
    \end{minipage}\hfill
-   \begin{minipage}[b]{0.48\linewidth}   
-      \centering \includegraphics[scale=0.06]{img/1random3reactiveFranceproba02to04.png}
-      \caption{\it V1 ($\gamma=0.05$), V2 ($\gamma=0.45$)}
+   \begin{minipage}[b]{0.24\linewidth}   
+      \centering \includegraphics[scale=0.24]{img/reactive05-45-65-85-99-random.png}
+      \caption{\it Five Reactive agents: darkblue: $\gamma =0.05$, red: $\gamma =0.45$, green: $\gamma =0.65$, yellow: $\gamma =0.85$, pink: $\gamma =0.99$, and a Random agent: lightblue}
    \end{minipage}
 \end{figure}
 
 ## Comments
-We can observe on these different graphs (which represent the reward per km) that the random agent is in all cases worst than the reactive agents. Another observation is that the reward per km and the reward per task (both of them are strongly correlated) become quite constant in the time. It means that the agents will have a constant gain over time.
+We can observe on these different graphs that the starting point of the agents plays a big role for its reward in close future. In the long term, the reward per km and the reward per task (both of them are strongly correlated) become quite constant in the time. It means that the agents will have a constant gain over time.
 
-About the choice of $\gamma$, we can observe that it does not influence so much the reward. Indeed, we see that rewards are close to each other. Nevertheless, we observe something strange : it happens sometimes that when the $\gamma$ is small, the reward is slitely better than when the $\gamma$ is bigger. It surprises us because when $\gamma$ is bigger, the algorithm considers more step in the future to give the best action to the agent. Agents with a small $\gamma$ will take more tasks because it only considers a close future. On the contrary, agents with a bigger $\gamma$ should consider further in the future and take better decisions for having a better reward. We can maybe explain this behavior with the fact that rewards are a bit huge compared to the cost of travelling from one city to another (even if the city is the closest neighbour). We also observe that the ```Best(S)``` vectors for different $\gamma$ is often the same (or with 2-3 differences) and the randomness of task appearance makes that some agents with smaller $\gamma$ have a better reward than others with a bigger $\gamma$.
+Another observation is that the random agent has always a worse reward than the reactive agents. 
+
+About the choice of $\gamma$, it only influences the ```Best(S)``` vectors by a little amount of entries and we can observe that it does not influence so much the reward. Indeed, we see in the graphs that rewards for different settings become close to each other over time.
+
+Nevertheless, we sometimes observed that an agent with a small $\gamma$ can have its reward slitely better than an agent with a high $\gamma$. It surprises us because when $\gamma$ is bigger, the algorithm considers more steps in the future to give the best action to the agent. Agents with a small $\gamma$ will take more tasks because it only considers a close future. On the contrary, agents with a bigger $\gamma$ should consider further in the future and take better decisions for having a better reward. We can maybe explain this behavior with the fact that rewards are a bit huge compared to the cost of travelling from one city to another and that the randomness of the simulation is considerable.
+
+
+
+
+
+
