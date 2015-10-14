@@ -92,20 +92,20 @@ For our tests, we used the following options on the map "*France*" with 4 agents
 The following graphs represent the *reward per km* as a function of the *time* of simulations with a varying number of agents and different values for $\gamma$:
 \begin{figure}[h!]
    \begin{minipage}[b]{0.24\linewidth}
-      \centering \includegraphics[scale=0.24]{img/reactive65.png}
       \caption{\it One Reactive agent: $\gamma=0.65$}
+      \centering \includegraphics[scale=0.24]{img/reactive65.png}
    \end{minipage}\hfill
    \begin{minipage}[b]{0.24\linewidth}   
-      \centering \includegraphics[scale=0.24]{img/reactive65-65.png}
       \caption{\it Two Reactive agents: $\gamma=0.65$}
+      \centering \includegraphics[scale=0.24]{img/reactive65-65.png}
    \end{minipage}
    \begin{minipage}[b]{0.24\linewidth}
-      \centering \includegraphics[scale=0.24]{img/reactive65-65-65.png}
       \caption{\it Three Reactive agents: $\gamma=0.65$}
+      \centering \includegraphics[scale=0.24]{img/reactive65-65-65.png}
    \end{minipage}\hfill
    \begin{minipage}[b]{0.24\linewidth}   
-      \centering \includegraphics[scale=0.24]{img/reactive05-45-65-85-99-random.png}
       \caption{\it Five Reactive agents: darkblue: $\gamma =0.05$, red: $\gamma =0.45$, green: $\gamma =0.65$, yellow: $\gamma =0.85$, pink: $\gamma =0.99$, and a Random agent: lightblue}
+      \centering \includegraphics[scale=0.24]{img/reactive05-45-65-85-99-random.png}
    \end{minipage}
 \end{figure}
 
