@@ -201,12 +201,9 @@ public abstract class ReactiveAbstractAgent implements ReactiveBehavior {
 	 */
 	public int indexFromCityAndTask(int citySource, int taskDestination, int numberOfCities) {
 		int startIndexCitySource = citySource * (numberOfCities);
-		int returnedIndex = startIndexCitySource + taskDestination;
+		int returnedIndex = startIndexCitySource + (taskDestination - 1);
 		if (citySource > taskDestination) {
-			// If the source id is bigger than the destination id,
-			// we must remove 1 because the element city i -> city i doesn't
-			// exist
-			returnedIndex--;
+			returnedIndex++;
 		}
 		return returnedIndex;
 	}
