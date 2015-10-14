@@ -39,7 +39,7 @@ public abstract class ReactiveAbstractAgent implements ReactiveBehavior {
 		numStates = numCities * numCities;
 		numActions = 2;
 
-		pTask = new Double[this.getNumCities()];
+		pTask = new Double[numCities];
 
 		R = new Double[numStates][numActions];
 
@@ -55,7 +55,7 @@ public abstract class ReactiveAbstractAgent implements ReactiveBehavior {
 		// When the action is to move without taking the task
 		// the reward is -distance*(cost/km).
 		for (int i = 0; i < numStates; i++) {
-			Integer ct[] = cityAndTaskFromIndex(i, this.getNumCities());
+			Integer ct[] = cityAndTaskFromIndex(i, numCities);
 			if (ct[1] != null) {
 				R[i][0] = -distanceBetween(cities, ct[0], ct[1]) * vehicle.costPerKm();
 			} else {
@@ -67,7 +67,7 @@ public abstract class ReactiveAbstractAgent implements ReactiveBehavior {
 
 		// Otherwise, we take the reward from matrix r minus the travel cost
 		for (int i = 0; i < numStates; i++) {
-			Integer ct[] = cityAndTaskFromIndex(i, this.getNumCities());
+			Integer ct[] = cityAndTaskFromIndex(i, numCities);
 			if (ct[1] != null) {
 				R[i][1] = r[ct[0]][ct[1]] - distanceBetween(cities, ct[0], ct[1]) * vehicle.costPerKm();
 			} else {
@@ -82,8 +82,8 @@ public abstract class ReactiveAbstractAgent implements ReactiveBehavior {
 		// to city2)
 		int idC1 = 0;
 		int idC2 = 0;
-		this.setSmallR(new Integer[this.getNumCities()][this.getNumCities()]);
-		this.setP(new Double[this.getNumCities()][this.getNumCities()]);
+		r = new Integer[numCities][numCities];
+		p = new Double[numCities][numCities];
 		for (City c1 : cities) {
 			pTask[idC1] = 0.0;
 			for (City c2 : cities) {
@@ -262,106 +262,6 @@ public abstract class ReactiveAbstractAgent implements ReactiveBehavior {
 			}
 			System.out.println("");
 		}
-	}
-
-	protected Double[][] getP() {
-		return p;
-	}
-
-	protected void setP(Double[][] p) {
-		this.p = p;
-	}
-
-	protected Integer[][] getSmallR() {
-		return r;
-	}
-
-	protected void setSmallR(Integer[][] r) {
-		this.r = r;
-	}
-
-	protected List<City> getCities() {
-		return cities;
-	}
-
-	protected void setCities(List<City> cities) {
-		this.cities = cities;
-	}
-
-	protected int getNumCities() {
-		return numCities;
-	}
-
-	protected void setNumCities(int numCities) {
-		this.numCities = numCities;
-	}
-
-	protected int getNumStates() {
-		return numStates;
-	}
-
-	protected void setNumStates(int numStates) {
-		this.numStates = numStates;
-	}
-
-	protected int getNumActions() {
-		return numActions;
-	}
-
-	protected void setNumActions(int numActions) {
-		this.numActions = numActions;
-	}
-
-	protected double[] getV() {
-		return V;
-	}
-
-	protected void setV(double[] v) {
-		V = v;
-	}
-
-	protected Double getGeneralReward() {
-		return generalReward;
-	}
-
-	protected void setGeneralReward(Double generalReward) {
-		this.generalReward = generalReward;
-	}
-
-	protected int getNbOfActions() {
-		return nbOfActions;
-	}
-
-	protected void setNbOfActions(int nbOfActions) {
-		this.nbOfActions = nbOfActions;
-	}
-
-	protected int[] getBest() {
-		return Best;
-	}
-
-	protected void setBest(int[] best) {
-		Best = best;
-	}
-
-	protected Double getDiscount() {
-		return discount;
-	}
-
-	protected void setDiscount(Double discount) {
-		this.discount = discount;
-	}
-
-	protected Double[][] getR() {
-		return R;
-	}
-
-	protected void setR(Double[][] r) {
-		R = r;
-	}
-
-	protected static double getEpsilon() {
-		return EPSILON;
 	}
 
 }
