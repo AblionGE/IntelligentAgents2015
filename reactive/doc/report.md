@@ -73,8 +73,8 @@ In the implementation of the reactive agent, we coded all matrices presented abo
 
 The agent has two behaviours when arriving in a city *i*:
 
-- If there is no task (i.e. *t_{ij}*=*null*), it goes to the nearest city to lose as less money as possible.
-- If there is a task *t_{ij}* $\neq$ *null*, the agent chooses the best action *a* by picking in the vector $Best(S)$ the element corresponding to its state $s(i,t_{ij})$. If $a = m_{ik}$, the agent doesn't take the task and moves to the nearest city *k*. If $a = d_{ij}$, the agent delivers to city *j*.
+- If there is no task (i.e. $t_{ij}=null$), it goes to the nearest city to lose as less money as possible.
+- If there is a task $t_{ij} \neq null$, the agent chooses the best action *a* by picking in the vector $Best(S)$ the element corresponding to its state $s(i,t_{ij})$. If $a = m_{ik}$, the agent doesn't take the task and moves to the nearest city *k*. If $a = d_{ij}$, the agent delivers to city *j*.
 
 # Results
 Here are the different graphs of reward with reactive agents having learned their optimal stategy using *MDP*. They show reactive agents with different $\gamma$ values and random agents runned simultaneously. Note that each agent has only one vehicle in our implementation.
@@ -101,4 +101,4 @@ Agents :
 ## Comments
 We can observe on these different graphs (which represent the reward per km) that the random agent is in all cases worst than the reactive agents. Another observation is that the reward per km and the reward per task (both of them are strongly correlated) become quite constant in the time. It means that the agents will have a constant gain over time.
 
-About the choice of $\gamma$, we can observe that it does not influence so much the reward. Nevertheless, we observe something strange : it happens relatively often that when the $\gamma$ is small, the reward is slitely better than when the $\gamma$ is bigger. It surprises us because when $\gamma$ is bigger, the algorithm considers more step in the future to give the best action to the agent. Agents with a small $\gamma$ will take every task because it only consider a close future. On the contrary, agents with a bigger $\gamma$ should consider further in the future and take better decisions for having a better reward. We can maybe explain this behavior with the fact that rewards are a bit huge compared to the cost of travelling from one city to another (even if the city is the closest neighbour).
+About the choice of $\gamma$, we can observe that it does not influence so much the reward. Nevertheless, we observe something strange : it happens sometimes that when the $\gamma$ is small, the reward is slitely better than when the $\gamma$ is bigger. It surprises us because when $\gamma$ is bigger, the algorithm considers more step in the future to give the best action to the agent. Agents with a small $\gamma$ will take every task because it only consider a close future. On the contrary, agents with a bigger $\gamma$ should consider further in the future and take better decisions for having a better reward. We can maybe explain this behavior with the fact that rewards are a bit huge compared to the cost of travelling from one city to another (even if the city is the closest neighbour).
