@@ -79,7 +79,7 @@ The agent has two behaviours when arriving in a city *i*:
 # Results
 Here are the different graphs of reward with reactive agents having learned their optimal stategy using *MDP*. They show reactive agents with different $\gamma$ values and random agents run simultaneously. Note that each agent has only one vehicle in our implementation.
 
-For our tests, we used the following options on the map "*France*" with 4 agents described below.
+For our tests, we used the following options on the map "*France*" with different numbers of agents described below.
 ```xml
 <tasks number="10" rngSeed="3590420242192152424">
     <probability distribution="uniform" min="0.0" max="1.0" />
