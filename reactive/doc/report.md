@@ -111,7 +111,7 @@ The following graphs represent the *reward per km* as a function of the *time* o
 
 ## Comments
 
-We can observe on these different graphs that the starting point of the agents plays a big role for its reward in close future. In the long term, the reward per km and the reward per task (both of them are strongly correlated) become quite constant in the time. It means that the agents will have a constant gain over time.
+We can observe on these different graphs that the starting point of the agents plays a big role for its reward in close future. In the long term, the reward per km and the reward per task\footnote{You can observe values in the console during a run} (both of them are strongly correlated) become quite constant in the time. It means that the agents will have a constant gain over time.
 
 Another observation is that the random agent has always a worse reward than the reactive agents. 
 
