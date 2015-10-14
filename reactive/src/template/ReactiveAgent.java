@@ -68,6 +68,10 @@ public class ReactiveAgent extends ReactiveAbstractAgent implements ReactiveBeha
 		return action;
 	}
 	
+	/**
+	 * Compute the matrix T(s,a,s')
+	 * @return T(s,a,s')
+	 */
 	private Double[][][] computeT() {
 		Double T[][][] = new Double[numStates][2][numStates];
 
@@ -114,6 +118,9 @@ public class ReactiveAgent extends ReactiveAbstractAgent implements ReactiveBeha
 		return T;
 	}
 
+	/**
+	 * Compute V(S) and Best(S)
+	 */
 	private void computeVAndBest() {
 		V = new double[numStates];
 		Best = new int[numStates];

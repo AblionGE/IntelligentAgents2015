@@ -44,10 +44,14 @@ public abstract class ReactiveAbstractAgent implements ReactiveBehavior {
 		R = new Double[numStates][numActions];
 
 		createRAndP(td);
+		
 		computeR(agent);
-
 	}
 
+	/**
+	 * Compute matrix R(s,a)
+	 * @param agent
+	 */
 	protected void computeR(Agent agent) {
 		// One agent has only one vehicle
 		Vehicle vehicle = agent.vehicles().get(0);
@@ -77,6 +81,10 @@ public abstract class ReactiveAbstractAgent implements ReactiveBehavior {
 		}
 	}
 
+	/**
+	 * create matrices r (reward) and p (probabilities)
+	 * @param td
+	 */
 	protected void createRAndP(TaskDistribution td) {
 		// Set matrices r (rewards) and p (probability to have a task from city1
 		// to city2)
@@ -160,7 +168,7 @@ public abstract class ReactiveAbstractAgent implements ReactiveBehavior {
 	}
 
 	/**
-	 * Gives the source and the destination from an index from our matrix
+	 * Gives the source and the task destination from an index from our matrix
 	 * construction
 	 * 
 	 * @param index
