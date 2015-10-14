@@ -1,6 +1,5 @@
 package template;
 
-import java.util.List;
 import java.util.Random;
 
 import logist.simulation.Vehicle;
@@ -14,89 +13,18 @@ import logist.task.TaskDistribution;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
 
-public class ReactiveTemplate implements ReactiveBehavior {
+public class ReactiveTemplate extends ReactiveAbstractAgent implements ReactiveBehavior {
 
-	private Double[][] p;
-	private Integer[][] r;
-	List<City> cities;
-	private int numCities;
-	private int numStates;
-	private int numActions;
 	private Random random;
 	private double pPickup;
-	private int nbOfActions = 0;
-	private Double generalReward = 0.0;
-	Double R[][];
 
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
 
-		// Reads the discount factor from the agents.xml file.
-		// If the property is not present it defaults to 0.95
-		Double discount = agent.readProperty("discount-factor", Double.class, 0.95);
+		super.setup(topology, td, agent);
 
 		this.random = new Random();
 		this.pPickup = discount;
-
-		cities = topology.cities();
-		numCities = cities.size();
-
-		numStates = numCities * numCities;
-		numActions = 2;
-
-		/*************** Matrices r and p **********************/
-		Double[] pTask = new Double[numCities];
-		// Set matrices r (rewards) and p (probability to have a task from city1
-		// to city2)
-		int idC1 = 0;
-		int idC2 = 0;
-		r = new Integer[numCities][numCities];
-		p = new Double[numCities][numCities];
-		for (City c1 : cities) {
-			pTask[idC1] = 0.0;
-			for (City c2 : cities) {
-				r[idC1][idC2] = td.reward(c1, c2);
-				p[idC1][idC2] = td.probability(c1, c2);
-				pTask[idC1] += p[idC1][idC2];
-				idC2++;
-			}
-			idC1++;
-			idC2 = 0;
-		}
-
-		/*****************************************************/
-
-		/*********************** Matrix R(s,a) *****************/
-		R = new Double[numStates][numActions];
-
-		// One agent has only one vehicle
-		Vehicle vehicle = agent.vehicles().get(0);
-
-		// When the action is to move without taking the task
-		// the reward is -distance*(cost/km).
-		for (int i = 0; i < numStates; i++) {
-			Integer ct[] = ReactiveAgent.cityAndTaskFromIndex(i, numCities);
-			if (ct[1] != null) {
-				R[i][0] = -ReactiveAgent.distanceBetween(cities, ct[0], ct[1]) * vehicle.costPerKm();
-			} else {
-				City A = cities.get(ct[0]);
-				City nNeighbour = ReactiveAgent.closestNeighbour(A);
-				R[i][0] = -A.distanceTo(nNeighbour) * vehicle.costPerKm();
-			}
-		}
-
-		// Otherwise, we take the reward from matrix r minus the travel cost
-		for (int i = 0; i < numStates; i++) {
-			Integer ct[] = ReactiveAgent.cityAndTaskFromIndex(i, numCities);
-			if (ct[1] != null) {
-				R[i][1] = r[ct[0]][ct[1]] - ReactiveAgent.distanceBetween(cities, ct[0], ct[1]) * vehicle.costPerKm();
-			} else {
-				// Should not be possible to deliver a task when there is none
-				R[i][1] = -Double.MAX_VALUE;
-			}
-		}
-		/*****************************************************/
-
 		System.out.println("Random Agent " + agent.id() + " (vehicle " + agent.vehicles().get(0).name() + ")");
 	}
 
@@ -108,13 +36,13 @@ public class ReactiveTemplate implements ReactiveBehavior {
 
 		if (availableTask == null || random.nextDouble() > pPickup) {
 			City next = currentCity.randomNeighbor(random);
-			indexBest = ReactiveAgent.indexFromCityAndTask(currentCity.id, next.id, numCities);
+			indexBest = indexFromCityAndTask(currentCity.id, next.id, numCities);
 			System.out.println(
 					vehicle.name() + " there is no task from " + currentCity + ". Benefit : " + R[indexBest][0]);
 			action = new Move(next);
 			generalReward += R[indexBest][0];
 		} else {
-			indexBest = ReactiveAgent.indexFromCityAndTask(currentCity.id, availableTask.deliveryCity.id, numCities);
+			indexBest = indexFromCityAndTask(currentCity.id, availableTask.deliveryCity.id, numCities);
 			System.out.println(vehicle.name() + " takes the task from " + availableTask.pickupCity + " to "
 					+ availableTask.deliveryCity + ". Benefit : " + R[indexBest][1]);
 			action = new Pickup(availableTask);
