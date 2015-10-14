@@ -28,7 +28,7 @@ To compute the *Value iteration* of the *Markov Decision Process*, we need first
 
 ### The reward table *R(s,a)*
 
-Here are the functions needed to build *R(s,a)* :
+To avoid an agent to to be in a state $s(i,t_{ij}=null)$ with $a = d_{ij}$ which should be impossible, we set the reward for such combinations to be the less possible value: $- Double.MAX\_VALUE$. Here are the functions needed to build *R(s,a)* :
 
 - $r(i,j)$ : the reward given by a task $t_{ij}$ delivered from city *i* to city *j* (from state $s=(i,t_{ij})$)
 - $cost(i,j)$ : the cost to travel from city *i* to city *j* ($distance * cost \ per \ km$)
@@ -37,8 +37,9 @@ Here are the functions needed to build *R(s,a)* :
 $$R(s,a) =
 \left\{
   \begin{array}{rcl}
+  	- cost(i,j) & \mbox{for} & a = m_{ij}\\
     r(i,j) - cost(i,j) & \mbox{for} & a = d_{ij}, t_{ij} \neq null\\
-    - cost(i,j) & \mbox{for} & a = m_{ij}\\
+    - Double.MAX\_ VALUE & \mbox{for} & a = d_{ij}, t_{ij} = null\\
   \end{array}\right.
 $$
 
@@ -50,35 +51,18 @@ Here are the functions needed to build *T(s,a,s')* :
 - $P(i)$ = $\sum_{j=0,j\neq i}^N$ $p(i,j)$ : the probability that there is a task in city *i*
 - $CN(i,j)$ : true if *j* is the closest neighbour of *i*
 
-The probability to arrive in the state $s'(i,t_{ij})$ is $\frac{p(i,j)}{P(i)}$ with the property that $\sum_{s'} T(s,a,s') = 1$. T(s,a,s') depends on each actions:
+The probability to arrive in the state $s'(i,t_{ij})$ is $p(i,j)$ for $t_{ij}\neq null$. When there is no task, i.e. $t_{ij} = null$, the probability is $(1-P(i))$. Like this, we have the property that $\sum_{s'} T(s,a,s') = 1$. T(s,a,s') depends on each actions:
 
-- if $a = m_{ij}$, the only non-zero entries correspond to the states $s(i,t_{ij})$ and $s'(k,t_l)$ such that *k* is *i*'s nearest neighbour.
 - if $a = d_{ij}$, the only non-zero entries correspond to the states $s(i,t_{ij})$ and $s'(j,t_{jk})$.
-<!--
-- We deliver the task from city *i* to city *j* and city *k* is not the closest neighbour of city *j*
-- We deliver the task from city *i* to city *j* and city *k* is the closest neighbour of city *j*
-- We move from city *i* to city *j* (it does not matter if there is a task or not in city *i*) and city *k* is not the closest neighbour of city *j*
-  - We move from city *i* to city *j* (it does not matter if there is a task or not in city *i*) and city *k* is the closest neighbour of city *j*
-- All other cases
-
-$$T(s(i,t_{ij}),a,s'(j,t_{ij})) =
-\left\{
-  \begin{array}{rcl}
-    p(i,j)*p(j,k) & \mbox{for} & a = d_{ij}, t_{ij} \neq null, t_{ij} \ is \ for \ city \ j, !CN(j,k)\\
-    p(i,j)*(p(j,k)+(1-\sum_kp(j,k))) & \mbox{for} & a = d_{ij}, t_{ij} \neq null, t_{ij} \ is \ for \ city \ j, CN(j,k)\\
-    p(j,k) & \mbox{for} & a = m_{ij}, CN(i,j), !CN(j,k)\\
-    p(j,k)+(1-\sum_kp(j,k)) & \mbox{for} & a = m_{ij}, CN(i,j), CN(j,k)\\
-    0 & & otherwise\\
-  \end{array}\right.
-$$ -->
+- if $a = m_{ik}$, the only non-zero entries correspond to the states $s(i,t_{ij})$ and $s'(k,t_l)$ such that *k* is *i*'s nearest neighbour.
 
 $$T(s(i,t_{ij}),a,s'(k,t_{kl})) =
 \left\{
   \begin{array}{rcl}
-    p(j,k) & \mbox{for} & a = d_{ij},j=k, t_{ij} \neq null, t_{jk} \neq null\\
-    1 - P(j) & \mbox{for} & a = d_{ij},j=k, t_{ij} \neq null, t_{jk} = null\\
-    p(j,k) & \mbox{for} & a = m_{ij},j=k, CN(i,j), t_{jk} \neq null\\
-    1 - P(j) & \mbox{for} & a = m_{ij},j=k, CN(i,j),t_{jk} = null\\
+    p(k,l) & \mbox{for} & a = d_{ij},j=k, t_{ij} \neq null, t_{kl} \neq null\\
+    1 - P(k) & \mbox{for} & a = d_{ij},j=k, t_{ij} \neq null, t_{kl} = null\\
+    p(k,l) & \mbox{for} & a = m_{ik}, CN(i,k), t_{kl} \neq null\\
+    1 - P(k) & \mbox{for} & a = m_{ik}, CN(i,k),t_{kl} = null\\
     0 & & otherwise\\
   \end{array}\right.
 $$
@@ -89,7 +73,7 @@ In the implementation of the reactive agent, we coded all matrices presented abo
 
 The agent has two behaviours when arriving in a city *i*:
 
-- If there is no task (i.e. *t_{ij}*=*null*), it goes to ne nearest city to lose as less money as possible
+- If there is no task (i.e. *t_{ij}*=*null*), it goes to the nearest city to lose as less money as possible.
 - If there is a task *t_{ij}* $\neq$ *null*, the agent chooses the best action *a* by picking in the vector $Best(S)$ the element corresponding to its state $s(i,t_{ij})$. If $a = m_{ik}$, the agent doesn't take the task and moves to the nearest city *k*. If $a = d_{ij}$, the agent delivers to city *j*.
 
 # Results

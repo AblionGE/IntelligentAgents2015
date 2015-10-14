@@ -97,8 +97,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		}
 		/*****************************************************/
 
-		System.out.println("Random Agent " + agent.id() + " (vehicle " + agent.vehicles().get(0).name() + ")"
-				+ " with lambda=" + discount);
+		System.out.println("Random Agent " + agent.id() + " (vehicle " + agent.vehicles().get(0).name() + ")");
 	}
 
 	@Override

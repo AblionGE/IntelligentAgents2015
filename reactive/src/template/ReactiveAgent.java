@@ -126,6 +126,7 @@ public class ReactiveAgent implements ReactiveBehavior {
 			for (int j = 0; j < numStates; j++) {
 				Integer ctB[] = cityAndTaskFromIndex(j, numCities);
 
+				// Probability is non zero only when task from A goes for B
 				if (ctA[0] != ctB[0] && ctA[1] == ctB[0]) {
 					if (ctB[1] == null) {
 						T[i][1][j] = (1 - pTask[ctB[0]]);
