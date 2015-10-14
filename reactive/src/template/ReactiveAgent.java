@@ -14,8 +14,7 @@ import logist.task.TaskDistribution;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
 
-// Reactive agent will state containing null tasks
-public class ReactiveAgent2 implements ReactiveBehavior {
+public class ReactiveAgent implements ReactiveBehavior {
 
 	private Double[][] p;
 	private Integer[][] r;
@@ -268,7 +267,7 @@ public class ReactiveAgent2 implements ReactiveBehavior {
 	 * @param city
 	 * @return the closest neighbour of a city
 	 */
-	private City closestNeighbour(City city) {
+	public static City closestNeighbour(City city) {
 		City closestNeighbour = null;
 		double minDistance = -1;
 		List<City> neighbours = city.neighbors();

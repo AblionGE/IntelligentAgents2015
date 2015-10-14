@@ -41,7 +41,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		cities = topology.cities();
 		numCities = cities.size();
 
-		numStates = numCities * (numCities - 1);
+		numStates = numCities * numCities;
 		numActions = 2;
 
 		/*************** Matrices r and p **********************/
@@ -75,14 +75,25 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		// When the action is to move without taking the task
 		// the reward is -distance*(cost/km).
 		for (int i = 0; i < numStates; i++) {
-			int sd[] = ReactiveAgent.cityAndTaskFromIndex(i, numCities);
-			R[i][0] = -ReactiveAgent.distanceBetween(cities, sd[0], sd[1]) * vehicle.costPerKm();
+			Integer ct[] = ReactiveAgent.cityAndTaskFromIndex(i, numCities);
+			if (ct[1] != null) {
+				R[i][0] = -ReactiveAgent.distanceBetween(cities, ct[0], ct[1]) * vehicle.costPerKm();
+			} else {
+				City A = cities.get(ct[0]);
+				City nNeighbour = ReactiveAgent.closestNeighbour(A);
+				R[i][0] = -A.distanceTo(nNeighbour) * vehicle.costPerKm();
+			}
 		}
 
 		// Otherwise, we take the reward from matrix r minus the travel cost
 		for (int i = 0; i < numStates; i++) {
-			int sd[] = ReactiveAgent.cityAndTaskFromIndex(i, numCities);
-			R[i][1] = r[sd[0]][sd[1]] - ReactiveAgent.distanceBetween(cities, sd[0], sd[1]) * vehicle.costPerKm();
+			Integer ct[] = ReactiveAgent.cityAndTaskFromIndex(i, numCities);
+			if (ct[1] != null) {
+				R[i][1] = r[ct[0]][ct[1]] - ReactiveAgent.distanceBetween(cities, ct[0], ct[1]) * vehicle.costPerKm();
+			} else {
+				// Should not be possible to deliver a task when there is none
+				R[i][1] = -Double.MAX_VALUE;
+			}
 		}
 		/*****************************************************/
 
