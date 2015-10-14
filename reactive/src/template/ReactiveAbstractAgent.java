@@ -57,9 +57,9 @@ public abstract class ReactiveAbstractAgent implements ReactiveBehavior {
 		for (int i = 0; i < numStates; i++) {
 			Integer ct[] = cityAndTaskFromIndex(i, this.getNumCities());
 			if (ct[1] != null) {
-				R[i][0] = -distanceBetween(this.getCities(), ct[0], ct[1]) * vehicle.costPerKm();
+				R[i][0] = -distanceBetween(cities, ct[0], ct[1]) * vehicle.costPerKm();
 			} else {
-				City A = this.getCities().get(ct[0]);
+				City A = cities.get(ct[0]);
 				City nNeighbour = closestNeighbour(A);
 				R[i][0] = -A.distanceTo(nNeighbour) * vehicle.costPerKm();
 			}
@@ -69,7 +69,7 @@ public abstract class ReactiveAbstractAgent implements ReactiveBehavior {
 		for (int i = 0; i < numStates; i++) {
 			Integer ct[] = cityAndTaskFromIndex(i, this.getNumCities());
 			if (ct[1] != null) {
-				R[i][1] = r[ct[0]][ct[1]] - distanceBetween(this.getCities(), ct[0], ct[1]) * vehicle.costPerKm();
+				R[i][1] = r[ct[0]][ct[1]] - distanceBetween(cities, ct[0], ct[1]) * vehicle.costPerKm();
 			} else {
 				// Should not be possible to deliver a task when there is none
 				R[i][1] = -Double.MAX_VALUE;
@@ -84,9 +84,9 @@ public abstract class ReactiveAbstractAgent implements ReactiveBehavior {
 		int idC2 = 0;
 		this.setSmallR(new Integer[this.getNumCities()][this.getNumCities()]);
 		this.setP(new Double[this.getNumCities()][this.getNumCities()]);
-		for (City c1 : this.getCities()) {
+		for (City c1 : cities) {
 			pTask[idC1] = 0.0;
-			for (City c2 : this.getCities()) {
+			for (City c2 : cities) {
 				r[idC1][idC2] = td.reward(c1, c2);
 				p[idC1][idC2] = td.probability(c1, c2);
 				pTask[idC1] += p[idC1][idC2];
@@ -168,8 +168,8 @@ public abstract class ReactiveAbstractAgent implements ReactiveBehavior {
 	 * 
 	 *            Construction :
 	 * 
-	 *            From an array with entries: city 0 -> city 1 city 0 -> city 2
-	 *            ... city 1 -> city 0 city 1 -> city 2 ... city n -> city n-1
+	 *            From an array with entries: city 0 -> city, 1 city 0 -> city 2,
+	 *            ... city 0 -> null, city 1 -> city 0, city 1 -> city 2, ... city n -> city n-1
 	 * 
 	 * @return the source and destination corresponding to the index
 	 */
@@ -191,18 +191,18 @@ public abstract class ReactiveAbstractAgent implements ReactiveBehavior {
 	 * 
 	 * Construction :
 	 * 
-	 * From an array with entries: city 0 -> city 1 city 0 -> city 2 ... city 1
-	 * -> city 0 city 1 -> city 2 ... city n -> city n-1
+	 * From an array with entries: city 0 -> city, 1 city 0 -> city 2, ... city 0 -> null, 
+	 * city 1 -> city, 0 city 1 -> city 2, ... city n -> city n-1
 	 * 
 	 * @param citySource
-	 * @param cityDestination
+	 * @param taskDestination
 	 * @param numberOfCities
 	 * @return
 	 */
-	public int indexFromCityAndTask(int citySource, int cityDestination, int numberOfCities) {
-		int startIndexCitySource = citySource * (numberOfCities - 1);
-		int returnedIndex = startIndexCitySource + cityDestination;
-		if (citySource > cityDestination) {
+	public int indexFromCityAndTask(int citySource, int taskDestination, int numberOfCities) {
+		int startIndexCitySource = citySource * (numberOfCities);
+		int returnedIndex = startIndexCitySource + taskDestination;
+		if (citySource > taskDestination) {
 			// If the source id is bigger than the destination id,
 			// we must remove 1 because the element city i -> city i doesn't
 			// exist
@@ -230,7 +230,7 @@ public abstract class ReactiveAbstractAgent implements ReactiveBehavior {
 	 * @return boolean that indicates if two cities are closest neighbours
 	 */
 	protected boolean areClosestNeighbours(int cityA, int cityB) {
-		return this.getCities().get(cityB).equals(closestNeighbour(this.getCities().get(cityA)));
+		return cities.get(cityB).equals(closestNeighbour(cities.get(cityA)));
 	}
 
 	/****** The following functions are used for debugging purpose *******/
