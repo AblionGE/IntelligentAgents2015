@@ -51,7 +51,7 @@ Here are the functions needed to build *T(s,a,s')* :
 - $P(i)$ = $\sum_{j=0,j\neq i}^N$ $p(i,j)$ : the probability that there is a task in city *i*
 - $CN(i,j)$ : true if *j* is the closest neighbour of *i*
 
-The probability to arrive in the state $s'(i,t_{ij})$ is $p(i,j)$ for $t_{ij}\neq null$. When there is no task, i.e. $t_{ij} = null$, the probability is $(1-P(i))$. Like this, we have the property that $\sum_{s'} T(s,a,s') = 1$. T(s,a,s') depends on each actions:
+The probability to arrive in the state $s'(i,t_{ij})$ is $p(i,j)$ for $t_{ij}\neq null$. When there is no task, i.e. $t_{ij} = null$, the probability is $(1-P(i))$. Like this, we have the property that $\sum_{s'} T(s,a,s') = 1$. $T(s,a,s')$ depends on each action:
 
 - if $a = d_{ij}$, the only non-zero entries correspond to the states $s(i,t_{ij})$ and $s'(j,t_{jk})$.
 - if $a = m_{ik}$, the only non-zero entries correspond to the states $s(i,t_{ij})$ and $s'(k,t_l)$ such that *k* is *i*'s nearest neighbour.
@@ -88,15 +88,27 @@ For our tests, we used the following options on the map "*France*" with 4 agents
     <no-task distribution="uniform" min="0.2" max="0.4" />
   </tasks>
 ```
-Agents :
 
-- Vehicle 1 : random agent
-- Vehicle 2 : reactive agent, $\gamma = 0.05$
-- Vehicle 3 : reactive agent, $\gamma = 0.65$
-- Vehicle 4 : reactive agent, $\gamma = 0.85$
+In the following graphs representing *reward per km*, the blue line is always the random agent (85\% to take a task) and **TO COMPLETE**
 
-
-\includegraphics[width=4cm]{img/1random3reactiveFranceproba02to04.png}
+\begin{figure}[h!]
+   \begin{minipage}[b]{0.40\linewidth}
+      \centering \includegraphics[scale=0.06]{img/1random3reactiveFranceproba02to04.png}
+      \caption{\it V1 ($\gamma=0.05$), V2 ($\gamma=0.45$)}
+   \end{minipage}\hfill
+   \begin{minipage}[b]{0.48\linewidth}   
+      \centering \includegraphics[scale=0.06]{img/1random3reactiveFranceproba02to04.png}
+      \caption{\it V1 ($\gamma=0.05$), V2 ($\gamma=0.45$)}
+   \end{minipage}
+   \begin{minipage}[b]{0.40\linewidth}
+      \centering \includegraphics[scale=0.06]{img/1random3reactiveFranceproba02to04.png}
+      \caption{\it V1 ($\gamma=0.05$), V2 ($\gamma=0.45$)}
+   \end{minipage}\hfill
+   \begin{minipage}[b]{0.48\linewidth}   
+      \centering \includegraphics[scale=0.06]{img/1random3reactiveFranceproba02to04.png}
+      \caption{\it V1 ($\gamma=0.05$), V2 ($\gamma=0.45$)}
+   \end{minipage}
+\end{figure}
 
 ## Comments
 We can observe on these different graphs (which represent the reward per km) that the random agent is in all cases worst than the reactive agents. Another observation is that the reward per km and the reward per task (both of them are strongly correlated) become quite constant in the time. It means that the agents will have a constant gain over time.
