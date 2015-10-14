@@ -2,7 +2,7 @@
 
 In this programming exercise, we implement the Pickup and Delivery problem with reactive agents. These agents will decide to deliver or not a task in a city depending on an offline computation of a *Markov Decision Process*. This reinforcement learning permits the agents to know at each state what to do next so to maximise the benefit, which is a trade off between the reward given by the task and the cost of travelling.
 
-In the next sections, we will define the representation of the states and actions, how we have build the different matrices that are necessary to have a reactive agent and make some remarks about our code. Finally, we will present different results given by our program.
+In the next sections, we will define the representation of the states and actions, how we have built the different matrices that are necessary to have a reactive agent and make some remarks about our code. Finally, we will present different results given by our program.
 
 # Representation of states and actions
 
@@ -28,7 +28,7 @@ To compute the *Value iteration* of the *Markov Decision Process*, we need first
 
 ### The reward table *R(s,a)*
 
-To avoid an agent to to be in a state $s(i,t_{ij}=null)$ with $a = d_{ij}$ which should be impossible, we set the reward for such combinations to be the less possible value: $- Double.MAX\_VALUE$. Here are the functions needed to build *R(s,a)* :
+To avoid an agent to be in a state $s(i,t_{ij}=null)$ with $a = d_{ij}$ which should be impossible, we set the reward for such combinations to be the less possible value: $- Double.MAX\_VALUE$. Here are the functions needed to build *R(s,a)* :
 
 - $r(i,j)$ : the reward given by a task $t_{ij}$ delivered from city *i* to city *j* (from state $s=(i,t_{ij})$)
 - $cost(i,j)$ : the cost to travel from city *i* to city *j* ($distance * cost \ per \ km$)
@@ -54,7 +54,7 @@ Here are the functions needed to build *T(s,a,s')* :
 The probability to arrive in the state $s'(i,t_{ij})$ is $p(i,j)$ for $t_{ij}\neq null$. When there is no task, i.e. $t_{ij} = null$, the probability is $(1-P(i))$. Like this, we have the property that $\sum_{s'} T(s,a,s') = 1$. $T(s,a,s')$ depends on each action:
 
 - if $a = d_{ij}$, the only non-zero entries correspond to the states $s(i,t_{ij})$ and $s'(j,t_{jk})$.
-- if $a = m_{ik}$, the only non-zero entries correspond to the states $s(i,t_{ij})$ and $s'(k,t_l)$ such that *k* is *i*'s nearest neighbour.
+- if $a = m_{ik}$, the only non-zero entries correspond to the states $s(i,t_{ij})$ and $s'(k,t_{kl})$ such that *k* is *i*'s nearest neighbour.
 
 $$T(s(i,t_{ij}),a,s'(k,t_{kl})) =
 \left\{
@@ -69,7 +69,7 @@ $$
 
 # Implementation
 
-In the implementation of the reactive agent, we coded all matrices presented above and the algorithm presentend in the assignment. All matrices are represented by arrays in 2 or 3 dimensions in the Java code. About the *value iteration* algorithm, we simply implemented it with loops and the *good enough* condition for stopping loops is that the biggest difference between an element of two succesive *V(S)* should be smaller than $\epsilon=0.0001$.
+In the implementation of the reactive agent, we coded all matrices presented above and the algorithm presented in the assignment. All matrices are represented by arrays in 2 or 3 dimensions in the Java code. About the *value iteration* algorithm, we simply implemented it with loops and the *good enough* condition for stopping loops is that the biggest difference between an element of two successive *V(S)* should be smaller than $\epsilon=0.0001$.
 
 The agent has two behaviours when arriving in a city *i*:
 
@@ -77,7 +77,7 @@ The agent has two behaviours when arriving in a city *i*:
 - If there is a task $t_{ij} \neq null$, the agent chooses the best action *a* by picking in the vector $Best(S)$ the element corresponding to its state $s(i,t_{ij})$. If $a = m_{ik}$, the agent doesn't take the task and moves to the nearest city *k*. If $a = d_{ij}$, the agent delivers to city *j*.
 
 # Results
-Here are the different graphs of reward with reactive agents having learned their optimal stategy using *MDP*. They show reactive agents with different $\gamma$ values and random agents runned simultaneously. Note that each agent has only one vehicle in our implementation.
+Here are the different graphs of reward with reactive agents having learned their optimal stategy using *MDP*. They show reactive agents with different $\gamma$ values and random agents run simultaneously. Note that each agent has only one vehicle in our implementation.
 
 For our tests, we used the following options on the map "*France*" with 4 agents described below.
 ```xml
@@ -110,6 +110,7 @@ The following graphs represent the *reward per km* as a function of the *time* o
 \end{figure}
 
 ## Comments
+
 We can observe on these different graphs that the starting point of the agents plays a big role for its reward in close future. In the long term, the reward per km and the reward per task (both of them are strongly correlated) become quite constant in the time. It means that the agents will have a constant gain over time.
 
 Another observation is that the random agent has always a worse reward than the reactive agents. 
@@ -117,9 +118,3 @@ Another observation is that the random agent has always a worse reward than the 
 About the choice of $\gamma$, it only influences the ```Best(S)``` vectors by a little amount of entries and we can observe that it does not influence so much the reward. Indeed, we see in the graphs that rewards for different settings become close to each other over time.
 
 Nevertheless, we sometimes observed that an agent with a small $\gamma$ can have its reward slitely better than an agent with a high $\gamma$. It surprises us because when $\gamma$ is bigger, the algorithm considers more steps in the future to give the best action to the agent. Agents with a small $\gamma$ will take more tasks because it only considers a close future. On the contrary, agents with a bigger $\gamma$ should consider further in the future and take better decisions for having a better reward. We can maybe explain this behavior with the fact that rewards are a bit huge compared to the cost of travelling from one city to another and that the randomness of the simulation is considerable.
-
-
-
-
-
-
