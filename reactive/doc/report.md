@@ -37,7 +37,7 @@ Here are the functions needed to build *R(s,a)* :
 $$R(s,a) =
 \left\{
   \begin{array}{rcl}
-    r(i,j) - cost(i,j) & \mbox{for} & a = d_{ij}\\
+    r(i,j) - cost(i,j) & \mbox{for} & a = d_{ij}, t_{ij} \neq null\\
     - cost(i,j) & \mbox{for} & a = m_{ij}\\
   \end{array}\right.
 $$
@@ -53,7 +53,7 @@ Here are the functions needed to build *T(s,a,s')* :
 The probability to arrive in the state $s'(i,t_{ij})$ is $\frac{p(i,j)}{P(i)}$ with the property that $\sum_{s'} T(s,a,s') = 1$. T(s,a,s') depends on each actions:
 
 - if $a = m_{ij}$, the only non-zero entries correspond to the states $s(i,t_{ij})$ and $s'(k,t_l)$ such that *k* is *i*'s nearest neighbour.
-- if $a = d_{ij}$, the only non-zero entries correspond to the states $s(i,t_{ij})$ and $s'(j,t_k)$.
+- if $a = d_{ij}$, the only non-zero entries correspond to the states $s(i,t_{ij})$ and $s'(j,t_{jk})$.
 <!--
 - We deliver the task from city *i* to city *j* and city *k* is not the closest neighbour of city *j*
 - We deliver the task from city *i* to city *j* and city *k* is the closest neighbour of city *j*
@@ -72,11 +72,13 @@ $$T(s(i,t_{ij}),a,s'(j,t_{ij})) =
   \end{array}\right.
 $$ -->
 
-$$T(s(i,t_{ij}),a,s'(k,t_l)) =
+$$T(s(i,t_{ij}),a,s'(k,t_{kl})) =
 \left\{
   \begin{array}{rcl}
-    \frac{p(k,l)}{P(k)} & \mbox{for} & a = m_{ij}, CN(i,k)\\
-    \frac{p(k,l)}{P(k)} & \mbox{for} & a = d_{ij}, i\neq j, k\neq l, j=k\\
+    p(j,k) & \mbox{for} & a = d_{ij},j=k, t_{ij} \neq null, t_{jk} \neq null\\
+    1 - P(j) & \mbox{for} & a = d_{ij},j=k, t_{ij} \neq null, t_{jk} = null\\
+    p(j,k) & \mbox{for} & a = m_{ij},j=k, CN(i,j), t_{jk} \neq null\\
+    1 - P(j) & \mbox{for} & a = m_{ij},j=k, CN(i,j),t_{jk} = null\\
     0 & & otherwise\\
   \end{array}\right.
 $$
