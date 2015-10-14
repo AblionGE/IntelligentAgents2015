@@ -199,14 +199,19 @@ public abstract class ReactiveAbstractAgent implements ReactiveBehavior {
 	 * @param numberOfCities
 	 * @return
 	 */
-	public int indexFromCityAndTask(int citySource, int taskDestination, int numberOfCities) {
+	public int indexFromCityAndTask(int citySource, Integer taskDestination, int numberOfCities) {
 		int startIndexCitySource = citySource * (numberOfCities);
-		int returnedIndex = startIndexCitySource + taskDestination;
-		if (citySource > taskDestination) {
-			// If the source id is bigger than the destination id,
-			// we must remove 1 because the element city i -> city i doesn't
-			// exist
-			returnedIndex--;
+		int returnedIndex;
+		if (taskDestination != null) {
+			returnedIndex = startIndexCitySource + taskDestination;
+			if (citySource < taskDestination) {
+				// If the source id is bigger than the destination id,
+				// we must remove 1 because the element city i -> city i doesn't
+				// exist
+				returnedIndex--;
+			}
+		} else {
+			returnedIndex = startIndexCitySource + numberOfCities - 1;
 		}
 		return returnedIndex;
 	}
@@ -258,7 +263,7 @@ public abstract class ReactiveAbstractAgent implements ReactiveBehavior {
 			System.out.println("");
 		}
 	}
-	
+
 	protected Double[][] getP() {
 		return p;
 	}

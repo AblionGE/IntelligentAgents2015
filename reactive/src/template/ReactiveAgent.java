@@ -39,7 +39,7 @@ public class ReactiveAgent extends ReactiveAbstractAgent implements ReactiveBeha
 
 		if (availableTask == null) {
 			// If the task is null, move to the closest neighbour
-			indexBest = indexFromCityAndTask(currentCity.id, closestNeighbour(currentCity).id, this.getNumCities());
+			indexBest = indexFromCityAndTask(currentCity.id, null, this.getNumCities());
 			System.out.println(
 					vehicle.name() + " there is no task from " + currentCity + ". Benefit : " + R[indexBest][0]);
 			action = new Move(closestNeighbour(currentCity));
