@@ -8,12 +8,12 @@ In the next sections, we will define the representation of the states and action
 
 ## States
 
-The state representation of the world is given by the tuples *S(i,$t_j$), $\forall$ 0 $\leq$ i,j < N, i$\neq$j* where *N* is the number of cities, *i* represents a city and $t_j$ represents a task to be delivered to city *j*. Note that $t_j$ can be *null* when no task is available.
+The state representation of the world is given by the tuples *S(i,$t_{ij}$), $\forall$ 0 $\leq$ i,j < N, i$\neq$j* where *N* is the number of cities, *i* represents a city and $t_{ij}$ represents a task to be delivered to city *j*. Note that $t_{ij}$ can be *null* when no task is available.
 
-Here is the schema of the array of states used in the code, written in the form *i$\rightarrow$j*:
+Here is the schema of the array of states used in the code, written in the form *i$\rightarrow t_{ij}$*:
 
 ----------------------------------------------------------------------------------------
-City0$\rightarrow$City1 City0$\rightarrow$City2 ... City0$\rightarrow$CityN City1$\rightarrow$ City0 City1$\rightarrow$City2 ... CityN$\rightarrow$CityN-1
+City0$\rightarrow$City1 ... City0$\rightarrow$CityN City0$\rightarrow$null City1$\rightarrow$ City0 City1$\rightarrow$City2 ... CityN$\rightarrow$CityN-1 CityN$\rightarrow$null
 -------------- ------------ --- ------------ ------------- ------------ --- ------------
 
 ## Actions
@@ -30,7 +30,7 @@ To compute the *Value iteration* of the *Markov Decision Process*, we need first
 
 Here are the functions needed to build *R(s,a)* :
 
-- $r(i,j)$ : the reward given by a task *t_j* delivered from city *i* to city *j* (from state $s=(i,t_j)$)
+- $r(i,j)$ : the reward given by a task $t_{ij}$ delivered from city *i* to city *j* (from state $s=(i,t_{ij})$)
 - $cost(i,j)$ : the cost to travel from city *i* to city *j* ($distance * cost \ per \ km$)
 
 
@@ -46,14 +46,14 @@ $$
 
 Here are the functions needed to build *T(s,a,s')* :
 
-- $p(i,j)$ : the probability that in city *i* there is a task $t_j$
+- $p(i,j)$ : the probability that in city *i* there is a task $t_{ij}$
 - $P(i)$ = $\sum_{j=0,j\neq i}^N$ $p(i,j)$ : the probability that there is a task in city *i*
 - $CN(i,j)$ : true if *j* is the closest neighbour of *i*
 
-The probability to arrive in the state $s'(i,t_j)$ is $\frac{p(i,j)}{P(i)}$ with the property that $\sum_{s'} T(s,a,s') = 1$. T(s,a,s') depends on each actions:
+The probability to arrive in the state $s'(i,t_{ij})$ is $\frac{p(i,j)}{P(i)}$ with the property that $\sum_{s'} T(s,a,s') = 1$. T(s,a,s') depends on each actions:
 
-- if $a = m_{ij}$, the only non-zero entries correspond to the states $s(i,t_j)$ and $s'(k,t_l)$ such that *k* is *i*'s nearest neighbour.
-- if $a = d_{ij}$, the only non-zero entries correspond to the states $s(i,t_j)$ and $s'(j,t_k)$.
+- if $a = m_{ij}$, the only non-zero entries correspond to the states $s(i,t_{ij})$ and $s'(k,t_l)$ such that *k* is *i*'s nearest neighbour.
+- if $a = d_{ij}$, the only non-zero entries correspond to the states $s(i,t_{ij})$ and $s'(j,t_k)$.
 <!--
 - We deliver the task from city *i* to city *j* and city *k* is not the closest neighbour of city *j*
 - We deliver the task from city *i* to city *j* and city *k* is the closest neighbour of city *j*
@@ -61,18 +61,18 @@ The probability to arrive in the state $s'(i,t_j)$ is $\frac{p(i,j)}{P(i)}$ with
   - We move from city *i* to city *j* (it does not matter if there is a task or not in city *i*) and city *k* is the closest neighbour of city *j*
 - All other cases
 
-$$T(s(i,t_i),a,s'(j,t_j)) =
+$$T(s(i,t_{ij}),a,s'(j,t_{ij})) =
 \left\{
   \begin{array}{rcl}
-    p(i,j)*p(j,k) & \mbox{for} & a = d_{ij}, t_i \neq null, t_i \ is \ for \ city \ j, !CN(j,k)\\
-    p(i,j)*(p(j,k)+(1-\sum_kp(j,k))) & \mbox{for} & a = d_{ij}, t_i \neq null, t_i \ is \ for \ city \ j, CN(j,k)\\
+    p(i,j)*p(j,k) & \mbox{for} & a = d_{ij}, t_{ij} \neq null, t_{ij} \ is \ for \ city \ j, !CN(j,k)\\
+    p(i,j)*(p(j,k)+(1-\sum_kp(j,k))) & \mbox{for} & a = d_{ij}, t_{ij} \neq null, t_{ij} \ is \ for \ city \ j, CN(j,k)\\
     p(j,k) & \mbox{for} & a = m_{ij}, CN(i,j), !CN(j,k)\\
     p(j,k)+(1-\sum_kp(j,k)) & \mbox{for} & a = m_{ij}, CN(i,j), CN(j,k)\\
     0 & & otherwise\\
   \end{array}\right.
 $$ -->
 
-$$T(s(i,t_j),a,s'(k,t_l)) =
+$$T(s(i,t_{ij}),a,s'(k,t_l)) =
 \left\{
   \begin{array}{rcl}
     \frac{p(k,l)}{P(k)} & \mbox{for} & a = m_{ij}, CN(i,k)\\
@@ -87,8 +87,8 @@ In the implementation of the reactive agent, we coded all matrices presented abo
 
 The agent has two behaviours when arriving in a city *i*:
 
-- If there is no task (i.e. *t_j*=*null*), it goes to ne nearest city to lose as less money as possible
-- If there is a task *t_j* $\neq$ *null*, the agent chooses the best action *a* by picking in the vector $Best(S)$ the element corresponding to its state $s(i,t_j)$. If $a = m_{ik}$, the agent doesn't take the task and moves to the nearest city *k*. If $a = d_{ij}$, the agent delivers to city *j*.
+- If there is no task (i.e. *t_{ij}*=*null*), it goes to ne nearest city to lose as less money as possible
+- If there is a task *t_{ij}* $\neq$ *null*, the agent chooses the best action *a* by picking in the vector $Best(S)$ the element corresponding to its state $s(i,t_{ij})$. If $a = m_{ik}$, the agent doesn't take the task and moves to the nearest city *k*. If $a = d_{ij}$, the agent delivers to city *j*.
 
 # Results
 Here are the different graphs of reward with reactive agents having learned their optimal stategy using *MDP*. They show reactive agents with different $\gamma$ values and random agents runned simultaneously. Note that each agent has only one vehicle in our implementation.
