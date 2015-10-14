@@ -104,8 +104,7 @@ public class ReactiveTemplate implements ReactiveBehavior {
 			action = new Move(next);
 			generalReward += R[indexBest][0];
 		} else {
-			indexBest = ReactiveAgent.indexFromCityAndTask(currentCity.id, availableTask.deliveryCity.id,
-					numCities);
+			indexBest = ReactiveAgent.indexFromCityAndTask(currentCity.id, availableTask.deliveryCity.id, numCities);
 			System.out.println(vehicle.name() + " takes the task from " + availableTask.pickupCity + " to "
 					+ availableTask.deliveryCity + ". Benefit : " + R[indexBest][1]);
 			action = new Pickup(availableTask);
@@ -113,7 +112,8 @@ public class ReactiveTemplate implements ReactiveBehavior {
 		}
 		nbOfActions++;
 		System.out.println("Random Agent, vehicle : " + vehicle.name() + ", general reward : " + generalReward);
-		System.out.println("Random Agent, vehicle : " + vehicle.name() + ", average reward : " + generalReward/nbOfActions);
+		System.out.println(
+				"Random Agent, vehicle : " + vehicle.name() + ", average reward : " + generalReward / nbOfActions);
 		return action;
 	}
 }

@@ -29,7 +29,6 @@ public class ReactiveAgent implements ReactiveBehavior {
 	int[] Best;
 	Double discount;
 	Double R[][];
-	
 
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
@@ -96,7 +95,7 @@ public class ReactiveAgent implements ReactiveBehavior {
 				int ctB[] = cityAndTaskFromIndex(j, numCities);
 
 				// Non zero only when B is the nearest neighbour of A
-				if(ctA[0]!=ctB[0] && areClosestNeighbours(ctA[0], ctB[0])) {
+				if (ctA[0] != ctB[0] && areClosestNeighbours(ctA[0], ctB[0])) {
 					T[i][0][j] = p[ctB[0]][ctB[1]] / pTask[ctB[0]];
 				} else {
 					T[i][0][j] = new Double(0);
@@ -111,7 +110,7 @@ public class ReactiveAgent implements ReactiveBehavior {
 				int ctB[] = cityAndTaskFromIndex(j, numCities);
 
 				// Non zero only when task from A goes for B
-				if (ctA[0]!=ctB[0] && ctA[1] == ctB[0]) {
+				if (ctA[0] != ctB[0] && ctA[1] == ctB[0]) {
 					T[i][1][j] = p[ctB[0]][ctB[1]] / pTask[ctB[0]];
 				} else {
 					T[i][1][j] = 0.0;
@@ -196,7 +195,8 @@ public class ReactiveAgent implements ReactiveBehavior {
 		}
 		nbOfActions++;
 		System.out.println("Reactive Agent, vehicle : " + vehicle.name() + ", general reward : " + generalReward);
-		System.out.println("Reactive Agent, vehicle : " + vehicle.name() + ", average reward : " + generalReward/nbOfActions);
+		System.out.println(
+				"Reactive Agent, vehicle : " + vehicle.name() + ", average reward : " + generalReward / nbOfActions);
 		return action;
 	}
 
@@ -300,7 +300,7 @@ public class ReactiveAgent implements ReactiveBehavior {
 	public static double distanceBetween(List<City> cities, int cityA, int cityB) {
 		return cities.get(cityA).distanceTo(cities.get(cityB));
 	}
-	
+
 	/**
 	 * Gives the closest neighbour of a city
 	 * 
@@ -332,7 +332,6 @@ public class ReactiveAgent implements ReactiveBehavior {
 	private boolean areClosestNeighbours(int cityA, int cityB) {
 		return cities.get(cityB).equals(closestNeighbour(cities.get(cityA)));
 	}
-
 
 	/****** The following functions are used for debugging purpose *******/
 
