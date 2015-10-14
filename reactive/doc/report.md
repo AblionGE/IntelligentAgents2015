@@ -46,7 +46,7 @@ $$
 
 Here are the functions needed to build *T(s,a,s')* :
 
-- $p(i,j)$ : the probability that in city *i* there is a task *t_j*
+- $p(i,j)$ : the probability that in city *i* there is a task $t_j$
 - $P(i)$ = $\sum_{j=0,j\neq i}^N$ $p(i,j)$ : the probability that there is a task in city *i*
 - $CN(i,j)$ : true if *j* is the closest neighbour of *i*
 
