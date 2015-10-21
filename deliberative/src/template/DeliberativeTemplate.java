@@ -2,6 +2,9 @@ package template;
 
 /* import table */
 import logist.simulation.Vehicle;
+
+import java.util.List;
+
 import logist.agent.Agent;
 import logist.behavior.DeliberativeBehavior;
 import logist.plan.Plan;
@@ -22,6 +25,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	/* Environment */
 	Topology topology;
 	TaskDistribution td;
+	List<City> cities;
 	
 	/* the properties of the agent */
 	Agent agent;
@@ -35,6 +39,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		this.topology = topology;
 		this.td = td;
 		this.agent = agent;
+		this.cities = topology.cities();
 		
 		// initialize the planner
 		int capacity = agent.vehicles().get(0).capacity();
@@ -97,5 +102,28 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			// you will need to consider the carriedTasks when the next
 			// plan is computed.
 		}
+	}
+	
+	/**
+	 * Compute the cost of task for a given vehicle
+	 * @param vehicle
+	 * @param task
+	 * @return
+	 */
+	private double computeCost(Vehicle vehicle, Task task) {
+		City cityFrom = task.pickupCity;
+		City cityTo = task.deliveryCity;
+		return distanceBetween(cities, cityFrom, cityTo) * vehicle.costPerKm();
+	}
+	
+	/**
+	 * Returns the distance between 2 cities
+	 * 
+	 * @param cityA
+	 * @param cityB
+	 * @return distance between 2 cities
+	 */
+	public double distanceBetween(List<City> cities, City cityA, City cityB) {
+		return cityA.distanceTo(cityB);
 	}
 }
