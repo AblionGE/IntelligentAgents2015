@@ -71,6 +71,20 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		return plan;
 	}
 	
+	private Plan aStartPlan(Vehicle vehicle, TaskSet tasks) {
+		City current = vehicle.getCurrentCity();
+		Plan plan = new Plan(current);
+		
+		return plan;
+	}
+	
+	private Plan bfsPlan(Vehicle vehicle, TaskSet tasks) {
+		City current = vehicle.getCurrentCity();
+		Plan plan = new Plan(current);
+		
+		return plan;
+	}
+	
 	private Plan naivePlan(Vehicle vehicle, TaskSet tasks) {
 		City current = vehicle.getCurrentCity();
 		Plan plan = new Plan(current);
