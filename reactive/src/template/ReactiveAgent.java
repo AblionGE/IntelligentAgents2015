@@ -62,9 +62,10 @@ public class ReactiveAgent extends ReactiveAbstractAgent implements ReactiveBeha
 			}
 		}
 		nbOfActions++;
-		System.out.println("Reactive Agent, vehicle : " + vehicle.name() + ", general reward : " + generalReward);
+		//System.out.println("Reactive Agent, vehicle : " + vehicle.name() + ", general reward : " + generalReward);
 		System.out.println(
 				"Reactive Agent, vehicle : " + vehicle.name() + ", average reward : " + generalReward / nbOfActions);
+		System.out.println("nbOfActions Reactive : " + nbOfActions);
 		return action;
 	}
 	

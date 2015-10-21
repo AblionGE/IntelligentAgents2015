@@ -49,9 +49,10 @@ public class RandomAgent extends ReactiveAbstractAgent implements ReactiveBehavi
 			generalReward += R[indexBest][1];
 		}
 		nbOfActions++;
-		System.out.println("Random Agent, vehicle : " + vehicle.name() + ", general reward : " + generalReward);
+		//System.out.println("Random Agent, vehicle : " + vehicle.name() + ", general reward : " + generalReward);
 		System.out.println(
 				"Random Agent, vehicle : " + vehicle.name() + ", average reward : " + generalReward / nbOfActions);
+		System.out.println("nbOfActions Random : " + nbOfActions);
 		return action;
 	}
 }
