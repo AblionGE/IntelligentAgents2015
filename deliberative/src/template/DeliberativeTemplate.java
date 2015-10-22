@@ -3,6 +3,7 @@ package template;
 /* import table */
 import logist.simulation.Vehicle;
 
+import java.util.HashMap;
 import java.util.List;
 
 import logist.agent.Agent;
@@ -26,6 +27,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	Topology topology;
 	TaskDistribution td;
 	List<City> cities;
+	HashMap<State,Boolean> knownStates = new HashMap<State,Boolean>();
 	
 	/* the properties of the agent */
 	Agent agent;
@@ -55,6 +57,9 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	public Plan plan(Vehicle vehicle, TaskSet tasks) {
 		Plan plan;
 
+		// TODO : Creer etat initial et goals
+		// (for sur toutes les taches)
+		// Comment stocker les goals ? (HashMap?)
 		// Compute the plan with the selected algorithm.
 		switch (algorithm) {
 		case ASTAR:
@@ -66,6 +71,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			plan = bfsPlan(vehicle, tasks);
 			break;
 		case NAIVE:
+			System.out.println(tasks.size());
 			plan = naivePlan(vehicle, tasks);
 			break;
 		default:
@@ -118,6 +124,8 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			// This cannot happen for this simple agent, but typically
 			// you will need to consider the carriedTasks when the next
 			// plan is computed.
+			
+			//TODO : A regarder si plan est rappele ?
 		}
 	}
 	
