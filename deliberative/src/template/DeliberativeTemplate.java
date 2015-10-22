@@ -20,7 +20,7 @@ import logist.topology.Topology.City;
 @SuppressWarnings("unused")
 public class DeliberativeTemplate implements DeliberativeBehavior {
 
-	enum Algorithm { BFS, ASTAR }
+	enum Algorithm { BFS, ASTAR, NAIVE }
 	
 	/* Environment */
 	Topology topology;
@@ -59,29 +59,31 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		switch (algorithm) {
 		case ASTAR:
 			// ...
-			plan = naivePlan(vehicle, tasks);
+			plan = aStarPlan(vehicle, tasks);
 			break;
 		case BFS:
 			// ...
-			plan = naivePlan(vehicle, tasks);
+			plan = bfsPlan(vehicle, tasks);
 			break;
+		case NAIVE:
+			plan = naivePlan(vehicle, tasks);
 		default:
 			throw new AssertionError("Should not happen.");
 		}		
 		return plan;
 	}
 	
-	private Plan aStartPlan(Vehicle vehicle, TaskSet tasks) {
+	private Plan aStarPlan(Vehicle vehicle, TaskSet tasks) {
 		City current = vehicle.getCurrentCity();
 		Plan plan = new Plan(current);
-		
+		// TODO
 		return plan;
 	}
 	
 	private Plan bfsPlan(Vehicle vehicle, TaskSet tasks) {
 		City current = vehicle.getCurrentCity();
 		Plan plan = new Plan(current);
-		
+		// TODO
 		return plan;
 	}
 	
