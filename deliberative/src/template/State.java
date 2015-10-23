@@ -36,13 +36,13 @@ public class State {
 		this.tasks = tasks;
 	}
 
-
 	// Create all the reachable states from the current state
 	public List<State> computeChildren(HashMap<State, Boolean> knownStates) {
 		if (children != null) {
 			return children;
 		}
-		List<State> returnedChildren = new ArrayList<State>();
+
+		ArrayList<State> returnedChildren = new ArrayList<State>();
 		List<City> neighbours = this.agentPosition.neighbors();
 
 		// For each neighbour
@@ -50,7 +50,7 @@ public class State {
 			// move without tasks - simply move the agent
 			State newState = new State(c, this.tasks);
 			returnedChildren.add(newState);
-			
+
 			// move with tasks
 			ArrayList<Task> tasksInCurrentCity = new ArrayList<Task>();
 
@@ -58,20 +58,22 @@ public class State {
 			for (Task t : tasks.keySet()) {
 				// If the destination city is not the current one and the task
 				// is at the place where the agent is
-				if (t.deliveryCity.equals(agentPosition) && tasks.get(t).equals(agentPosition)) {
+				if (!t.deliveryCity.equals(agentPosition) && tasks.get(t).equals(agentPosition)) {
 					// We add the task to the list
 					tasksInCurrentCity.add(t);
 				}
 			}
-			
+
 			// Compute all combinations with tasks
-			List<List<Task>> resultCombination = computeCombinationsOfTasks(tasksInCurrentCity, tasksInCurrentCity.size());
-			
-			//Remove combinations where there are too much tasks for the vehicle
+			List<List<Task>> resultCombination = computeCombinationsOfTasks(tasksInCurrentCity,
+					tasksInCurrentCity.size());
+
+			// Remove combinations where there are too much tasks for the
+			// vehicle
 			// TODO
-			
+
 			for (List<Task> lt : resultCombination) {
-				//Creation of HashMap for result
+				// Creation of HashMap for result
 				HashMap<Task, City> tempTasks = new HashMap<Task, City>();
 				// Add moved tasks
 				for (Task t : lt) {
@@ -83,14 +85,16 @@ public class State {
 						tempTasks.put(t, tasks.get(t));
 					}
 				}
-				
+
 				State tempState = new State(c, tempTasks);
 				returnedChildren.add(tempState);
 			}
 		}
 
+		// TODO
 		// chercher noeuds deja existants
 		// Checker poids vehicule
+		children = returnedChildren;
 		return returnedChildren;
 	}
 
@@ -99,38 +103,53 @@ public class State {
 	private List<List<Task>> computeCombinationsOfTasks(ArrayList<Task> tasks, int sizeOfCombination) {
 		List<List<Task>> result = new ArrayList<List<Task>>();
 		ArrayList<ArrayList<Task>> lastIteration = new ArrayList<ArrayList<Task>>();
-		
+
 		for (Task t : tasks) {
 			ArrayList<Task> tempList = new ArrayList<Task>();
 			tempList.add(t);
 			result.add((List<Task>) tempList.clone());
 			lastIteration.add((ArrayList<Task>) tempList.clone());
 		}
-		
+
 		for (int i = 1; i < sizeOfCombination; i++) {
-			 lastIteration = composeListsOfTasks(tasks, lastIteration);
-			 for (ArrayList<Task> tempTasks : lastIteration) {
-				 result.add((List<Task>) tempTasks.clone());
-			 }
+			lastIteration = composeListsOfTasks(tasks, lastIteration);
+			for (ArrayList<Task> tempTasks : lastIteration) {
+				result.add((List<Task>) tempTasks.clone());
+			}
 		}
 		return result;
 	}
 
 	@SuppressWarnings("unchecked")
-	private ArrayList<ArrayList<Task>> composeListsOfTasks(ArrayList<Task> tasks, ArrayList<ArrayList<Task>> lastIteration) {
+	private ArrayList<ArrayList<Task>> composeListsOfTasks(ArrayList<Task> tasks,
+			ArrayList<ArrayList<Task>> lastIteration) {
 		ArrayList<ArrayList<Task>> result = new ArrayList<ArrayList<Task>>();
-		for (ArrayList<Task> tempTask : lastIteration) {
-			 for (Task t : tasks) {
-				 if (!tempTask.contains(t)) {
+		for (int i = 0 ; i < lastIteration.size(); i++) {
+			ArrayList<Task> tempTask = lastIteration.get(i);
+			for (int j = 0; j < tasks.size(); j++) {
+				Task t = tasks.get(j);
+				ArrayList<Task> temp = (ArrayList<Task>) tempTask.clone();
+				if (!tempTask.contains(t) && t.id > tempTask.get(0).id) {
+					temp.add(t);
+					result.add(temp);
+				}
+			}
+		}
+		// Old Code
+		/*for (ArrayList<Task> tempTask : lastIteration) {
+			for (Task t : tasks) {
+				if (!tempTask.contains(t)) {
 					ArrayList<Task> temp = (ArrayList<Task>) tempTask.clone();
 					temp.add(t);
-					result.add(temp);					 
-				 }
-			 }
-		 }
+					if (!result.contains(temp)) {
+						result.add(temp);
+					}
+				}
+			}
+		}*/
 		return result;
 	}
-
+	
 	@Override
 	public boolean equals(Object other) {
 		if (other == null)
@@ -150,6 +169,25 @@ public class State {
 		}
 
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		String result = "Agent in " + agentPosition.name + " with tasks : \n";
+
+		for (Task t : tasks.keySet()) {
+			result += "\t " + t.toString() + ", current city : " + tasks.get(t) + "\n";
+		}
+
+		result += "\nwith children : \n";
+		if (children != null) {
+			for (State s : children) {
+				result += s.toString();
+			}
+		} else {
+			result += "none\n";
+		}
+		return result;
 	}
 
 }
