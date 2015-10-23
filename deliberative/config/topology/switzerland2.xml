@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<topology name="switzerland" >
+	
+	<!-- the list of cities in the topology -->
+	<cities>
+		<city x="165" y="390" name="Lausanne"/>
+		<city x= "60" y="450" name="Genève"/>
+		<city x="300" y="450" name="Sion"/>
+	</cities>
+
+	<!-- the list of routes in the topology -->
+	<routes>
+		<route distance="90"  from="Lausanne" to="Genève"/>
+		<route distance="150" from="Sion" to="Lausanne"/>
+	</routes>
+
+</topology>
