@@ -7,6 +7,10 @@ import java.util.List;
 import logist.task.Task;
 import logist.topology.Topology.City;
 
+/**
+ * A state is composed by the position of an agent and the state of the world (all tasks with their respective positions)
+ *
+ */
 public class State {
 
 	private City agentPosition;
@@ -36,8 +40,13 @@ public class State {
 		this.tasks = tasks;
 	}
 
-	// Create all the reachable states from the current state
-	public List<State> computeChildren(HashMap<State, Boolean> knownStates) {
+	/**
+	 * Create all reachable states from the current state
+	 * @param knownStates
+	 * @param vehicleCapacity
+	 * @return
+	 */
+	public List<State> computeChildren(HashMap<State, Boolean> knownStates, int vehicleCapacity) {
 		if (children != null) {
 			return children;
 		}
@@ -66,11 +75,7 @@ public class State {
 
 			// Compute all combinations with tasks
 			List<List<Task>> resultCombination = computeCombinationsOfTasks(tasksInCurrentCity,
-					tasksInCurrentCity.size());
-
-			// Remove combinations where there are too much tasks for the
-			// vehicle
-			// TODO
+					tasksInCurrentCity.size(), vehicleCapacity);
 
 			for (List<Task> lt : resultCombination) {
 				// Creation of HashMap for result
@@ -87,44 +92,69 @@ public class State {
 				}
 
 				State tempState = new State(c, tempTasks);
-				returnedChildren.add(tempState);
+
+				// FIXME : to verify if really works
+				// We remove states that already exist
+				if (!knownStates.containsKey(tempState)) {
+					returnedChildren.add(tempState);
+				}
 			}
 		}
-
-		// TODO
-		// chercher noeuds deja existants
-		// Checker poids vehicule
 		children = returnedChildren;
 		return returnedChildren;
 	}
 
-	// for each element of this list, create a state
+	/**
+	 * Creates all possible combinations of tasks that can be moved
+	 * @param tasks
+	 * @param sizeOfCombination
+	 * @param vehicleCapacity
+	 * @return
+	 */
 	@SuppressWarnings("unchecked")
-	private List<List<Task>> computeCombinationsOfTasks(ArrayList<Task> tasks, int sizeOfCombination) {
+	private List<List<Task>> computeCombinationsOfTasks(ArrayList<Task> tasks, int sizeOfCombination,
+			int vehicleCapacity) {
 		List<List<Task>> result = new ArrayList<List<Task>>();
 		ArrayList<ArrayList<Task>> lastIteration = new ArrayList<ArrayList<Task>>();
 
+		// Only consider alone tasks
 		for (Task t : tasks) {
 			ArrayList<Task> tempList = new ArrayList<Task>();
-			tempList.add(t);
-			result.add((List<Task>) tempList.clone());
-			lastIteration.add((ArrayList<Task>) tempList.clone());
+			// Test if we do not have more weight than possible
+			if (t.weight <= vehicleCapacity) {
+				tempList.add(t);
+				result.add((List<Task>) tempList.clone());
+				lastIteration.add((ArrayList<Task>) tempList.clone());
+			}
 		}
 
+		// And make all possible combinations with 2, 3, ... tasks to be moved
 		for (int i = 1; i < sizeOfCombination; i++) {
 			lastIteration = composeListsOfTasks(tasks, lastIteration);
 			for (ArrayList<Task> tempTasks : lastIteration) {
-				result.add((List<Task>) tempTasks.clone());
+				// Test if we do not have more weight than possible
+				if (computeWeightOfAListOfTasks(tempTasks) <= vehicleCapacity) {
+					result.add((List<Task>) tempTasks.clone());
+				}
 			}
 		}
 		return result;
 	}
 
+	/**
+	 * Takes as argument a list of all tasks and the last result of this function.
+	 * It simply adds to each element of the previous computation, each task once
+	 * (except if the task is already present or of the id is bigger than the one of the first element.
+	 * Indeed, it allows us avoid having redundancy in states)
+	 * @param tasks
+	 * @param lastIteration
+	 * @return
+	 */
 	@SuppressWarnings("unchecked")
 	private ArrayList<ArrayList<Task>> composeListsOfTasks(ArrayList<Task> tasks,
 			ArrayList<ArrayList<Task>> lastIteration) {
 		ArrayList<ArrayList<Task>> result = new ArrayList<ArrayList<Task>>();
-		for (int i = 0 ; i < lastIteration.size(); i++) {
+		for (int i = 0; i < lastIteration.size(); i++) {
 			ArrayList<Task> tempTask = lastIteration.get(i);
 			for (int j = 0; j < tasks.size(); j++) {
 				Task t = tasks.get(j);
@@ -135,21 +165,22 @@ public class State {
 				}
 			}
 		}
-		// Old Code
-		/*for (ArrayList<Task> tempTask : lastIteration) {
-			for (Task t : tasks) {
-				if (!tempTask.contains(t)) {
-					ArrayList<Task> temp = (ArrayList<Task>) tempTask.clone();
-					temp.add(t);
-					if (!result.contains(temp)) {
-						result.add(temp);
-					}
-				}
-			}
-		}*/
 		return result;
 	}
 	
+	/**
+	 * Compute the total weight of a list of tasks
+	 * @param tempTasks
+	 * @return
+	 */
+	private int computeWeightOfAListOfTasks(ArrayList<Task> tempTasks) {
+		int totalWeight = 0;
+		for (Task t : tempTasks) {
+			totalWeight += t.weight;
+		}
+		return totalWeight;
+	}
+
 	@Override
 	public boolean equals(Object other) {
 		if (other == null)
@@ -159,15 +190,12 @@ public class State {
 		if (!(other instanceof State))
 			return false;
 		State s = (State) other;
-
 		if (!this.agentPosition.equals(s.getAgentPosition())) {
 			return false;
 		}
-
 		if (!this.tasks.equals(s.getTasks())) {
 			return false;
 		}
-
 		return true;
 	}
 
@@ -178,7 +206,6 @@ public class State {
 		for (Task t : tasks.keySet()) {
 			result += "\t " + t.toString() + ", current city : " + tasks.get(t) + "\n";
 		}
-
 		result += "\nwith children : \n";
 		if (children != null) {
 			for (State s : children) {
@@ -189,5 +216,4 @@ public class State {
 		}
 		return result;
 	}
-
 }

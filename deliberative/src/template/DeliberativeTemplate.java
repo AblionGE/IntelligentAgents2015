@@ -61,6 +61,18 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		// (for sur toutes les taches)
 		// Comment stocker les goals ? (HashMap?)
 		// Compute the plan with the selected algorithm.
+		
+		HashMap<Task, City> hashMapTasks = new HashMap<Task, City>();
+		for (Task t : tasks) {
+			// FIXME
+			// Is it always true, when recomputing the plan to ?
+			// Problem is if the task has moved...
+			hashMapTasks.put(t, t.pickupCity);
+		}
+		
+		// FIXME : to fill in
+		HashMap<State, Boolean> knownStates = new HashMap<State, Boolean>();
+		
 		switch (algorithm) {
 		case ASTAR:
 			// ...
@@ -70,8 +82,10 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			// ...
 			plan = bfsPlan(vehicle, tasks);
 			break;
-		case NAIVE:
-			System.out.println(tasks.size());
+		case NAIVE:			
+			State state = new State (vehicle.getCurrentCity(), hashMapTasks);
+			List<State> children = state.computeChildren(knownStates, vehicle.capacity());
+			System.out.println(state.toString());
 			plan = naivePlan(vehicle, tasks);
 			break;
 		default:
