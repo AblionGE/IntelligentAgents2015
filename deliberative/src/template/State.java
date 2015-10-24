@@ -39,6 +39,24 @@ public class State {
 	protected void setTasks(HashMap<Task, City> tasks) {
 		this.tasks = tasks;
 	}
+	
+	public City getCity(Task task) {
+		return tasks.get(task);
+	}
+	
+	/**
+	 * Returns the first task that changed its location
+	 * @param tasks
+	 * @return
+	 */
+	public Task taskDifference(State state) {
+		for(Task t: this.tasks.keySet()) {
+			if(!this.tasks.get(t).equals(state.getCity(t))) {
+				return t;
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * Create all reachable states from the current state
@@ -197,6 +215,11 @@ public class State {
 			return false;
 		}
 		return true;
+	}
+	
+	@Override
+	public int hashCode() {
+		return agentPosition.hashCode() ^ tasks.hashCode();
 	}
 
 	@Override
