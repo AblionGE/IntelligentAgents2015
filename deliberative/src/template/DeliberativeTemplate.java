@@ -116,24 +116,35 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 		LinkedList<State> bestPath = bfs(initialState, goalStates, vehicle.capacity());
 
+		System.out.println(bestPath.size());
+		for(State s: bestPath) {
+			System.out.println(s.getAgentPosition());
+		}
+		
 		State prevState = initialState;
 		State nextState;
 		while(!bestPath.isEmpty()) {
 			nextState = bestPath.pollFirst();
 
-			// pickup task
-			Task task = prevState.taskDifference(nextState);
-			if(task != null && pickedup(task, prevState)) {
-				plan.appendPickup(task);
+			// pickup tasks
+			List<Task> diff = prevState.taskDifferences(nextState);
+			if(diff.size() > 0) {
+				for(Task t: diff) {
+					if(pickedup(t, prevState))
+						plan.appendPickup(t);
+				}
 			}
 			
 			// move to next city
 			for (City city : current.pathTo(nextState.getAgentPosition()))
 				plan.appendMove(city);
 
-			// deliver task
-			if(task != null && delivered(task, nextState)) {
-				plan.appendDelivery(task);
+			// deliver tasks
+			if(diff.size() > 0) {
+				for(Task t: diff) {
+					if(delivered(t, nextState))
+						plan.appendDelivery(t);
+				}
 			}
 			
 			prevState = nextState;
@@ -196,6 +207,8 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		Pair currentPair;
 		State currentState;
 		LinkedList<State> currentPath;
+		HashMap<State,Boolean> visitedStates;
+		List<State> children;
 		// bfs loop
 		while(!queue.isEmpty()) {
 			currentPair = queue.pollFirst();
@@ -208,11 +221,11 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 				return currentPath;
 			} else {
 				// add children to the queue
-				HashMap<State,Boolean> visitedStates = new HashMap<State,Boolean>();
+				visitedStates = new HashMap<State,Boolean>();
 				for(State s: currentPath) {
 					visitedStates.put(s, false);
 				}
-				List<State> children = currentState.computeChildren(visitedStates, vehicleCapacity);
+				children = currentState.computeChildren(visitedStates, vehicleCapacity);
 				for(State s: children) {
 					queue.addLast(new Pair(s, (LinkedList<State>) currentPath.clone()));
 				}

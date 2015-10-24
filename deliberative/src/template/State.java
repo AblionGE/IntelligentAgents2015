@@ -45,17 +45,18 @@ public class State {
 	}
 	
 	/**
-	 * Returns the first task that changed its location
+	 * Returns the tasks that changed their location
 	 * @param tasks
 	 * @return
 	 */
-	public Task taskDifference(State state) {
+	public List<Task> taskDifferences(State state) {
+		List<Task> differences = new ArrayList<Task>();
 		for(Task t: this.tasks.keySet()) {
 			if(!this.tasks.get(t).equals(state.getCity(t))) {
-				return t;
+				differences.add(t);
 			}
 		}
-		return null;
+		return differences;
 	}
 
 	/**
