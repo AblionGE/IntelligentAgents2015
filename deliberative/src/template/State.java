@@ -110,144 +110,32 @@ public class State {
 		if (!children.isEmpty()) {
 			return children;
 		}
-
 		ArrayList<State> returnedChildren = new ArrayList<State>();
-		List<City> neighbours = this.agentPosition.neighbors();
 
-		// For each neighbour
-		for (City c : neighbours) {
-			// move without freeTasks - simply move the agent
-			State newState = new State(c, this.freeTasks, this.takenTasks, this.deliveredTasks);
-			this.children.add(newState);
-			returnedChildren.add(newState);
-
-			// move with freeTasks
-			ArrayList<Task> tasksInCurrentCity = new ArrayList<Task>();
-			// Get all the task in the current city that are free
-			for (Task t : freeTasks) {
-				// If the destination city is not the current one and the task
-				// is at the place where the agent is
-				if (!t.deliveryCity.equals(agentPosition) && t.pickupCity.equals(agentPosition)) {
-					// We add the task to the list
-					tasksInCurrentCity.add(t);
-				}
-			}
-
-			// Create new takenTasks and delivered task for the child
-			ArrayList<Task> childDeliveredTasks = (ArrayList<Task>) this.deliveredTasks.clone();
-			ArrayList<Task> childTakenTasksInCurrentState = (ArrayList<Task>) this.takenTasks.clone();
-			for (Task t : takenTasks) {
-				if (t.deliveryCity.equals(c)) {
-					childDeliveredTasks.add(t);
-					childTakenTasksInCurrentState.remove(t);
-				}
-			}
-
-			// Compute all combinations with freeTasks and childTakenTasks
-			List<List<Task>> resultCombination = computeCombinationsOfTasks(tasksInCurrentCity,
-					tasksInCurrentCity.size(), childTakenTasksInCurrentState, vehicleCapacity);
-
-			for (List<Task> lt : resultCombination) {
-				// Creation of HashMap for result
-				ArrayList<Task> childTakenTasksInChild = new ArrayList<Task>();
-				// Add moved freeTasks
-				for (Task t : lt) {
-					childTakenTasksInChild.add(t);
-				}
-
-				ArrayList<Task> childFreeTasks = new ArrayList<Task>();
-				// Add freeTasks that do not move
-				for (Task t : this.freeTasks) {
-					if (!childTakenTasksInChild.contains(t)) {
-						childFreeTasks.add(t);
-					}
-				}
-
-				State childState = new State(c, childFreeTasks, childTakenTasksInChild, childDeliveredTasks);
-
-				// FIXME : to verify if really works
-				// We remove states that already exist
-				this.children.add(childState);
-				// if (!knownStates.contains(childState)) {
-				returnedChildren.add(childState);
-				// }
-			}
+		/************* Pickup a Task ***************/
+		for (Task task : freeTasks) {			
+			ArrayList<Task> childFreeTasks = (ArrayList<Task>) freeTasks.clone();
+			ArrayList<Task> childTakenTasks = (ArrayList<Task>) takenTasks.clone();
+			ArrayList<Task> childDeliveredTasks = (ArrayList<Task>) deliveredTasks.clone();
+			childFreeTasks.remove(task);
+			childTakenTasks.add(task);
+			State childState = new State(task.pickupCity, childFreeTasks, childTakenTasks, childDeliveredTasks);
+			children.add(childState);
+			returnedChildren.add(childState);
+		}
+		
+		/************ Deliver a Task ***************/
+		for (Task task : takenTasks) {
+			ArrayList<Task> childFreeTasks = (ArrayList<Task>) freeTasks.clone();
+			ArrayList<Task> childTakenTasks = (ArrayList<Task>) takenTasks.clone();
+			ArrayList<Task> childDeliveredTasks = (ArrayList<Task>) deliveredTasks.clone();
+			childTakenTasks.remove(task);
+			childDeliveredTasks.add(task);
+			State childState = new State(task.deliveryCity, childFreeTasks, childTakenTasks, childDeliveredTasks);
+			children.add(childState);
+			returnedChildren.add(childState);
 		}
 		return returnedChildren;
-	}
-
-	/**
-	 * Creates all possible combinations of freeTasks that can be moved
-	 * 
-	 * @param freeTasks
-	 * @param sizeOfCombination
-	 * @param vehicleCapacity
-	 * @return
-	 */
-	@SuppressWarnings("unchecked")
-	private List<List<Task>> computeCombinationsOfTasks(ArrayList<Task> freeTasks, int sizeOfCombination,
-			ArrayList<Task> takenTasks, int vehicleCapacity) {
-
-		List<List<Task>> result = new ArrayList<List<Task>>();
-		ArrayList<ArrayList<Task>> lastIteration = new ArrayList<ArrayList<Task>>();
-
-		if (sizeOfCombination == 0) {
-			result.add(takenTasks);
-		} else {
-			// Only consider alone freeTasks
-			for (Task t : freeTasks) {
-				ArrayList<Task> tempList = (ArrayList<Task>) takenTasks.clone();
-				tempList.add(t);
-				// Test if we do not have more weight than possible
-				if (computeWeightOfAListOfTasks(tempList) <= vehicleCapacity) {
-					result.add(tempList);
-					lastIteration.add(tempList);
-				}
-			}
-
-			// And make all possible combinations with 2, 3, ... freeTasks to be
-			// moved
-			for (int i = 1; i < sizeOfCombination; i++) {
-				lastIteration = composeListsOfTasks(freeTasks, lastIteration);
-				for (ArrayList<Task> tempTasks : lastIteration) {
-					// Test if we do not have more weight than possible
-					if (computeWeightOfAListOfTasks(tempTasks) <= vehicleCapacity) {
-						result.add((List<Task>) tempTasks.clone());
-					}
-				}
-			}
-		}
-		return result;
-	}
-
-	/**
-	 * Takes as argument a list of all freeTasks and the last result of this
-	 * function. It simply adds to each element of the previous computation,
-	 * each task once (except if the task is already present or of the id is
-	 * bigger than the one of the first element. Indeed, it allows us avoid
-	 * having redundancy in states)
-	 * 
-	 * @param freeTasks
-	 * @param lastIteration
-	 * @return
-	 */
-	@SuppressWarnings("unchecked")
-	private ArrayList<ArrayList<Task>> composeListsOfTasks(ArrayList<Task> tasks,
-			ArrayList<ArrayList<Task>> lastIteration) {
-		
-		ArrayList<ArrayList<Task>> result = new ArrayList<ArrayList<Task>>();
-		for (int i = 0; i < lastIteration.size(); i++) {
-			ArrayList<Task> tempTask = lastIteration.get(i);
-			for (int j = 0; j < tasks.size(); j++) {
-				Task t = tasks.get(j);
-				if (!tempTask.contains(t) && t.id > tempTask.get(0).id) {
-					ArrayList<Task> temp = (ArrayList<Task>) tempTask.clone();
-					temp.add(t);
-					result.add(temp);
-				}
-			}
-		}
-		return result;
 	}
 
 	/**

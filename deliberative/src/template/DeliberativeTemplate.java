@@ -164,14 +164,6 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		}
 	}
 
-	private boolean pickedup(Task task, State state) {
-		return task.pickupCity.equals(state.getAgentPosition());
-	}
-
-	private boolean delivered(Task task, State state) {
-		return task.deliveryCity.equals(state.getAgentPosition());
-	}
-
 	private Plan computePlan(Plan plan, City current, LinkedList<State> path) {
 		State prevState = path.pollFirst();
 		State nextState;
@@ -183,9 +175,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			List<Task> diffPickup = prevState.taskPickUpDifferences(nextState);
 			if (diffPickup.size() > 0) {
 				for (Task t : diffPickup) {
-					if (pickedup(t, prevState)) {
-						plan.appendPickup(t);
-					}
+					plan.appendPickup(t);
 				}
 			}
 
@@ -197,8 +187,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			List<Task> diffDeliver = prevState.taskDeliverDifferences(nextState);
 			if (diffDeliver.size() > 0) {
 				for (Task t : diffDeliver) {
-					if (delivered(t, nextState))
-						plan.appendDelivery(t);
+					plan.appendDelivery(t);
 				}
 			}
 			prevState = nextState;
