@@ -3,6 +3,7 @@ package template;
 /* import table */
 import logist.simulation.Vehicle;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -24,15 +25,17 @@ import logist.topology.Topology.City;
 @SuppressWarnings("unused")
 public class DeliberativeTemplate implements DeliberativeBehavior {
 
-	enum Algorithm { BFS, ASTAR, NAIVE }
+	enum Algorithm {
+		BFS, ASTAR, NAIVE
+	}
 
 	/* Environment */
 	Topology topology;
 	TaskDistribution td;
 	List<City> cities;
 	State initialState;
-	HashMap<State,Boolean> goalStates = new HashMap<State,Boolean>();
-	//HashMap<State,Boolean> visitedStates = new HashMap<State,Boolean>();
+	ArrayList<State> goalStates = new ArrayList<State>();
+	// HashMap<State,Boolean> visitedStates = new HashMap<State,Boolean>();
 
 	/* the properties of the agent */
 	Agent agent;
@@ -61,24 +64,28 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	@Override
 	public Plan plan(Vehicle vehicle, TaskSet tasks) {
 		Plan plan;
-		HashMap<Task, City> pickupLocations = new HashMap<Task, City>();
-		HashMap<Task, City> deliveryLocations = new HashMap<Task, City>();
+		ArrayList<Task> pickupLocations = new ArrayList<Task>();
+		ArrayList<Task> deliveryLocations = new ArrayList<Task>();
 
 		for (Task t : tasks) {
 			// FIXME
 			// Is it always true, when recomputing the plan to ?
 			// Problem is if the task has moved...
-			pickupLocations.put(t, t.pickupCity);
-			deliveryLocations.put(t, t.deliveryCity);
+			pickupLocations.add(t);
+			deliveryLocations.add(t);
 		}
 
 		// initial state:
-		initialState = new State (vehicle.getCurrentCity(), pickupLocations);
+		initialState = new State(vehicle.getCurrentCity(), pickupLocations, new ArrayList<Task>(), new ArrayList<Task>());
 
 		// goal states:
-		Set<City> deliveryCities = new HashSet<City>(deliveryLocations.values());
+		
+		Set<City> deliveryCities = new HashSet<City>();
+		for (Task t : deliveryLocations) {
+			deliveryCities.add(t.deliveryCity);
+		}
 		for (City city : deliveryCities) {
-			goalStates.put(new State(city, deliveryLocations), true);
+			goalStates.add(new State(city, new ArrayList<Task>(), new ArrayList<Task>(), deliveryLocations));
 		}
 
 		switch (algorithm) {
@@ -90,23 +97,23 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			// ...
 			plan = bfsPlan(vehicle, tasks);
 			break;
-		case NAIVE:			
+		case NAIVE:
 
-			HashMap<State,Boolean> visitedStates = new HashMap<State,Boolean>();
-			List<State> children = initialState.computeChildren(visitedStates, vehicle.capacity());
-			System.out.println(initialState.toString());
+			//HashMap<State, Boolean> visitedStates = new HashMap<State, Boolean>();
+			//List<State> children = initialState.computeChildren(visitedStates, vehicle.capacity());
+			// System.out.println(initialState.toString());
 			plan = naivePlan(vehicle, tasks);
 			break;
 		default:
 			throw new AssertionError("Algorithm does not exist.");
-		}		
+		}
 		return plan;
 	}
 
 	private Plan aStarPlan(Vehicle vehicle, TaskSet tasks) {
 		City current = vehicle.getCurrentCity();
 		Plan plan = new Plan(current);
-		
+
 		LinkedList<State> bestPath = astar(initialState, goalStates, vehicle.capacity());
 		return computePlan(plan, current, bestPath);
 	}
@@ -114,7 +121,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	private Plan bfsPlan(Vehicle vehicle, TaskSet tasks) {
 		City current = vehicle.getCurrentCity();
 		Plan plan = new Plan(current);
-		
+
 		LinkedList<State> bestPath = bfs(initialState, goalStates, vehicle.capacity());
 		return computePlan(plan, current, bestPath);
 	}
@@ -150,44 +157,42 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			// you will need to consider the carriedTasks when the next
 			// plan is computed.
 
-			//TODO : A regarder si plan est rappele ?
+			// TODO : A regarder si plan est rappele ?
 		}
 	}
 
-
-
 	private boolean pickedup(Task task, State state) {
-		return task.pickupCity.equals(state.getCity(task));
+		return task.pickupCity.equals(state.getAgentPosition());
 	}
 
 	private boolean delivered(Task task, State state) {
-		return task.deliveryCity.equals(state.getCity(task));
+		return task.deliveryCity.equals(state.getAgentPosition());
 	}
 
 	private Plan computePlan(Plan plan, City current, LinkedList<State> path) {
 		State prevState = path.pollFirst();
 		State nextState;
-		
-		while(!path.isEmpty()) {
+
+		while (!path.isEmpty()) {
 			nextState = path.pollFirst();
 
 			// pickup tasks
 			List<Task> diff = prevState.taskDifferences(nextState);
-			if(diff.size() > 0) {
-				for(Task t: diff) {
-					if(pickedup(t, prevState))
+			if (diff.size() > 0) {
+				for (Task t : diff) {
+					if (pickedup(t, prevState))
 						plan.appendPickup(t);
 				}
 			}
-			
+
 			// move to next city
 			for (City city : current.pathTo(nextState.getAgentPosition()))
 				plan.appendMove(city);
 
 			// deliver tasks
-			if(diff.size() > 0) {
-				for(Task t: diff) {
-					if(delivered(t, nextState))
+			if (diff.size() > 0) {
+				for (Task t : diff) {
+					if (delivered(t, nextState))
 						plan.appendDelivery(t);
 				}
 			}
@@ -196,8 +201,9 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		}
 		return plan;
 	}
-	
-	private LinkedList<State> bfs(State init, HashMap<State,Boolean> goals, int vehicleCapacity) {
+
+	@SuppressWarnings("unchecked")
+	private LinkedList<State> bfs(State init, ArrayList<State> goals, int vehicleCapacity) {
 		// initialize queue for bfs
 		LinkedList<Pair> queue = new LinkedList<Pair>();
 		queue.addLast(new Pair(init, new LinkedList<State>()));
@@ -205,41 +211,54 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		Pair currentPair;
 		State currentState;
 		LinkedList<State> currentPath;
-		HashMap<State,Boolean> visitedStates = new HashMap<State,Boolean>();
+		ArrayList<State> visitedStates = new ArrayList<State>();
 		List<State> children;
 		// bfs loop
-		while(!queue.isEmpty()) {
+		while (!queue.isEmpty()) {
 			currentPair = queue.pollFirst();
 			currentState = currentPair.getState();
 			currentPath = currentPair.getPath();
 			currentPath.addLast(currentState);
-			
-			if(goals.containsKey(currentState)) {
+
+			if (!visitedStates.contains(currentState)) {
+				visitedStates.add(currentState);
+			}
+
+			if (goals.contains(currentState)) {
 				// a goal has been reached
 				return currentPath;
 			} else {
 				// add children to the queue
-				visitedStates.clear();
-				for(State s: currentPath) {
-					visitedStates.put(s, false);
-				}
+				// visitedStates.clear();
+				/*
+				 * for (State s : currentPath) { if
+				 * (!visitedStates.containsKey(s)) { visitedStates.put(s,
+				 * false); } }
+				 */
 				children = currentState.computeChildren(visitedStates, vehicleCapacity);
-				for(State s: children) {
+				System.out.println(currentState.toString());
+				System.out.println("=====================================================================");
+				for (State s : children) {
 					// FIXME Too slow because of this line?
-					queue.addLast(new Pair(s, (LinkedList<State>) currentPath.clone()));
+					if (!visitedStates.contains(s)) {
+						visitedStates.add(s);
+						queue.addLast(new Pair(s, (LinkedList<State>) currentPath.clone()));
+					}
 				}
 			}
 		}
+		System.err.println("SHOULD NEVER HAPPEN");
 		return null;
 	}
-	
-	private LinkedList<State> astar(State init, HashMap<State, Boolean> goals, int vehicleCapacity) {
+
+	private LinkedList<State> astar(State init, ArrayList<State> goals, int vehicleCapacity) {
 		// TODO
 		return null;
 	}
 
 	/**
 	 * Compute the cost of task for a given vehicle
+	 * 
 	 * @param vehicle
 	 * @param task
 	 * @return
