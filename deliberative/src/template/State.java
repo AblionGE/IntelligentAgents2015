@@ -113,17 +113,19 @@ public class State {
 		ArrayList<State> returnedChildren = new ArrayList<State>();
 
 		/************* Pickup a Task ***************/
-		for (Task task : freeTasks) {			
+		for (Task task : freeTasks) {
 			ArrayList<Task> childFreeTasks = (ArrayList<Task>) freeTasks.clone();
 			ArrayList<Task> childTakenTasks = (ArrayList<Task>) takenTasks.clone();
 			ArrayList<Task> childDeliveredTasks = (ArrayList<Task>) deliveredTasks.clone();
-			childFreeTasks.remove(task);
-			childTakenTasks.add(task);
-			State childState = new State(task.pickupCity, childFreeTasks, childTakenTasks, childDeliveredTasks);
-			children.add(childState);
-			returnedChildren.add(childState);
+			if (task.weight + computeWeightOfAListOfTasks(childTakenTasks) <= vehicleCapacity) {
+				childFreeTasks.remove(task);
+				childTakenTasks.add(task);
+				State childState = new State(task.pickupCity, childFreeTasks, childTakenTasks, childDeliveredTasks);
+				children.add(childState);
+				returnedChildren.add(childState);
+			}
 		}
-		
+
 		/************ Deliver a Task ***************/
 		for (Task task : takenTasks) {
 			ArrayList<Task> childFreeTasks = (ArrayList<Task>) freeTasks.clone();
