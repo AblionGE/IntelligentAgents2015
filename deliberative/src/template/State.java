@@ -22,16 +22,18 @@ public class State {
 	private ArrayList<Task> takenTasks = new ArrayList<Task>();
 	private ArrayList<Task> deliveredTasks = new ArrayList<Task>();
 	private double cost = 0;
+	private double reward = 0;
 	private double f = 0;
 
 	public State(City agentPosition, ArrayList<Task> freeTasks, ArrayList<Task> takenTasks,
-			ArrayList<Task> deliveredTasks, double cost, Vehicle vehicle) {
+			ArrayList<Task> deliveredTasks, double cost, double reward, Vehicle vehicle) {
 		super();
 		this.agentPosition = agentPosition;
 		this.freeTasks = freeTasks;
 		this.takenTasks = takenTasks;
 		this.deliveredTasks = deliveredTasks;
 		this.cost = cost;
+		this.reward = reward;
 		this.f = computeF(vehicle);
 	}
 
@@ -74,7 +76,15 @@ public class State {
 	protected void setCost(double cost) {
 		this.cost = cost;
 	}
-	
+
+	protected double getReward() {
+		return reward;
+	}
+
+	protected void setReward(double reward) {
+		this.reward = reward;
+	}
+
 	protected double getF() {
 		return f;
 	}
@@ -84,36 +94,36 @@ public class State {
 	}
 
 	/**
-	 * Compute f(n) = g(n) + h(n)
-	 * where g(n) is the cost from previous actions
+	 * Compute f(n) = g(n) + h(n) where g(n) is the cost from previous actions
 	 * and h(n) is an estimation of the future cost
+	 * 
 	 * @param vehicle
 	 * @return
 	 */
 	private double computeF(Vehicle vehicle) {
-		
+
 		// Total reward
 		double totalReward = 0;
 		for (Task t : deliveredTasks) {
 			totalReward += t.reward;
 		}
-		
+
 		double g = -cost + totalReward;
-		
+
 		// Compute h
 		double costUndelivered = 0;
 		double rewardUndelivered = 0;
 		for (Task t : takenTasks) {
-			costUndelivered += t.pickupCity.distanceTo(t.deliveryCity)*vehicle.costPerKm();
+			costUndelivered += t.pickupCity.distanceTo(t.deliveryCity) * vehicle.costPerKm();
 			rewardUndelivered += t.reward;
 		}
 		for (Task t : freeTasks) {
-			costUndelivered += t.pickupCity.distanceTo(t.deliveryCity)*vehicle.costPerKm();
+			costUndelivered += t.pickupCity.distanceTo(t.deliveryCity) * vehicle.costPerKm();
 			rewardUndelivered += t.reward;
 		}
-		
+
 		double h = -costUndelivered + rewardUndelivered;
-		
+
 		return g + h;
 	}
 
@@ -175,7 +185,8 @@ public class State {
 				childFreeTasks.remove(task);
 				childTakenTasks.add(task);
 				State childState = new State(task.pickupCity, childFreeTasks, childTakenTasks, childDeliveredTasks,
-						this.cost + vehicle.costPerKm() * agentPosition.distanceTo(task.pickupCity), vehicle);
+						this.cost + vehicle.costPerKm() * agentPosition.distanceTo(task.pickupCity), this.reward,
+						vehicle);
 				returnedChildren.add(childState);
 			}
 		}
@@ -188,7 +199,8 @@ public class State {
 			childTakenTasks.remove(task);
 			childDeliveredTasks.add(task);
 			State childState = new State(task.deliveryCity, childFreeTasks, childTakenTasks, childDeliveredTasks,
-					this.cost + vehicle.costPerKm() * agentPosition.distanceTo(task.pickupCity), vehicle);
+					this.cost + vehicle.costPerKm() * agentPosition.distanceTo(task.pickupCity),
+					this.reward + task.reward, vehicle);
 			returnedChildren.add(childState);
 		}
 		return returnedChildren;

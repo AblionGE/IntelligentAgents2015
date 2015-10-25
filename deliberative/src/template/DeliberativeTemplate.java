@@ -34,9 +34,10 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	Topology topology;
 	TaskDistribution td;
 	List<City> cities;
-	State initialState;
+	State initialState = null;
 	ArrayList<State> goalStates = new ArrayList<State>();
-	// HashMap<State,Boolean> visitedStates = new HashMap<State,Boolean>();
+	Vehicle vehicle;
+	ArrayList<Task> carriedTasks = new ArrayList<Task>();
 
 	/* the properties of the agent */
 	Agent agent;
@@ -56,6 +57,8 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		int capacity = agent.vehicles().get(0).capacity();
 		String algorithmName = agent.readProperty("algorithm", String.class, "ASTAR");
 
+		vehicle = agent.vehicles().get(0);
+
 		// Throws IllegalArgumentException if algorithm is unknown
 		algorithm = Algorithm.valueOf(algorithmName.toUpperCase());
 
@@ -69,27 +72,16 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		ArrayList<Task> deliveryLocations = new ArrayList<Task>();
 
 		for (Task t : tasks) {
-			// FIXME
-			// Is it always true, when recomputing the plan to ?
-			// Problem is if the task has moved...
 			pickupLocations.add(t);
 			deliveryLocations.add(t);
 		}
 
 		// initial state:
-		initialState = new State(vehicle.getCurrentCity(), pickupLocations, new ArrayList<Task>(),
-				new ArrayList<Task>(), 0, vehicle);
+		initialState = setInitialState(vehicle, tasks, carriedTasks);
 
 		// goal states:
-		Set<City> deliveryCities = new HashSet<City>();
-		for (Task t : deliveryLocations) {
-			deliveryCities.add(t.deliveryCity);
-		}
-		for (City city : deliveryCities) {
-			goalStates
-					.add(new State(city, new ArrayList<Task>(), new ArrayList<Task>(), deliveryLocations, 0, vehicle));
-		}
-
+		goalStates = setGoalStates(vehicle, tasks, carriedTasks);
+		
 		switch (algorithm) {
 		case ASTAR:
 			// ...
@@ -106,6 +98,34 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			throw new AssertionError("Algorithm does not exist.");
 		}
 		return plan;
+	}
+
+	private State setInitialState(Vehicle vehicle, TaskSet tasks, ArrayList<Task> takenTasks) {
+		ArrayList<Task> pickupLocations = new ArrayList<Task>();
+		for (Task t : tasks) {
+			if (!takenTasks.contains(t)) {
+				pickupLocations.add(t);
+			}
+		}
+		return new State(vehicle.getCurrentCity(), pickupLocations, takenTasks, new ArrayList<Task>(), 0, 0, vehicle);
+	}
+
+	private ArrayList<State> setGoalStates(Vehicle vehicle, TaskSet tasks, ArrayList<Task> takenTasks) {
+		ArrayList<State> goals = new ArrayList<State>();
+		ArrayList<Task> deliveryLocations = new ArrayList<Task>();
+		for (Task t : tasks) {
+			deliveryLocations.add(t);
+		}
+		deliveryLocations.addAll(takenTasks);
+		// goal states:
+		Set<City> deliveryCities = new HashSet<City>();
+		for (Task t : deliveryLocations) {
+			deliveryCities.add(t.deliveryCity);
+		}
+		for (City city : deliveryCities) {
+			goals.add(new State(city, new ArrayList<Task>(), new ArrayList<Task>(), deliveryLocations, 0, 0, vehicle));
+		}
+		return goals;
 	}
 
 	private Plan aStarPlan(Vehicle vehicle, TaskSet tasks) {
@@ -149,13 +169,14 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 	@Override
 	public void planCancelled(TaskSet carriedTasks) {
-
+		System.out.println("carriedTask : " + carriedTasks.toString());
 		if (!carriedTasks.isEmpty()) {
-			// This cannot happen for this simple agent, but typically
-			// you will need to consider the carriedTasks when the next
-			// plan is computed.
-
-			// TODO : A regarder si plan est rappele ?
+			this.carriedTasks = new ArrayList<Task>();
+			for (Task t : carriedTasks) {
+				this.carriedTasks.add(t);
+			}
+		} else {
+			this.carriedTasks = new ArrayList<Task>();
 		}
 	}
 
