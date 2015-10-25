@@ -76,10 +76,11 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		}
 
 		// initial state:
-		initialState = new State(vehicle.getCurrentCity(), pickupLocations, new ArrayList<Task>(), new ArrayList<Task>());
+		initialState = new State(vehicle.getCurrentCity(), pickupLocations, new ArrayList<Task>(),
+				new ArrayList<Task>());
 
 		// goal states:
-		
+
 		Set<City> deliveryCities = new HashSet<City>();
 		for (Task t : deliveryLocations) {
 			deliveryCities.add(t.deliveryCity);
@@ -99,8 +100,10 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			break;
 		case NAIVE:
 
-			//HashMap<State, Boolean> visitedStates = new HashMap<State, Boolean>();
-			//List<State> children = initialState.computeChildren(visitedStates, vehicle.capacity());
+			// HashMap<State, Boolean> visitedStates = new HashMap<State,
+			// Boolean>();
+			// List<State> children =
+			// initialState.computeChildren(visitedStates, vehicle.capacity());
 			// System.out.println(initialState.toString());
 			plan = naivePlan(vehicle, tasks);
 			break;
@@ -177,11 +180,12 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			nextState = path.pollFirst();
 
 			// pickup tasks
-			List<Task> diff = prevState.taskDifferences(nextState);
-			if (diff.size() > 0) {
-				for (Task t : diff) {
-					if (pickedup(t, prevState))
+			List<Task> diffPickup = prevState.taskPickUpDifferences(nextState);
+			if (diffPickup.size() > 0) {
+				for (Task t : diffPickup) {
+					if (pickedup(t, prevState)) {
 						plan.appendPickup(t);
+					}
 				}
 			}
 
@@ -190,8 +194,9 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 				plan.appendMove(city);
 
 			// deliver tasks
-			if (diff.size() > 0) {
-				for (Task t : diff) {
+			List<Task> diffDeliver = prevState.taskDeliverDifferences(nextState);
+			if (diffDeliver.size() > 0) {
+				for (Task t : diffDeliver) {
 					if (delivered(t, nextState))
 						plan.appendDelivery(t);
 				}
@@ -228,16 +233,9 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 				// a goal has been reached
 				return currentPath;
 			} else {
-				// add children to the queue
-				// visitedStates.clear();
-				/*
-				 * for (State s : currentPath) { if
-				 * (!visitedStates.containsKey(s)) { visitedStates.put(s,
-				 * false); } }
-				 */
 				children = currentState.computeChildren(visitedStates, vehicleCapacity);
-				System.out.println(currentState.toString());
-				System.out.println("=====================================================================");
+				//System.out.println(currentState.toString());
+				//System.out.println("=====================================================================");
 				for (State s : children) {
 					// FIXME Too slow because of this line?
 					if (!visitedStates.contains(s)) {

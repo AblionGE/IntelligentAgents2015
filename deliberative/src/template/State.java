@@ -63,17 +63,35 @@ public class State {
 	}
 
 	/**
-	 * Returns the tasks that changed their location
+	 * Returns the tasks that are picked up
 	 * 
 	 * @param tasks
 	 * @return
 	 */
-	public List<Task> taskDifferences(State state) {
+	public List<Task> taskPickUpDifferences(State state) {
 		List<Task> differences = new ArrayList<Task>();
-		List<Task> currentTakenTasks = this.takenTasks;
-		List<Task> stateTakenTasks = state.getTakenTasks();
-		for (Task t : stateTakenTasks) {
-			if (!currentTakenTasks.contains(t)) {
+		List<Task> currentTasks = this.takenTasks;
+		List<Task> stateTasks = state.getTakenTasks();
+		for (Task t : stateTasks) {
+			if (!currentTasks.contains(t)) {
+				differences.add(t);
+			}
+		}
+		return differences;
+	}
+
+	/**
+	 * Returns the tasks that are delivered
+	 * 
+	 * @param tasks
+	 * @return
+	 */
+	public List<Task> taskDeliverDifferences(State state) {
+		List<Task> differences = new ArrayList<Task>();
+		List<Task> currentTasks = this.deliveredTasks;
+		List<Task> stateTasks = state.getDeliveredTasks();
+		for (Task t : stateTasks) {
+			if (!currentTasks.contains(t)) {
 				differences.add(t);
 			}
 		}
@@ -116,7 +134,7 @@ public class State {
 			}
 
 			// Create new takenTasks and delivered task for the child
-			ArrayList<Task> childDeliveredTasks = new ArrayList<Task>();
+			ArrayList<Task> childDeliveredTasks = (ArrayList<Task>) this.deliveredTasks.clone();
 			ArrayList<Task> childTakenTasksInCurrentState = (ArrayList<Task>) this.takenTasks.clone();
 			for (Task t : takenTasks) {
 				if (t.deliveryCity.equals(c)) {
@@ -139,20 +157,20 @@ public class State {
 
 				ArrayList<Task> childFreeTasks = new ArrayList<Task>();
 				// Add freeTasks that do not move
-				for (Task t : freeTasks) {
+				for (Task t : this.freeTasks) {
 					if (!childTakenTasksInChild.contains(t)) {
 						childFreeTasks.add(t);
 					}
 				}
-				
+
 				State childState = new State(c, childFreeTasks, childTakenTasksInChild, childDeliveredTasks);
 
 				// FIXME : to verify if really works
 				// We remove states that already exist
 				this.children.add(childState);
-				if (!knownStates.contains(childState)) {
-					returnedChildren.add(childState);
-				}
+				// if (!knownStates.contains(childState)) {
+				returnedChildren.add(childState);
+				// }
 			}
 		}
 		return returnedChildren;
@@ -176,23 +194,14 @@ public class State {
 		if (sizeOfCombination == 0) {
 			result.add(takenTasks);
 		} else {
-
-			// Compute weight already in Vehicle before considering taking new
-			// tasks
-			ArrayList<Task> tasksInVehicle = new ArrayList<Task>();
-			for (Task t : takenTasks) {
-				tasksInVehicle.add(t);
-			}
-			int weightAlreadyInVehicle = computeWeightOfAListOfTasks(tasksInVehicle);
-
 			// Only consider alone freeTasks
 			for (Task t : freeTasks) {
-				ArrayList<Task> tempList = (ArrayList<Task>) tasksInVehicle.clone();
+				ArrayList<Task> tempList = (ArrayList<Task>) takenTasks.clone();
+				tempList.add(t);
 				// Test if we do not have more weight than possible
-				if (t.weight + weightAlreadyInVehicle <= vehicleCapacity) {
-					tempList.add(t);
-					result.add((List<Task>) tempList.clone());
-					lastIteration.add((ArrayList<Task>) tempList.clone());
+				if (computeWeightOfAListOfTasks(tempList) <= vehicleCapacity) {
+					result.add(tempList);
+					lastIteration.add(tempList);
 				}
 			}
 
@@ -225,6 +234,7 @@ public class State {
 	@SuppressWarnings("unchecked")
 	private ArrayList<ArrayList<Task>> composeListsOfTasks(ArrayList<Task> tasks,
 			ArrayList<ArrayList<Task>> lastIteration) {
+		
 		ArrayList<ArrayList<Task>> result = new ArrayList<ArrayList<Task>>();
 		for (int i = 0; i < lastIteration.size(); i++) {
 			ArrayList<Task> tempTask = lastIteration.get(i);
