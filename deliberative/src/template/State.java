@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.topology.Topology.City;
 
@@ -20,14 +21,18 @@ public class State {
 	private ArrayList<Task> freeTasks = new ArrayList<Task>();
 	private ArrayList<Task> takenTasks = new ArrayList<Task>();
 	private ArrayList<Task> deliveredTasks = new ArrayList<Task>();
+	private double cost = 0;
+	private double f = 0;
 
 	public State(City agentPosition, ArrayList<Task> freeTasks, ArrayList<Task> takenTasks,
-			ArrayList<Task> deliveredTasks) {
+			ArrayList<Task> deliveredTasks, double cost, Vehicle vehicle) {
 		super();
 		this.agentPosition = agentPosition;
 		this.freeTasks = freeTasks;
 		this.takenTasks = takenTasks;
 		this.deliveredTasks = deliveredTasks;
+		this.cost = cost;
+		this.f = computeF(vehicle);
 	}
 
 	protected City getAgentPosition() {
@@ -60,6 +65,56 @@ public class State {
 
 	protected void setDeliveredTasks(ArrayList<Task> deliveredTasks) {
 		this.deliveredTasks = deliveredTasks;
+	}
+
+	protected double getCost() {
+		return cost;
+	}
+
+	protected void setCost(double cost) {
+		this.cost = cost;
+	}
+	
+	protected double getF() {
+		return f;
+	}
+
+	protected void setF(double f) {
+		this.f = f;
+	}
+
+	/**
+	 * Compute f(n) = g(n) + h(n)
+	 * where g(n) is the cost from previous actions
+	 * and h(n) is an estimation of the future cost
+	 * @param vehicle
+	 * @return
+	 */
+	private double computeF(Vehicle vehicle) {
+		
+		// Total reward
+		double totalReward = 0;
+		for (Task t : deliveredTasks) {
+			totalReward += t.reward;
+		}
+		
+		double g = -cost + totalReward;
+		
+		// Compute h
+		double costUndelivered = 0;
+		double rewardUndelivered = 0;
+		for (Task t : takenTasks) {
+			costUndelivered += t.pickupCity.distanceTo(t.deliveryCity)*vehicle.costPerKm();
+			rewardUndelivered += t.reward;
+		}
+		for (Task t : freeTasks) {
+			costUndelivered += t.pickupCity.distanceTo(t.deliveryCity)*vehicle.costPerKm();
+			rewardUndelivered += t.reward;
+		}
+		
+		double h = -costUndelivered + rewardUndelivered;
+		
+		return g + h;
 	}
 
 	/**
@@ -106,7 +161,8 @@ public class State {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public Set<State> computeChildren(int vehicleCapacity) {
+	public Set<State> computeChildren(Vehicle vehicle) {
+		int vehicleCapacity = vehicle.capacity();
 		Set<State> returnedChildren = new HashSet<State>();
 
 		/************* Pickup a Task ***************/
@@ -118,7 +174,8 @@ public class State {
 			if (task.weight + weightInVehicle <= vehicleCapacity) {
 				childFreeTasks.remove(task);
 				childTakenTasks.add(task);
-				State childState = new State(task.pickupCity, childFreeTasks, childTakenTasks, childDeliveredTasks);
+				State childState = new State(task.pickupCity, childFreeTasks, childTakenTasks, childDeliveredTasks,
+						this.cost + vehicle.costPerKm() * agentPosition.distanceTo(task.pickupCity), vehicle);
 				returnedChildren.add(childState);
 			}
 		}
@@ -130,7 +187,8 @@ public class State {
 			ArrayList<Task> childDeliveredTasks = (ArrayList<Task>) deliveredTasks.clone();
 			childTakenTasks.remove(task);
 			childDeliveredTasks.add(task);
-			State childState = new State(task.deliveryCity, childFreeTasks, childTakenTasks, childDeliveredTasks);
+			State childState = new State(task.deliveryCity, childFreeTasks, childTakenTasks, childDeliveredTasks,
+					this.cost + vehicle.costPerKm() * agentPosition.distanceTo(task.pickupCity), vehicle);
 			returnedChildren.add(childState);
 		}
 		return returnedChildren;
@@ -176,11 +234,13 @@ public class State {
 		if (getClass() != obj.getClass())
 			return false;
 		State other = (State) obj;
-		/*if (agentPosition == null) {
-			if (other.agentPosition != null)
-				return false;
-		} else if (!agentPosition.equals(other.agentPosition))
-			return false;*/
+
+		// To uncomment if we want agent position in the state
+		/*
+		 * if (agentPosition == null) { if (other.agentPosition != null) return
+		 * false; } else if (!agentPosition.equals(other.agentPosition)) return
+		 * false;
+		 */
 		if (deliveredTasks == null) {
 			if (other.deliveredTasks != null)
 				return false;

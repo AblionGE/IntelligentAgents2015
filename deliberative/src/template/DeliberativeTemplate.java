@@ -4,6 +4,7 @@ package template;
 import logist.simulation.Vehicle;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -77,7 +78,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 		// initial state:
 		initialState = new State(vehicle.getCurrentCity(), pickupLocations, new ArrayList<Task>(),
-				new ArrayList<Task>());
+				new ArrayList<Task>(), 0, vehicle);
 
 		// goal states:
 		Set<City> deliveryCities = new HashSet<City>();
@@ -85,7 +86,8 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			deliveryCities.add(t.deliveryCity);
 		}
 		for (City city : deliveryCities) {
-			goalStates.add(new State(city, new ArrayList<Task>(), new ArrayList<Task>(), deliveryLocations));
+			goalStates
+					.add(new State(city, new ArrayList<Task>(), new ArrayList<Task>(), deliveryLocations, 0, vehicle));
 		}
 
 		switch (algorithm) {
@@ -110,7 +112,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		City current = vehicle.getCurrentCity();
 		Plan plan = new Plan(current);
 
-		LinkedList<State> bestPath = astar(initialState, goalStates, vehicle.capacity());
+		LinkedList<State> bestPath = astar(initialState, goalStates, vehicle);
 		return computePlan(plan, current, bestPath);
 	}
 
@@ -118,7 +120,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		City current = vehicle.getCurrentCity();
 		Plan plan = new Plan(current);
 
-		LinkedList<State> bestPath = bfs(initialState, goalStates, vehicle.capacity());
+		LinkedList<State> bestPath = bfs(initialState, goalStates, vehicle);
 		return computePlan(plan, current, bestPath);
 	}
 
@@ -189,7 +191,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	}
 
 	@SuppressWarnings("unchecked")
-	private LinkedList<State> bfs(State init, ArrayList<State> goals, int vehicleCapacity) {
+	private LinkedList<State> bfs(State init, ArrayList<State> goals, Vehicle vehicle) {
 		// initialize queue for bfs
 		LinkedList<Pair> queue = new LinkedList<Pair>();
 		queue.addLast(new Pair(init, new LinkedList<State>()));
@@ -204,23 +206,18 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			currentPair = queue.pollFirst();
 			currentState = currentPair.getState();
 			currentPath = currentPair.getPath();
-			currentPath.addLast(currentState);
 
 			if (!visitedStates.contains(currentState)) {
 				visitedStates.add(currentState);
-			}
 
-			if (goals.contains(currentState)) {
-				// a goal has been reached
-				return currentPath;
-			} else {
-				children = currentState.computeChildren(vehicleCapacity);
-				// System.out.println(currentState.toString());
-				// System.out.println("=====================================================================");
-				for (State s : children) {
-					// FIXME Too slow because of this line?
-					if (!visitedStates.contains(s)) {
-						visitedStates.add(s);
+				currentPath.addLast(currentState);
+
+				if (goals.contains(currentState)) {
+					// a goal has been reached
+					return currentPath;
+				} else {
+					children = currentState.computeChildren(vehicle);
+					for (State s : children) {
 						queue.addLast(new Pair(s, (LinkedList<State>) currentPath.clone()));
 					}
 				}
@@ -230,9 +227,72 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		return null;
 	}
 
-	private LinkedList<State> astar(State init, ArrayList<State> goals, int vehicleCapacity) {
-		// TODO
+	@SuppressWarnings("unchecked")
+	private LinkedList<State> astar(State init, ArrayList<State> goals, Vehicle vehicle) {
+		// initialize queue for A*
+		LinkedList<Pair> queue = new LinkedList<Pair>();
+		queue.addLast(new Pair(init, new LinkedList<State>()));
+
+		Pair currentPair;
+		State currentState;
+		LinkedList<State> currentPath;
+		ArrayList<State> visitedStates = new ArrayList<State>();
+		Set<State> children;
+		// bfs loop
+		while (!queue.isEmpty()) {
+			currentPair = queue.pollFirst();
+			currentState = currentPair.getState();
+			currentPath = currentPair.getPath();
+
+			// Test if C is already visited or if the cost is lower
+			if (!visitedStates.contains(currentState)
+					|| hasLowerCost(currentState, visitedStates.get(visitedStates.indexOf((currentState))))) {
+				currentPath.addLast(currentState);
+
+				if (goals.contains(currentState)) {
+					// a goal has been reached
+					return currentPath;
+				} else {
+					children = currentState.computeChildren(vehicle);
+					LinkedList<Pair> tempQueue = new LinkedList<Pair>();
+					for (State s : children) {
+						tempQueue.addLast(new Pair(s, (LinkedList<State>) currentPath.clone()));
+					}
+
+					// Sort tempQueue
+					Collections.sort((List<Pair>) tempQueue, new PairComparator());
+
+					// Merge tempQueue into Queue
+					int indexQueue = 0;
+					if (queue.size() > 0) {
+						for (int i = 0; i < tempQueue.size(); i++) {
+							while (indexQueue < queue.size()
+									&& tempQueue.get(i).getState().getF() > queue.get(indexQueue).getState().getF()) {
+								indexQueue++;
+							}
+							queue.add(indexQueue, tempQueue.get(i));
+						}
+					} else {
+						queue = tempQueue;
+					}
+				}
+			}
+		}
+		System.err.println("SHOULD NEVER HAPPEN");
 		return null;
+
+	}
+
+	/**
+	 * Return true if the currentState has a lower cost than the one already
+	 * visited
+	 * 
+	 * @param currentState
+	 * @param visitedState
+	 * @return
+	 */
+	private boolean hasLowerCost(State currentState, State visitedState) {
+		return visitedState.getCost() > currentState.getCost();
 	}
 
 	/**
