@@ -1,8 +1,9 @@
 package template;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import logist.task.Task;
 import logist.topology.Topology.City;
@@ -15,7 +16,6 @@ import logist.topology.Topology.City;
 public class State {
 
 	private City agentPosition;
-	private List<State> children = new ArrayList<State>();
 	// Tasks are represented in a HashMap with the task and the current city
 	private ArrayList<Task> freeTasks = new ArrayList<Task>();
 	private ArrayList<Task> takenTasks = new ArrayList<Task>();
@@ -106,22 +106,19 @@ public class State {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public List<State> computeChildren(ArrayList<State> knownStates, int vehicleCapacity) {
-		if (!children.isEmpty()) {
-			return children;
-		}
-		ArrayList<State> returnedChildren = new ArrayList<State>();
+	public Set<State> computeChildren(int vehicleCapacity) {
+		Set<State> returnedChildren = new HashSet<State>();
 
 		/************* Pickup a Task ***************/
+		int weightInVehicle = computeWeightOfAListOfTasks(takenTasks);
 		for (Task task : freeTasks) {
 			ArrayList<Task> childFreeTasks = (ArrayList<Task>) freeTasks.clone();
 			ArrayList<Task> childTakenTasks = (ArrayList<Task>) takenTasks.clone();
 			ArrayList<Task> childDeliveredTasks = (ArrayList<Task>) deliveredTasks.clone();
-			if (task.weight + computeWeightOfAListOfTasks(childTakenTasks) <= vehicleCapacity) {
+			if (task.weight + weightInVehicle <= vehicleCapacity) {
 				childFreeTasks.remove(task);
 				childTakenTasks.add(task);
 				State childState = new State(task.pickupCity, childFreeTasks, childTakenTasks, childDeliveredTasks);
-				children.add(childState);
 				returnedChildren.add(childState);
 			}
 		}
@@ -134,7 +131,6 @@ public class State {
 			childTakenTasks.remove(task);
 			childDeliveredTasks.add(task);
 			State childState = new State(task.deliveryCity, childFreeTasks, childTakenTasks, childDeliveredTasks);
-			children.add(childState);
 			returnedChildren.add(childState);
 		}
 		return returnedChildren;
@@ -180,11 +176,11 @@ public class State {
 		if (getClass() != obj.getClass())
 			return false;
 		State other = (State) obj;
-		if (agentPosition == null) {
+		/*if (agentPosition == null) {
 			if (other.agentPosition != null)
 				return false;
 		} else if (!agentPosition.equals(other.agentPosition))
-			return false;
+			return false;*/
 		if (deliveredTasks == null) {
 			if (other.deliveredTasks != null)
 				return false;

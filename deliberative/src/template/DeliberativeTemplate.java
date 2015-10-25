@@ -80,7 +80,6 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 				new ArrayList<Task>());
 
 		// goal states:
-
 		Set<City> deliveryCities = new HashSet<City>();
 		for (Task t : deliveryLocations) {
 			deliveryCities.add(t.deliveryCity);
@@ -99,12 +98,6 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			plan = bfsPlan(vehicle, tasks);
 			break;
 		case NAIVE:
-
-			// HashMap<State, Boolean> visitedStates = new HashMap<State,
-			// Boolean>();
-			// List<State> children =
-			// initialState.computeChildren(visitedStates, vehicle.capacity());
-			// System.out.println(initialState.toString());
 			plan = naivePlan(vehicle, tasks);
 			break;
 		default:
@@ -170,6 +163,9 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 		while (!path.isEmpty()) {
 			nextState = path.pollFirst();
+			// move to next city
+			for (City city : current.pathTo(nextState.getAgentPosition()))
+				plan.appendMove(city);
 
 			// pickup tasks
 			List<Task> diffPickup = prevState.taskPickUpDifferences(nextState);
@@ -178,10 +174,6 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 					plan.appendPickup(t);
 				}
 			}
-
-			// move to next city
-			for (City city : current.pathTo(nextState.getAgentPosition()))
-				plan.appendMove(city);
 
 			// deliver tasks
 			List<Task> diffDeliver = prevState.taskDeliverDifferences(nextState);
@@ -206,7 +198,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		State currentState;
 		LinkedList<State> currentPath;
 		ArrayList<State> visitedStates = new ArrayList<State>();
-		List<State> children;
+		Set<State> children;
 		// bfs loop
 		while (!queue.isEmpty()) {
 			currentPair = queue.pollFirst();
@@ -222,9 +214,9 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 				// a goal has been reached
 				return currentPath;
 			} else {
-				children = currentState.computeChildren(visitedStates, vehicleCapacity);
-				//System.out.println(currentState.toString());
-				//System.out.println("=====================================================================");
+				children = currentState.computeChildren(vehicleCapacity);
+				// System.out.println(currentState.toString());
+				// System.out.println("=====================================================================");
 				for (State s : children) {
 					// FIXME Too slow because of this line?
 					if (!visitedStates.contains(s)) {
