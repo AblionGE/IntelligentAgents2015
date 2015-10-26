@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 import logist.simulation.Vehicle;
 import logist.task.Task;
@@ -16,22 +17,24 @@ import logist.topology.Topology.City;
  */
 public class State {
 
+	private final TaskComparator tComparator = new TaskComparator();;
+	
 	private City agentPosition;
-	// Tasks are represented in a HashMap with the task and the current city
-	private ArrayList<Task> freeTasks = new ArrayList<Task>();
-	private ArrayList<Task> takenTasks = new ArrayList<Task>();
-	private ArrayList<Task> deliveredTasks = new ArrayList<Task>();
+	// Tasks are represented in ordered sets
+	private TreeSet<Task> freeTasks = new TreeSet<Task>(tComparator);
+	private TreeSet<Task> takenTasks = new TreeSet<Task>(tComparator);
+	private TreeSet<Task> deliveredTasks = new TreeSet<Task>(tComparator);
 	private double cost = 0;
 	private double reward = 0;
-	private double f = 0;
+	private double f = 0; // FIXME
 
 	public State(City agentPosition, ArrayList<Task> freeTasks, ArrayList<Task> takenTasks,
 			ArrayList<Task> deliveredTasks, double cost, double reward, Vehicle vehicle) {
 		super();
 		this.agentPosition = agentPosition;
-		this.freeTasks = freeTasks;
-		this.takenTasks = takenTasks;
-		this.deliveredTasks = deliveredTasks;
+		this.freeTasks.addAll(freeTasks);
+		this.takenTasks.addAll(takenTasks);
+		this.deliveredTasks.addAll(deliveredTasks);
 		this.cost = cost;
 		this.reward = reward;
 		this.f = computeF(vehicle);
@@ -46,27 +49,30 @@ public class State {
 	}
 
 	protected ArrayList<Task> getFreeTasks() {
-		return freeTasks;
+		return new ArrayList<Task>(freeTasks);
 	}
 
 	protected void setFreeTasks(ArrayList<Task> freeTasks) {
-		this.freeTasks = freeTasks;
+		this.freeTasks.clear();
+		this.freeTasks.addAll(freeTasks);
 	}
 
 	protected ArrayList<Task> getTakenTasks() {
-		return takenTasks;
+		return new ArrayList<Task>(takenTasks);
 	}
 
 	protected void setTakenTasks(ArrayList<Task> takenTasks) {
-		this.takenTasks = takenTasks;
+		this.takenTasks.clear();
+		this.takenTasks.addAll(takenTasks);
 	}
 
 	protected ArrayList<Task> getDeliveredTasks() {
-		return deliveredTasks;
+		return new ArrayList<Task>(deliveredTasks);
 	}
 
 	protected void setDeliveredTasks(ArrayList<Task> deliveredTasks) {
-		this.deliveredTasks = deliveredTasks;
+		this.deliveredTasks.clear();
+		this.deliveredTasks.addAll(deliveredTasks);
 	}
 
 	protected double getCost() {
@@ -128,17 +134,16 @@ public class State {
 	}
 
 	/**
-	 * Returns the tasks that are picked up
+	 * Returns the tasks that are picked up when going from this to nextState
 	 * 
 	 * @param tasks
 	 * @return
 	 */
-	public List<Task> taskPickUpDifferences(State state) {
+	public List<Task> taskPickUpDifferences(State nextState) {
 		List<Task> differences = new ArrayList<Task>();
-		List<Task> currentTasks = this.takenTasks;
-		List<Task> stateTasks = state.getTakenTasks();
-		for (Task t : stateTasks) {
-			if (!currentTasks.contains(t)) {
+		List<Task> nextTasks = nextState.getTakenTasks();
+		for (Task t : nextTasks) {
+			if (!takenTasks.contains(t)) {
 				differences.add(t);
 			}
 		}
@@ -146,17 +151,16 @@ public class State {
 	}
 
 	/**
-	 * Returns the tasks that are delivered
+	 * Returns the tasks that are delivered when going from this to nextState
 	 * 
 	 * @param tasks
 	 * @return
 	 */
-	public List<Task> taskDeliverDifferences(State state) {
+	public List<Task> taskDeliverDifferences(State nextState) {
 		List<Task> differences = new ArrayList<Task>();
-		List<Task> currentTasks = this.deliveredTasks;
-		List<Task> stateTasks = state.getDeliveredTasks();
-		for (Task t : stateTasks) {
-			if (!currentTasks.contains(t)) {
+		List<Task> nextTasks = nextState.getDeliveredTasks();
+		for (Task t : nextTasks) {
+			if (!deliveredTasks.contains(t)) {
 				differences.add(t);
 			}
 		}
@@ -174,13 +178,17 @@ public class State {
 	public Set<State> computeChildren(Vehicle vehicle) {
 		int vehicleCapacity = vehicle.capacity();
 		Set<State> returnedChildren = new HashSet<State>();
+		
+		ArrayList<Task> childFreeTasks;
+		ArrayList<Task> childTakenTasks;
+		ArrayList<Task> childDeliveredTasks;
 
 		/************* Pickup a Task ***************/
 		int weightInVehicle = computeWeightOfAListOfTasks(takenTasks);
 		for (Task task : freeTasks) {
-			ArrayList<Task> childFreeTasks = (ArrayList<Task>) freeTasks.clone();
-			ArrayList<Task> childTakenTasks = (ArrayList<Task>) takenTasks.clone();
-			ArrayList<Task> childDeliveredTasks = (ArrayList<Task>) deliveredTasks.clone();
+			childFreeTasks = new ArrayList<Task>(freeTasks);
+			childTakenTasks = new ArrayList<Task>(takenTasks);
+			childDeliveredTasks = new ArrayList<Task>(deliveredTasks);
 			if (task.weight + weightInVehicle <= vehicleCapacity) {
 				childFreeTasks.remove(task);
 				childTakenTasks.add(task);
@@ -193,9 +201,9 @@ public class State {
 
 		/************ Deliver a Task ***************/
 		for (Task task : takenTasks) {
-			ArrayList<Task> childFreeTasks = (ArrayList<Task>) freeTasks.clone();
-			ArrayList<Task> childTakenTasks = (ArrayList<Task>) takenTasks.clone();
-			ArrayList<Task> childDeliveredTasks = (ArrayList<Task>) deliveredTasks.clone();
+			childFreeTasks = new ArrayList<Task>(freeTasks);
+			childTakenTasks = new ArrayList<Task>(takenTasks);
+			childDeliveredTasks = new ArrayList<Task>(deliveredTasks);
 			childTakenTasks.remove(task);
 			childDeliveredTasks.add(task);
 			State childState = new State(task.deliveryCity, childFreeTasks, childTakenTasks, childDeliveredTasks,
@@ -212,7 +220,7 @@ public class State {
 	 * @param tempTasks
 	 * @return
 	 */
-	private int computeWeightOfAListOfTasks(ArrayList<Task> tempTasks) {
+	private int computeWeightOfAListOfTasks(TreeSet<Task> tempTasks) {
 		int totalWeight = 0;
 		for (Task t : tempTasks) {
 			totalWeight += t.weight;
@@ -247,12 +255,11 @@ public class State {
 			return false;
 		State other = (State) obj;
 
-		// To uncomment if we want agent position in the state
-		/*
-		 * if (agentPosition == null) { if (other.agentPosition != null) return
-		 * false; } else if (!agentPosition.equals(other.agentPosition)) return
-		 * false;
-		 */
+		if (agentPosition == null) { 
+			if (other.agentPosition != null) 
+				return false;
+		} else if (!agentPosition.equals(other.agentPosition))
+			return false;
 		if (deliveredTasks == null) {
 			if (other.deliveredTasks != null)
 				return false;
