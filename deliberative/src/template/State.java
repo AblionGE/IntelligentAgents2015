@@ -34,6 +34,7 @@ public class State {
 		this.deliveredTasks = deliveredTasks;
 		this.cost = cost;
 		this.reward = reward;
+		this.f = computeF(vehicle);
 	}
 
 	protected City getAgentPosition() {
@@ -90,6 +91,40 @@ public class State {
 
 	protected void setF(double f) {
 		this.f = f;
+	}
+
+	/**
+	 * Compute f(n) = g(n) + h(n) where g(n) is the cost from previous actions
+	 * and h(n) is an estimation of the future cost
+	 * 
+	 * @param vehicle
+	 * @return
+	 */
+	private double computeF(Vehicle vehicle) {
+
+		// Total reward
+		double totalReward = 0;
+		for (Task t : deliveredTasks) {
+			totalReward += t.reward;
+		}
+
+		double g = -cost + totalReward;
+
+		// Compute h
+		double costUndelivered = 0;
+		double rewardUndelivered = 0;
+		for (Task t : takenTasks) {
+			costUndelivered += t.pickupCity.distanceTo(t.deliveryCity) * vehicle.costPerKm();
+			rewardUndelivered += t.reward;
+		}
+		for (Task t : freeTasks) {
+			costUndelivered += t.pickupCity.distanceTo(t.deliveryCity) * vehicle.costPerKm();
+			rewardUndelivered += t.reward;
+		}
+
+		double h = -costUndelivered + rewardUndelivered;
+
+		return g + h;
 	}
 
 	/**

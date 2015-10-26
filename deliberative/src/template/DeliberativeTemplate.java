@@ -81,7 +81,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 		// goal states:
 		goalStates = setGoalStates(vehicle, tasks, carriedTasks);
-
+		
 		switch (algorithm) {
 		case ASTAR:
 			// ...
@@ -277,7 +277,6 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 					children = currentState.computeChildren(vehicle);
 					LinkedList<Pair> tempQueue = new LinkedList<Pair>();
 					for (State s : children) {
-						computeF(s, vehicle);
 						tempQueue.addLast(new Pair(s, (LinkedList<State>) currentPath.clone()));
 					}
 
@@ -315,45 +314,6 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	 */
 	private boolean hasLowerCost(State currentState, State visitedState) {
 		return visitedState.getCost() > currentState.getCost();
-	}
-
-	/**
-	 * Compute f(n) = g(n) + h(n) where g(n) is the cost from previous actions
-	 * and h(n) is an estimation of the future cost
-	 * 
-	 * @param vehicle
-	 * @return
-	 */
-	private void computeF(State s, Vehicle vehicle) {
-
-		// Total reward
-		double totalReward = 0;
-		for (Task t : s.getDeliveredTasks()) {
-			totalReward += t.reward;
-		}
-
-		double g = -s.getCost() + totalReward;
-
-		// Compute h
-		double costUndelivered = 0;
-		double rewardUndelivered = 0;
-		City lastCity = s.getAgentPosition();
-		// Naive implementation for delivering all tasks
-		for (Task t : s.getTakenTasks()) {
-			costUndelivered += t.pickupCity.distanceTo(t.deliveryCity) * vehicle.costPerKm();
-			rewardUndelivered += t.reward;
-			lastCity = t.deliveryCity;
-		}
-		for (Task t : s.getFreeTasks()) {
-			costUndelivered += lastCity.distanceTo(t.pickupCity) * vehicle.costPerKm();
-			costUndelivered += t.pickupCity.distanceTo(t.deliveryCity) * vehicle.costPerKm();
-			lastCity = t.deliveryCity;
-			rewardUndelivered += t.reward;
-		}
-
-		double h = -costUndelivered + rewardUndelivered;
-
-		s.setF(g + h);
 	}
 
 	/**
