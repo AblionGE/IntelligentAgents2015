@@ -29,6 +29,30 @@ After implementing that representation, we have chosen a representation where th
 
 # Implementation
 
+## BFS
+The BFS is simply coded as given in the exercise's slides. We can note that the ```visitedStates``` are stored in an ```ArrayList<Task>```.
+
+## A-Star
+
+The A-Star is also coded as given in the exercise's slides. We used a comparator ```PairComparator``` to order ```Pair``` objects (see below) for the children of a state accord to $f(n)$ function. The merge operation with the current queue is done using a *insertion sort*.
+
+The $f(n) = g(n) + h(n)$ function is computed as follows :
+
+* $g(n)$ is the current profit ($reward-cost$)
+* h(n) is a heuristic function that simply computes the reward given by all the tasks that are not yet delivered and the cost to deliver them (we consider that we do not have to move to pickup a task). Thus, we assume that everything goes well. This heuristic is quite good because it will "eliminate" TODO : find a better one ?
+
+## State
+
+A State is represented by an object *State* which contains the agent's position, the three different sets of tasks, the current cost in this state, the current reward and the *f(n)* value for the *A-Star* algorithm.
+
+The children of this state are computed with the ```Set<State> computeChildren(Vehicle vehicle)``` method and this method returns the reachable states (pickup\footnote{It also tests if the vehicle can carry the task.} a task or deliver one).
+
+The $f(n)$ function is computed in ```computeF(Vehicle vehicle)``` method. We also need for creating the plan two functions that allow us to know if a task was picked up of delivered (```taskPickUpDifferences(State state)``` and ```taskDeliverDifferences(State state)```).
+
+## Pair
+
+TODO
+
 # Results
 
 # Conclusion
