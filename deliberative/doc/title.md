@@ -15,7 +15,7 @@ header-includes:
 ---
 
 \title{Intelligent Agents\\
-Assignment 2: Implementing a deliberative Agent}
+Assignment 3: Implementing a deliberative Agent}
 \date{\today}
 \author{Cynthia Oeschger and Marc Schär}
 \maketitle
