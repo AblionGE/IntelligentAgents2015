@@ -26,82 +26,20 @@ public class State {
 	private TreeSet<Task> freeTasks = new TreeSet<Task>(tComparator);
 	private TreeSet<Task> takenTasks = new TreeSet<Task>(tComparator);
 	private TreeSet<Task> deliveredTasks = new TreeSet<Task>(tComparator);
-	private double cost = 0;
 	private double rewardDelivered = 0;
 	private double rewardUndelivered = 0;
 
 	public State(City agentPosition, ArrayList<Task> freeTasks, ArrayList<Task> takenTasks,
-			ArrayList<Task> deliveredTasks, double cost) {// double reward,
-															// Vehicle vehicle)
-															// {
+			ArrayList<Task> deliveredTasks) {
 		super();
 		this.agentPosition = agentPosition;
 		this.freeTasks.addAll(freeTasks);
 		this.takenTasks.addAll(takenTasks);
 		this.deliveredTasks.addAll(deliveredTasks);
-		this.cost = cost;
 		this.rewardDelivered = deliveredTasksReward();
 		this.rewardUndelivered = undeliveredTasksReward();
 	}
 
-	protected City getAgentPosition() {
-		return agentPosition;
-	}
-
-	protected void setAgentPosition(City agentPosition) {
-		this.agentPosition = agentPosition;
-	}
-
-	protected ArrayList<Task> getFreeTasks() {
-		return new ArrayList<Task>(freeTasks);
-	}
-
-	protected void setFreeTasks(ArrayList<Task> freeTasks) {
-		this.freeTasks.clear();
-		this.freeTasks.addAll(freeTasks);
-	}
-
-	protected ArrayList<Task> getTakenTasks() {
-		return new ArrayList<Task>(takenTasks);
-	}
-
-	protected void setTakenTasks(ArrayList<Task> takenTasks) {
-		this.takenTasks.clear();
-		this.takenTasks.addAll(takenTasks);
-	}
-
-	protected ArrayList<Task> getDeliveredTasks() {
-		return new ArrayList<Task>(deliveredTasks);
-	}
-
-	protected void setDeliveredTasks(ArrayList<Task> deliveredTasks) {
-		this.deliveredTasks.clear();
-		this.deliveredTasks.addAll(deliveredTasks);
-	}
-
-	protected double getCost() {
-		return cost;
-	}
-
-	protected void setCost(double cost) {
-		this.cost = cost;
-	}
-
-	protected double getDeliveredReward() {
-		return rewardDelivered;
-	}
-
-	protected void setDeliveredReward(double reward) {
-		this.rewardDelivered = reward;
-	}
-
-	protected double getUndeliveredReward() {
-		return rewardUndelivered;
-	}
-
-	protected void setUndeliveredReward(double reward) {
-		this.rewardUndelivered = reward;
-	}
 
 	/**
 	 * Computes the reward received for the delivered tasks
@@ -132,6 +70,20 @@ public class State {
 		return totalReward;
 	}
 
+	/**
+	 * Compute the total weight of a list of freeTasks
+	 * 
+	 * @param tempTasks
+	 * @return
+	 */
+	private int computeWeightOfAListOfTasks(TreeSet<Task> tempTasks) {
+		int totalWeight = 0;
+		for (Task t : tempTasks) {
+			totalWeight += t.weight;
+		}
+		return totalWeight;
+	}
+	
 	/**
 	 * Returns the tasks that are picked up when going from this to nextState
 	 * 
@@ -190,10 +142,7 @@ public class State {
 			if (task.weight + weightInVehicle <= vehicleCapacity) {
 				childFreeTasks.remove(task);
 				childTakenTasks.add(task);
-				State childState = new State(task.pickupCity, childFreeTasks, childTakenTasks, childDeliveredTasks,
-						this.cost + vehicle.costPerKm() * agentPosition.distanceTo(task.pickupCity));// ,
-																										// this.reward,
-				// vehicle);
+				State childState = new State(task.pickupCity, childFreeTasks, childTakenTasks, childDeliveredTasks);
 				returnedChildren.add(childState);
 			}
 		}
@@ -205,26 +154,10 @@ public class State {
 			childDeliveredTasks = new ArrayList<Task>(deliveredTasks);
 			childTakenTasks.remove(task);
 			childDeliveredTasks.add(task);
-			State childState = new State(task.deliveryCity, childFreeTasks, childTakenTasks, childDeliveredTasks,
-					this.cost + vehicle.costPerKm() * agentPosition.distanceTo(task.pickupCity));
-			// this.reward + task.reward, vehicle);
+			State childState = new State(task.deliveryCity, childFreeTasks, childTakenTasks, childDeliveredTasks);
 			returnedChildren.add(childState);
 		}
 		return returnedChildren;
-	}
-
-	/**
-	 * Compute the total weight of a list of freeTasks
-	 * 
-	 * @param tempTasks
-	 * @return
-	 */
-	private int computeWeightOfAListOfTasks(TreeSet<Task> tempTasks) {
-		int totalWeight = 0;
-		for (Task t : tempTasks) {
-			totalWeight += t.weight;
-		}
-		return totalWeight;
 	}
 
 	@Override
@@ -276,5 +209,32 @@ public class State {
 			return false;
 		return true;
 	}
+
+	protected City getAgentPosition() {
+		return agentPosition;
+	}
+
+	protected ArrayList<Task> getFreeTasks() {
+		return new ArrayList<Task>(freeTasks);
+	}
+
+	protected ArrayList<Task> getTakenTasks() {
+		return new ArrayList<Task>(takenTasks);
+	}
+
+	protected ArrayList<Task> getDeliveredTasks() {
+		return new ArrayList<Task>(deliveredTasks);
+	}
+
+
+	protected double getDeliveredReward() {
+		return rewardDelivered;
+	}
+
+
+	protected double getUndeliveredReward() {
+		return rewardUndelivered;
+	}
+
 
 }

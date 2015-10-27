@@ -109,9 +109,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		ArrayList<Task> takenTasks = new ArrayList<Task>();
 		takenTasks.addAll(vehicle.getCurrentTasks());
 
-		return new State(vehicle.getCurrentCity(), availableTasks, takenTasks, new ArrayList<Task>(), 0); // ,
-																											// 0,
-																											// vehicle);
+		return new State(vehicle.getCurrentCity(), availableTasks, takenTasks, new ArrayList<Task>()); //, 0);
 	}
 
 	private ArrayList<State> setGoalStates(Vehicle vehicle, TaskSet tasks) {
@@ -130,9 +128,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 		// goals
 		for (City city : deliveryCities) {
-			goals.add(new State(city, new ArrayList<Task>(), new ArrayList<Task>(), deliveryTasks, 0)); // ,
-																										// 0,
-																										// vehicle));
+			goals.add(new State(city, new ArrayList<Task>(), new ArrayList<Task>(), deliveryTasks)); //, 0));
 		}
 		return goals;
 	}
@@ -220,39 +216,40 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		return plan;
 	}
 
-	@SuppressWarnings("unchecked")
+	
 	private LinkedList<State> bfs(State init, ArrayList<State> goals, Vehicle vehicle) {
 		// initialize queue for bfs
-		LinkedList<Pair> queue = new LinkedList<Pair>();
-		queue.addLast(new Pair(init, new LinkedList<State>()));
+		LinkedList<Path> queue = new LinkedList<Path>();
+		queue.addLast(new Path(init, new LinkedList<State>(), false));
 
-		Pair currentPair;
+		Path currentPath;
 		State currentState;
-		LinkedList<State> currentPath;
+		LinkedList<State> previousPath;
 		ArrayList<State> visitedStates = new ArrayList<State>();
 		List<State> children;
 		// bfs loop
 		while (!queue.isEmpty()) {
-			currentPair = queue.pollFirst();
-			currentState = currentPair.getState();
-			currentPath = currentPair.getPath();
+			currentPath = queue.pollFirst();
+			currentState = currentPath.getState();
+			previousPath = currentPath.getPath();
 			sComparator.setState(currentState);
 
 			if (!visitedStates.contains(currentState)) {
 				// update the paths
 				visitedStates.add(currentState);
-				currentPath.addLast(currentState);
 
 				// stop if a goal has been reached
 				if (goals.contains(currentState)) {
-					return currentPath;
+					System.out.println("Visited States nb in BFS: " + visitedStates.size() + ", remaining in the queue: " + queue.size());
+					previousPath.addLast(currentState);
+					return previousPath;
 				} else {
 					// add successors in the queue sorted by their distance to
 					// the current state
 					children = new ArrayList<State>(currentState.computeChildren(vehicle));
 					Collections.sort(children, sComparator);
 					for (State s : children) {
-						queue.addLast(new Pair(s, (LinkedList<State>) currentPath.clone()));
+						queue.addLast(new Path(s, currentPath, false));
 					}
 				}
 			}
@@ -261,53 +258,63 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
+	
 	private LinkedList<State> astar(State init, ArrayList<State> goals, Vehicle vehicle) {
 		int costPerKm = vehicle.costPerKm();
 
 		// initialize queue for A*
-		LinkedList<Pair> queue = new LinkedList<Pair>();
-		queue.addLast(new Pair(init, new LinkedList<State>()));
+		LinkedList<Path> queue = new LinkedList<Path>();
+		queue.addLast(new Path(init, new LinkedList<State>(), true));
 
-		Pair currentPair;
+		Path currentPath;
 		State currentState;
-		LinkedList<State> currentPath;
-		ArrayList<State> visitedStates = new ArrayList<State>();
+		LinkedList<State> previousPath;
+		HashMap<State, Double> visitedStates = new HashMap<State,Double>(); // state with its best travel cost
 		Set<State> children;
+		double travelCost;
+		int nbSteps = 0;
 		// bfs loop
 		while (!queue.isEmpty()) {
-			currentPair = queue.pollFirst();
-			currentState = currentPair.getState();
-			currentPath = currentPair.getPath();
+			currentPath = queue.pollFirst();
+			currentState = currentPath.getState();
+			previousPath = currentPath.getPath();
+			
+			// update travelling cost
+			if(!previousPath.isEmpty()) {
+				travelCost = distanceBetween(currentState, previousPath.peekLast()) * costPerKm;
+			} else {
+				travelCost = 0.0;
+			}
 
-			// Test if C is already visited or if the cost is lower
-			if (!visitedStates.contains(currentState)
-					|| hasLowerCost(currentState, visitedStates.get(visitedStates.indexOf((currentState))))) {
+			// Test if state is already visited or if the cost is lower
+			if (!visitedStates.containsKey(currentState) || travelCost < visitedStates.get(currentState)) {
 				// update the paths
-				visitedStates.add(currentState);
-				currentPath.addLast(currentState);
+				visitedStates.put(currentState, travelCost);
+				nbSteps++;
 
 				// stop if a goal has been reached
 				if (goals.contains(currentState)) {
-					return currentPath;
+					System.out.println("Visited States nb in A*: " + nbSteps + ", remaining in the queue: " + queue.size());
+					previousPath.addLast(currentState);
+					return previousPath;
 				} else {
 					// get successors
 					children = currentState.computeChildren(vehicle);
-					LinkedList<Pair> tempQueue = new LinkedList<Pair>();
+					LinkedList<Path> tempQueue = new LinkedList<Path>();
 					for (State s : children) {
-						tempQueue.addLast(new Pair(s, (LinkedList<State>) currentPath.clone()));
+						tempQueue.addLast(new Path(s, currentPath, true));
 					}
 
 					// Sort successors given their cost function
 					pComparator.setVehicle(vehicle);
-					Collections.sort((List<Pair>) tempQueue, pComparator);
+					Collections.sort((List<Path>) tempQueue, pComparator);
 
 					// Merge the successors into the queue
 					int indexQueue = 0;
 					if (queue.size() > 0) {
 						for (int i = 0; i < tempQueue.size(); i++) {
-							while (indexQueue < queue.size() && tempQueue.get(i).computeF(costPerKm) < queue
-									.get(indexQueue).computeF(costPerKm)) {
+							while (indexQueue < queue.size() && tempQueue.get(i).totalReward(costPerKm) < queue
+									.get(indexQueue).totalReward(costPerKm)) {
 								indexQueue++;
 							}
 							queue.add(indexQueue, tempQueue.get(i));
@@ -323,17 +330,9 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 	}
 
-	/**
-	 * Return true if the currentState has a lower cost than the one already
-	 * visited
-	 * 
-	 * @param currentState
-	 * @param visitedState
-	 * @return
-	 */
-	private boolean hasLowerCost(State currentState, State visitedState) {
 
-		return visitedState.getCost() > currentState.getCost();
+	private double distanceBetween(State s1, State s2) {
+		return s1.getAgentPosition().distanceTo(s2.getAgentPosition());
 	}
 
 	/**

@@ -10,7 +10,7 @@ import logist.simulation.Vehicle;
  * @author Marc Schaer and Cynthia Oeschger
  *
  */
-class PairComparator implements Comparator<Pair> {
+class PairComparator implements Comparator<Path> {
 
 	private int costPerKm;
 
@@ -20,9 +20,9 @@ class PairComparator implements Comparator<Pair> {
 	}
 
 	@Override
-	public int compare(Pair o1, Pair o2) {
-		Double c1 = o1.computeF(costPerKm);
-		Double c2 = o2.computeF(costPerKm);
+	public int compare(Path o1, Path o2) {
+		Double c1 = o1.totalReward(costPerKm);
+		Double c2 = o2.totalReward(costPerKm);
 
 		return -(c1.compareTo(c2));
 	}
