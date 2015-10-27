@@ -49,7 +49,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 	/* comparators */
 	final StateDistanceComparator sComparator = new StateDistanceComparator();
-	final PairComparator pComparator = new PairComparator();
+	final PathComparator pComparator = new PathComparator();
 
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {

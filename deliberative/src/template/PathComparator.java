@@ -10,11 +10,11 @@ import logist.simulation.Vehicle;
  * @author Marc Schaer and Cynthia Oeschger
  *
  */
-class PairComparator implements Comparator<Path> {
+class PathComparator implements Comparator<Path> {
 
 	private int costPerKm;
 
-	public PairComparator() {
+	public PathComparator() {
 		super();
 		costPerKm = -1;
 	}
