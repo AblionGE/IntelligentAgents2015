@@ -98,6 +98,13 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		return plan;
 	}
 
+	/**
+	 * Create initial state
+	 * 
+	 * @param vehicle
+	 * @param tasks
+	 * @return
+	 */
 	private State setInitialState(Vehicle vehicle, TaskSet tasks) {
 		ArrayList<Task> availableTasks = new ArrayList<Task>();
 		for (Task t : tasks) {
@@ -109,9 +116,16 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		ArrayList<Task> takenTasks = new ArrayList<Task>();
 		takenTasks.addAll(vehicle.getCurrentTasks());
 
-		return new State(vehicle.getCurrentCity(), availableTasks, takenTasks, new ArrayList<Task>()); //, 0);
+		return new State(vehicle.getCurrentCity(), availableTasks, takenTasks, new ArrayList<Task>());
 	}
 
+	/**
+	 * Create list of goal states
+	 * 
+	 * @param vehicle
+	 * @param tasks
+	 * @return
+	 */
 	private ArrayList<State> setGoalStates(Vehicle vehicle, TaskSet tasks) {
 		ArrayList<State> goals = new ArrayList<State>();
 		ArrayList<Task> deliveryTasks = new ArrayList<Task>();
@@ -128,11 +142,18 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 		// goals
 		for (City city : deliveryCities) {
-			goals.add(new State(city, new ArrayList<Task>(), new ArrayList<Task>(), deliveryTasks)); //, 0));
+			goals.add(new State(city, new ArrayList<Task>(), new ArrayList<Task>(), deliveryTasks));
 		}
 		return goals;
 	}
 
+	/**
+	 * Compute a Logist Plan with A* procedure
+	 * 
+	 * @param vehicle
+	 * @param tasks
+	 * @return
+	 */
 	private Plan aStarPlan(Vehicle vehicle, TaskSet tasks) {
 		City current = vehicle.getCurrentCity();
 		Plan plan = new Plan(current);
@@ -141,6 +162,13 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		return computePlan(plan, current, bestPath);
 	}
 
+	/**
+	 * Compute a Logist Plan with BFS
+	 * 
+	 * @param vehicle
+	 * @param tasks
+	 * @return
+	 */
 	private Plan bfsPlan(Vehicle vehicle, TaskSet tasks) {
 		City current = vehicle.getCurrentCity();
 		Plan plan = new Plan(current);
@@ -149,6 +177,13 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		return computePlan(plan, current, bestPath);
 	}
 
+	/**
+	 * Compute a naive Logist Plan
+	 * 
+	 * @param vehicle
+	 * @param tasks
+	 * @return
+	 */
 	private Plan naivePlan(Vehicle vehicle, TaskSet tasks) {
 		City current = vehicle.getCurrentCity();
 		Plan plan = new Plan(current);
@@ -185,6 +220,14 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		}
 	}
 
+	/**
+	 * Computes a Logist Plan given a sequence of states
+	 * 
+	 * @param plan 
+	 * @param current starting city
+	 * @param path list of states forming the path
+	 * @return
+	 */
 	private Plan computePlan(Plan plan, City current, LinkedList<State> path) {
 		State prevState = path.pollFirst();
 		State nextState;
@@ -216,7 +259,14 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		return plan;
 	}
 
-	
+	/**
+	 * BFS procedure
+	 * 
+	 * @param init initial state
+	 * @param goals list of goal states
+	 * @param vehicle
+	 * @return
+	 */
 	private LinkedList<State> bfs(State init, ArrayList<State> goals, Vehicle vehicle) {
 		// initialize queue for bfs
 		LinkedList<Path> queue = new LinkedList<Path>();
@@ -259,6 +309,14 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	}
 
 	
+	/**
+	 * A* procedure
+	 * 
+	 * @param init initial state
+	 * @param goals list of goal states
+	 * @param vehicle
+	 * @return
+	 */
 	private LinkedList<State> astar(State init, ArrayList<State> goals, Vehicle vehicle) {
 		int costPerKm = vehicle.costPerKm();
 
@@ -330,7 +388,12 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 	}
 
-
+	/**
+	 * Distance between the agent's position between two states
+	 * @param s1
+	 * @param s2
+	 * @return
+	 */
 	private double distanceBetween(State s1, State s2) {
 		return s1.getAgentPosition().distanceTo(s2.getAgentPosition());
 	}

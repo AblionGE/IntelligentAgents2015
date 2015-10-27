@@ -40,6 +40,9 @@ public class Path {
 		}
 	}
 
+	/**
+	 * Initialization of the path costs
+	 */
 	private void initCosts() {
 		deliveredReward = lastState.getDeliveredReward();
 		undeliveredReward = lastState.getUndeliveredReward();
@@ -70,7 +73,14 @@ public class Path {
 		return dist;
 	}
 
+	/**
+	 * Estimates the distance that will be traveled
+	 * It is the heuristic function for A*
+	 * 
+	 * @return
+	 */
 	private double estimateFutureDistance() {
+		// TODO peut-être trier les tasks pour estimer un chemin plus intelligent
 		double estimate = 0;
 		City lastCity = lastState.getAgentPosition();
 		
@@ -98,6 +108,12 @@ public class Path {
 		return estimate;
 	}
 
+	/**
+	 * Distance between the agent's position between two states
+	 * @param s1
+	 * @param s2
+	 * @return
+	 */
 	private double distanceBetween(State s1, State s2) {
 		return s1.getAgentPosition().distanceTo(s2.getAgentPosition());
 	}
