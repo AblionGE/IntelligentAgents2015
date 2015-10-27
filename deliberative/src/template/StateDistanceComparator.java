@@ -10,6 +10,7 @@ public class StateDistanceComparator implements Comparator<State> {
 	private City city;
 	
 	public StateDistanceComparator() {
+		super();
 		city = null;
 	}
 	

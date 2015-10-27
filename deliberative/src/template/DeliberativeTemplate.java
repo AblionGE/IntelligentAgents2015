@@ -49,6 +49,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 	/* other */
 	final StateDistanceComparator sComparator = new StateDistanceComparator();
+	final PairComparator pComparator = new PairComparator();
 
 	@Override
 	public void setup(Topology topology, TaskDistribution td, Agent agent) {
@@ -108,7 +109,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		ArrayList<Task> takenTasks = new ArrayList<Task>();
 		takenTasks.addAll(vehicle.getCurrentTasks());
 
-		return new State(vehicle.getCurrentCity(), availableTasks, takenTasks, new ArrayList<Task>(), 0, 0, vehicle);
+		return new State(vehicle.getCurrentCity(), availableTasks, takenTasks, new ArrayList<Task>()); //, 0, 0, vehicle);
 	}
 
 	private ArrayList<State> setGoalStates(Vehicle vehicle, TaskSet tasks) {
@@ -127,7 +128,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 		// goals
 		for (City city : deliveryCities) {
-			goals.add(new State(city, new ArrayList<Task>(), new ArrayList<Task>(), deliveryTasks, 0, 0, vehicle));
+			goals.add(new State(city, new ArrayList<Task>(), new ArrayList<Task>(), deliveryTasks)); //, 0, 0, vehicle));
 		}
 		return goals;
 	}
@@ -243,7 +244,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 					// a goal has been reached
 					return currentPath;
 				} else {
-					// add successors of currentState in the queue sorted by their distance to the current state
+					// add successors in the queue sorted by their distance to the current state
 					children = new ArrayList<State>(currentState.computeChildren(vehicle));
 					Collections.sort(children,sComparator);
 					for (State s : children) {
@@ -252,12 +253,14 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 				}
 			}
 		}
-		System.err.println("Error in BFS");
+		System.err.println("Error: no goal in BFS");
 		return null;
 	}
 
 	@SuppressWarnings("unchecked")
 	private LinkedList<State> astar(State init, ArrayList<State> goals, Vehicle vehicle) {
+		int costPerKm = vehicle.costPerKm();
+		
 		// initialize queue for A*
 		LinkedList<Pair> queue = new LinkedList<Pair>();
 		queue.addLast(new Pair(init, new LinkedList<State>()));
@@ -274,8 +277,9 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			currentPath = currentPair.getPath();
 
 			// Test if C is already visited or if the cost is lower
-			if (!visitedStates.contains(currentState)
-					|| hasLowerCost(currentState, visitedStates.get(visitedStates.indexOf((currentState))))) {
+			if (!visitedStates.contains(currentState)) {
+					//|| hasLowerCost(currentState, visitedStates.get(visitedStates.indexOf((currentState))))) { // FIXME ça compare le même état non?
+				visitedStates.add(currentState);
 				currentPath.addLast(currentState);
 
 				if (goals.contains(currentState)) {
@@ -289,14 +293,15 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 					}
 
 					// Sort tempQueue
-					Collections.sort((List<Pair>) tempQueue, new PairComparator());
+					pComparator.setVehicle(vehicle);
+					Collections.sort((List<Pair>) tempQueue, pComparator);
 
 					// Merge tempQueue into Queue
 					int indexQueue = 0;
 					if (queue.size() > 0) {
 						for (int i = 0; i < tempQueue.size(); i++) {
 							while (indexQueue < queue.size()
-									&& tempQueue.get(i).getState().getF() > queue.get(indexQueue).getState().getF()) {
+									&& tempQueue.get(i).computeF(costPerKm) > queue.get(indexQueue).computeF(costPerKm)) {
 								indexQueue++;
 							}
 							queue.add(indexQueue, tempQueue.get(i));
@@ -307,7 +312,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 				}
 			}
 		}
-		System.err.println("Error in A*");
+		System.err.println("Error: no goal in A*");
 		return null;
 
 	}
@@ -320,8 +325,8 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	 * @param visitedState
 	 * @return
 	 */
-	private boolean hasLowerCost(State currentState, State visitedState) {
-		return visitedState.getCost() > currentState.getCost();
+	private boolean hasLowerCost(State currentState, State visitedState) { // j'ai commenté pour que ça compile
+		return false; //visitedState.getCost() > currentState.getCost();
 	}
 
 	/**
