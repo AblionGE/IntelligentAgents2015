@@ -13,6 +13,8 @@ import logist.topology.Topology.City;
 /**
  * A state is composed by the position of an agent and the state of the world
  * (all freeTasks with their respective positions)
+ * 
+ * @author Marc Schaer and Cynthia Oeschger
  *
  */
 public class State {

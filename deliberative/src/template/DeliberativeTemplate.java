@@ -47,7 +47,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	/* the planning class */
 	Algorithm algorithm;
 
-	/* other */
+	/* comparators */
 	final StateDistanceComparator sComparator = new StateDistanceComparator();
 	final PairComparator pComparator = new PairComparator();
 
@@ -133,6 +133,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		return goals;
 	}
 
+	
 	private Plan aStarPlan(Vehicle vehicle, TaskSet tasks) {
 		City current = vehicle.getCurrentCity();
 		Plan plan = new Plan(current);
@@ -141,15 +142,16 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		return computePlan(plan, current, bestPath);
 	}
 
+	
 	private Plan bfsPlan(Vehicle vehicle, TaskSet tasks) {
 		City current = vehicle.getCurrentCity();
 		Plan plan = new Plan(current);
 
 		LinkedList<State> bestPath = bfs(initialState, goalStates, vehicle);
-		System.out.println("best path size: " + bestPath.size());
 		return computePlan(plan, current, bestPath);
 	}
 
+	
 	private Plan naivePlan(Vehicle vehicle, TaskSet tasks) {
 		City current = vehicle.getCurrentCity();
 		Plan plan = new Plan(current);
@@ -237,11 +239,12 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			sComparator.setState(currentState);
 
 			if (!visitedStates.contains(currentState)) {
+				// update the paths
 				visitedStates.add(currentState);
 				currentPath.addLast(currentState);
 
+				// stop if a goal has been reached
 				if (goals.contains(currentState)) {
-					// a goal has been reached
 					return currentPath;
 				} else {
 					// add successors in the queue sorted by their distance to the current state
@@ -279,24 +282,26 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			// Test if C is already visited or if the cost is lower
 			if (!visitedStates.contains(currentState)) {
 					//|| hasLowerCost(currentState, visitedStates.get(visitedStates.indexOf((currentState))))) { // FIXME ça compare le même état non?
+				// update the paths
 				visitedStates.add(currentState);
 				currentPath.addLast(currentState);
 
+				// stop if a goal has been reached
 				if (goals.contains(currentState)) {
-					// a goal has been reached
 					return currentPath;
 				} else {
+					// get successors
 					children = currentState.computeChildren(vehicle);
 					LinkedList<Pair> tempQueue = new LinkedList<Pair>();
 					for (State s : children) {
 						tempQueue.addLast(new Pair(s, (LinkedList<State>) currentPath.clone()));
 					}
 
-					// Sort tempQueue
+					// Sort successors given their cost function
 					pComparator.setVehicle(vehicle);
 					Collections.sort((List<Pair>) tempQueue, pComparator);
 
-					// Merge tempQueue into Queue
+					// Merge the successors into the queue
 					int indexQueue = 0;
 					if (queue.size() > 0) {
 						for (int i = 0; i < tempQueue.size(); i++) {

@@ -5,6 +5,12 @@ import java.util.LinkedList;
 import logist.task.Task;
 import logist.topology.Topology.City;
 
+/**
+ * Class that holds a state and the path traveled before arriving at it
+ * 
+ * @author Marc Schaer and Cynthia Oeschger
+ *
+ */
 public class Pair {
 
 	private final State state;

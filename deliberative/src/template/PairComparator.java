@@ -4,6 +4,12 @@ import java.util.Comparator;
 
 import logist.simulation.Vehicle;
 
+/**
+ * Compares the cost function for A* algorithm between two pairs
+ * 
+ * @author Marc Schaer and Cynthia Oeschger
+ *
+ */
 class PairComparator implements Comparator<Pair> {
 	
 	private int costPerKm;
