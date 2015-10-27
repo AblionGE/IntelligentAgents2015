@@ -40,12 +40,12 @@ public class Pair {
 
 	@Override
 	public boolean equals(Object o) {
-		if (!(o instanceof Pair)) return false;
+		if (!(o instanceof Pair))
+			return false;
 		Pair pairo = (Pair) o;
-		return this.state.equals(pairo.getState()) &&
-				this.path.equals(pairo.getPath());
+		return this.state.equals(pairo.getState()) && this.path.equals(pairo.getPath());
 	}
-	
+
 	/**
 	 * Compute f(n) = g(n) + h(n) where g(n) is the cost from previous actions
 	 * and h(n) is an estimation of the future cost
@@ -53,42 +53,46 @@ public class Pair {
 	 * @param vehicle
 	 * @return
 	 */
-	public double computeF(int costPerKm) { // FIXME check h
-		
+	public double computeF(int costPerKm) {
+
 		// Total reward
-		double g = -distance*costPerKm + reward;
+		double g = -distance * costPerKm + reward;
 
 		// Compute h
 		double costUndelivered = 0;
 		double rewardUndelivered = state.getUndeliveredReward();
+		City lastCity = state.getAgentPosition();
 		for (Task t : state.getTakenTasks()) {
-			costUndelivered += t.pickupCity.distanceTo(t.deliveryCity) * costPerKm;
+			costUndelivered += lastCity.distanceTo(t.deliveryCity) * costPerKm;
+			lastCity = t.deliveryCity;
 		}
 		for (Task t : state.getFreeTasks()) {
 			costUndelivered += t.pickupCity.distanceTo(t.deliveryCity) * costPerKm;
+			costUndelivered += lastCity.distanceTo(t.pickupCity) * costPerKm;
 		}
 
 		double h = -costUndelivered + rewardUndelivered;
 
 		return g + h;
 	}
-	
+
 	/**
 	 * Computes the distance traveled in path
+	 * 
 	 * @return distance
 	 */
 	private double pathDistance() {
 		double dist = 0.0;
 		LinkedList<City> cityPath = new LinkedList<City>();
-		
-		for(State s: path) {
+
+		for (State s : path) {
 			cityPath.addLast(s.getAgentPosition());
 		}
 		cityPath.addLast(state.getAgentPosition());
-		
+
 		City start = cityPath.pollFirst();
 		City next;
-		while(!cityPath.isEmpty()) {
+		while (!cityPath.isEmpty()) {
 			next = cityPath.pollFirst();
 			dist += start.distanceTo(next);
 			start = next;

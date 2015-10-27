@@ -20,24 +20,26 @@ import logist.topology.Topology.City;
 public class State {
 
 	private static final TaskComparator tComparator = new TaskComparator();;
-	
+
 	private City agentPosition;
 	// Tasks are represented in ordered sets
 	private TreeSet<Task> freeTasks = new TreeSet<Task>(tComparator);
 	private TreeSet<Task> takenTasks = new TreeSet<Task>(tComparator);
 	private TreeSet<Task> deliveredTasks = new TreeSet<Task>(tComparator);
-	//private double cost = 0;
+	private double cost = 0;
 	private double rewardDelivered = 0;
 	private double rewardUndelivered = 0;
 
 	public State(City agentPosition, ArrayList<Task> freeTasks, ArrayList<Task> takenTasks,
-			ArrayList<Task> deliveredTasks) { //, double cost, double reward, Vehicle vehicle) {
+			ArrayList<Task> deliveredTasks, double cost) {// double reward,
+															// Vehicle vehicle)
+															// {
 		super();
 		this.agentPosition = agentPosition;
 		this.freeTasks.addAll(freeTasks);
 		this.takenTasks.addAll(takenTasks);
 		this.deliveredTasks.addAll(deliveredTasks);
-		//this.cost = cost;
+		this.cost = cost;
 		this.rewardDelivered = deliveredTasksReward();
 		this.rewardUndelivered = undeliveredTasksReward();
 	}
@@ -77,13 +79,13 @@ public class State {
 		this.deliveredTasks.addAll(deliveredTasks);
 	}
 
-	/*protected double getCost() {
+	protected double getCost() {
 		return cost;
 	}
 
 	protected void setCost(double cost) {
 		this.cost = cost;
-	}*/
+	}
 
 	protected double getDeliveredReward() {
 		return rewardDelivered;
@@ -92,7 +94,7 @@ public class State {
 	protected void setDeliveredReward(double reward) {
 		this.rewardDelivered = reward;
 	}
-	
+
 	protected double getUndeliveredReward() {
 		return rewardUndelivered;
 	}
@@ -101,7 +103,6 @@ public class State {
 		this.rewardUndelivered = reward;
 	}
 
-	
 	/**
 	 * Computes the reward received for the delivered tasks
 	 * 
@@ -114,7 +115,7 @@ public class State {
 		}
 		return totalReward;
 	}
-	
+
 	/**
 	 * Computes the reward that can be received for all not delivered tasks
 	 * 
@@ -172,11 +173,10 @@ public class State {
 	 * @param vehicleCapacity
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
 	public Set<State> computeChildren(Vehicle vehicle) {
 		int vehicleCapacity = vehicle.capacity();
 		Set<State> returnedChildren = new HashSet<State>();
-		
+
 		ArrayList<Task> childFreeTasks;
 		ArrayList<Task> childTakenTasks;
 		ArrayList<Task> childDeliveredTasks;
@@ -190,9 +190,10 @@ public class State {
 			if (task.weight + weightInVehicle <= vehicleCapacity) {
 				childFreeTasks.remove(task);
 				childTakenTasks.add(task);
-				State childState = new State(task.pickupCity, childFreeTasks, childTakenTasks, childDeliveredTasks);
-						//this.cost + vehicle.costPerKm() * agentPosition.distanceTo(task.pickupCity), this.reward,
-						//vehicle);
+				State childState = new State(task.pickupCity, childFreeTasks, childTakenTasks, childDeliveredTasks,
+						this.cost + vehicle.costPerKm() * agentPosition.distanceTo(task.pickupCity));// ,
+																										// this.reward,
+				// vehicle);
 				returnedChildren.add(childState);
 			}
 		}
@@ -204,9 +205,9 @@ public class State {
 			childDeliveredTasks = new ArrayList<Task>(deliveredTasks);
 			childTakenTasks.remove(task);
 			childDeliveredTasks.add(task);
-			State childState = new State(task.deliveryCity, childFreeTasks, childTakenTasks, childDeliveredTasks);
-					//this.cost + vehicle.costPerKm() * agentPosition.distanceTo(task.pickupCity),
-					//this.reward + task.reward, vehicle);
+			State childState = new State(task.deliveryCity, childFreeTasks, childTakenTasks, childDeliveredTasks,
+					this.cost + vehicle.costPerKm() * agentPosition.distanceTo(task.pickupCity));
+			// this.reward + task.reward, vehicle);
 			returnedChildren.add(childState);
 		}
 		return returnedChildren;
@@ -253,8 +254,8 @@ public class State {
 			return false;
 		State other = (State) obj;
 
-		if (agentPosition == null) { 
-			if (other.agentPosition != null) 
+		if (agentPosition == null) {
+			if (other.agentPosition != null)
 				return false;
 		} else if (!agentPosition.equals(other.agentPosition))
 			return false;
