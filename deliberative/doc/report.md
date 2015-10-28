@@ -18,15 +18,13 @@ The goal states are all the states where the *deliveredTasks* set is full of tas
 $$S_g = \{ (position,\emptyset, \emptyset, deliveredTasks\}$$
 
 ## Transitions
-The transition are simply defined by two actions :
+The transitions are simply defined by two actions :
 
 * Move to pickup a task (move to a city and pickup a task in this city)
 * Deliver a task (move to a city and deliver a task in this city)
 
 ## Old representations
-Before having this representation, we had chosen to represent a state by a tuple $(agentPosition, \{(task, currentCityOfTask)\}$. This representation was more precise than our final one, but it led to a huge tree that takes a lot of time to be computed\footnote{The code to compute states was also more complicated because we had to compute every combinations of tasks position.i}.
-
-After implementing that representation, we have chosen a representation where the state is composed exactly like our final one plus the agent position. We still had performance problems because of the number of created states\footnote{In our code, it is simple to come back to this representation. Indeed, we simply need to add the comparison between agent positions in the \textit{equals()} method of the state (the agent position is saved in the state even if it is not used).}.
+Before having this representation, we had chosen to represent a state by a tuple $(agentPosition, \{(task, currentCityOfTask)\}$. This representation was more precise than our final one, but it led to a huge tree that takes a lot of time to be computed\footnote{The code to compute states was also more complicated because we had to compute every combinations of tasks position.}.
 
 # Implementation
 
@@ -44,20 +42,22 @@ The heuristic function for the *A-star* algorithm is computed in ```totalReward(
 
 ## BFS
 
-The BFS is simply coded as given in the exercise's slides. We can note that the ```visitedStates``` are stored in an ```ArrayList<State>``` and that we store the whole state path to a given node in it. We choosed to sort the successors depending on their distance with their parent to speed up the computations. This operation is done using a ```StateDistanceComparator```.
+The BFS is simply coded as given in the exercise's slides. We can note that the ```visitedStates``` are stored in an ```ArrayList<State>``` and that we store the whole state path to a given node in it. We chose to sort the successors depending on their distance with their parent to speed up the computations. This operation is done using a ```StateDistanceComparator```. It also gives a better solution because the tree is built in a more optimal way than randomly.
+
+We also can note that, as we have only two actions (*pickup* and *deliver*), all branches will have the same depth, so a *DFS* algorithm should be better than a *BFS*.
 
 ## A-Star
 
-The A-Star is also coded as given in the exercise's slides. We used a comparator ```PathComparator``` to order ```Path``` objects to sort the sucessors according to the following heuristic function $f(n)$. The merge operation with the current queue is done using an *insertion sort*.
+The A-Star is also coded as given in the exercise's slides. We used a comparator ```PathComparator``` to order ```Path``` objects to sort the successors according to the following heuristic function $f(n)$. The merge operation with the current queue is done using an *insertion sort*.
 
 The $f(n) = g(n) + h(n)$ function is computed as follows :
 
 * $g(n)$ is the current profit ($reward-cost$)
-* h(n) is a heuristic function that simply computes the reward given by all the tasks that are not yet delivered and the cost to deliver them (we consider that we do not have to move to pickup a task). Thus, we assume that everything goes well. This heuristic is quite good because it will "eliminate" TODO : find a better one ?
+* h(n) is a heuristic function that simply computes the reward given by all the tasks that are not yet delivered and the cost to deliver them. The cost is computed considering moving to each delivery city and moving to each pickup city (if the task is not yet in the vehicle). This heuristif function is optimal because we consider the expected profit. Paths with unpromising profits will be put at the end of the queue such that we will have the best solution for this problem.
 
 # Results
 
 # Conclusion
-In this assignment we had to find a good strategy for the states and their successors as well as for the heuristic function in the *A-star* algorithm. Another challenge was to implement the programm in an efficient way to save space capacity and time during the optimal plan calculation.
+In this assignment we had to find a good strategy for the states and their successors as well as for the heuristic function in the *A-star* algorithm. Another challenge was to implement the program in an efficient way to save space capacity and time during the optimal plan calculation.
 
-As expected, the *A-star* planning is more efficient that the *BFS* planning which is still better than the naive one when looking at their profit and traveled distances. The *BFS* strategy takes more calculation time than *A-star*. Nevertheless, luck plays a big role when competing more than one agent.
+As expected, the *A-star* planning is more efficient than  the *BFS* planning which is still better than the naive one when looking at their profit and traveled distances. The *BFS* strategy takes more calculation time than *A-star*. Nevertheless, luck plays a big role when competing more than one agent.

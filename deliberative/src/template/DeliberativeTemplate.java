@@ -209,7 +209,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 	@Override
 	public void planCancelled(TaskSet carriedTasks) {
-		System.out.println("carriedTask : " + carriedTasks.toString());
+		System.out.println("carriedTasks : " + carriedTasks.toString());
 		if (!carriedTasks.isEmpty()) {
 			this.carriedTasks = new ArrayList<Task>();
 			for (Task t : carriedTasks) {
@@ -304,7 +304,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 				}
 			}
 		}
-		System.err.println("Error: no goal in BFS");
+		System.err.println("Error: no goal reached in BFS");
 		return null;
 	}
 
@@ -383,7 +383,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 				}
 			}
 		}
-		System.err.println("Error: no goal in A*");
+		System.err.println("Error: no goal reached in A*");
 		return null;
 
 	}
