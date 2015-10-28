@@ -18,7 +18,7 @@ The goal states are all the states where the *deliveredTasks* set is full of tas
 $$S_g = \{ (position,\emptyset, \emptyset, deliveredTasks\}$$
 
 #### Transitions
-The transitions are simply defined by two actions which are enough to to represent a move to pickup or deliver a task :
+The transitions are simply defined by two actions which are enough to represent a move to pickup or deliver a task :
 
 * Move to pickup a task (move to a city and pickup a task in this city)
 * Deliver a task (move to a city and deliver a task in this city)
@@ -59,7 +59,7 @@ The $f(n) = g(n) + h(n)$ function is computed as follows :
 
 # Results
 
-Here are the results obtained by an execution on *Switzerland* map with a seed of $23456$ with 1,2 and 3 agents for three different implementations (*naive*, *BFS*, *A-star*). Each vehicle has a *costPerKm* of 5 and the capacity is set to 30 with task of weight 3. The *history.xml* files can be found in the *histories* folder. There are also some other results in this folder\footnote{Other results are done on map \textit{France} with tasks of weight 10 and a seed equal to 543876. With these other results, we observe the same phenomenon as with the ones with map of \textit{Switzerland}}.
+Here are the results obtained by an execution on *Switzerland* map with a seed of $23456$ with 1,2 and 3 agents for three different implementations (*naive*, *BFS*, *A-star*). Each vehicle has a *costPerKm* of 5 and the capacity is set to 30 with task of weight 3. The *history.xml* files can be found in the *histories* folder. There are also some other results in this folder\footnote{Other results are done on map \textit{France} with tasks of weight 10 and a seed equal to 543876. With these other results, we observe the same phenomenon as the ones with map of \textit{Switzerland}}.
 
 #### Total Profit
 
@@ -85,7 +85,7 @@ The total profits for 1 to 3 agents for each algorithm
 \endminipage\hfill
 \minipage{0.49\textwidth}
   \centering
-  \includegraphics[scale=0.3]{img/profit.png}
+  \includegraphics[scale=0.4]{img/profit.png}
   \caption{\it Graph of figure \ref{table}. BFS is blue, A-star is red and Naive implementation is green.}
 \endminipage
 \end{figure}
@@ -93,7 +93,7 @@ The total profits for 1 to 3 agents for each algorithm
 
 #### Number of states created and visited
 
-This graph show the number of states created and visited by only one agent. Indeed, when there are several ones, the entire tree is recomputed by some agents and the size of the tree depends strongly on the other agents and the current state of the world.
+The graph below shows the number of states created and visited by only one agent. Indeed, when there are several ones, the entire tree is recomputed by some agents and the size of the tree depends strongly on the other agents and the current state of the world.
 
 <!--\begin{figure} [!h]
   \begin{center}
@@ -114,13 +114,13 @@ This graph show the number of states created and visited by only one agent. Inde
       \caption{\it Number of states created (dashed) and visited (solid) for 1 agent depending on the number of task for \textit{Switzerland} map with a seed of $23456$. BFS is blue and AStar is red.}
 \end{figure}
 
-We have also tested from how many tasks the computation of the plan takes more than one minute. For the *BFS*, it is enough to have 8 tasks (around 65 seconds). Nevertheless, for the *A-star* algorithm, from 8 tasks, it takes a lot of time to compute the tree because of the sort done at each loop.
+We have also tested from how many tasks the computation of the plan takes more than one minute. For the *BFS*, from 8 tasks it takes more than one minute (around 65 seconds). Nevertheless, for the *A-star* algorithm, from 8 tasks, it takes a lot of time to compute the tree because of the sort done at each loop.
 
 ## Comments
 
-We can observe with these results that, as expected, the *A-star* algorithm is the best one and the *naive* one is the worst. Indeed, the heuristic function gives us a more optimal exploration of nodes while the *BFS* simply goes through nodes without considering any future profit. We also can note that the *BFS* is quite good because of the ordering of the successors when creating them. If we don't, the *BFS* will give a lower profit but still perform better than the naive algorithm because it considers taking more than one task at a time.
+We can observe with these results that, as expected, the *A-star* algorithm is the best one and the *naive* one is the worst. Indeed, the heuristic function gives us a more optimal exploration of nodes while the *BFS* simply goes through nodes without considering any future profit. We also can note that the *BFS* is quite good because of the ordering of successors when creating them. If we don't, the *BFS* will give a lower profit but still perform better than the naive algorithm because it considers taking more than one task at a time\footnote{We can also note that if the tree was not ordered for children of each node, the BFS could have a worst profit than the naive implementation (in a lucky case for the naive implementation).}.
 
-We also observe that the number of created and visited states is clearly lower with the *A-star* algorithm than with *BFS* which leads to a better time complexity for *A-star*. It is an expected result because *A-star* finds a goal state faster due to the heuristic function.
+We also observe that the number of created and visited states is clearly lower with the *A-star* algorithm than with *BFS* which leads to a better time complexity for *A-star*. It is an expected result because *A-star* finds a goal state faster due to the heuristic function. But, in term of computation, for a lot of tasks, the computation of the $f(n)$ function will make *A-star* worst than *BFS*.
 
 # Conclusion
 In this assignment we had to find a good strategy for the states and their successors as well as for the heuristic function in the *A-star* algorithm. Another challenge was to implement the program in an efficient way to save space capacity and time during the optimal plan calculation.
