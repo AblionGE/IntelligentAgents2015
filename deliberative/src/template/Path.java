@@ -160,7 +160,7 @@ public class Path {
 		return traveledDistance;
 	}
 
-	protected double getTotalReward() {
+	public double getTotalReward() {
 		return totalReward;
 	}
 
