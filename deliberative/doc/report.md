@@ -8,7 +8,7 @@ In the next sections, we will first define the state representation with the goa
 # Representation of states, goals and transitions 
 
 #### State
-We represent a state by four parameters: the agent's position, a set of tasks carried by the agent, a set of tasks that are free and a set of tasks that are already delivered :
+We represent a state by four parameters: the agent's position, a set of tasks carried by the agent, a set of tasks that are free and a set of tasks that are already delivered (this is the simplest way to represent a state with minimum informations) :
 
 $$S = \{ (position, takenTasks, freeTasks, deliveredTasks) \}$$
 
@@ -18,7 +18,7 @@ The goal states are all the states where the *deliveredTasks* set is full of tas
 $$S_g = \{ (position,\emptyset, \emptyset, deliveredTasks\}$$
 
 #### Transitions
-The transitions are simply defined by two actions :
+The transitions are simply defined by two actions which are enough to to represent a move to pickup or deliver a task :
 
 * Move to pickup a task (move to a city and pickup a task in this city)
 * Deliver a task (move to a city and deliver a task in this city)
@@ -66,6 +66,7 @@ Here are the results obtained by an execution on *Switzerland* map with a seed o
 The total profits for 1 to 3 agents for each algorithm
 
 \begin{figure} [!h]
+\minipage{0.49\textwidth}
   \begin{center}
     \begin{tabular}{|l|c|c|c|}
     \hline
@@ -79,13 +80,20 @@ The total profits for 1 to 3 agents for each algorithm
     \hline
     \end{tabular}
   \end{center}
-  \caption{Total profit for each algorithm with 1,2 and 3 agents for \textit{Switzerland} map with a seed of $23456$. Agent 1 starts in Lausanne, Agent 2 starts in Zürich and Agent 3 starts in Bern.}
+  \label{table}
+  \caption{\it Total profit for each algorithm with 1,2 and 3 agents for \textit{Switzerland} map with a seed of $23456$. Agent 1 starts in Lausanne, Agent 2 starts in Zürich and Agent 3 starts in Bern.}
+\endminipage\hfill
+\minipage{0.49\textwidth}
+  \centering
+  \includegraphics[scale=0.3]{img/profit.png}
+  \caption{\it Graph of figure \ref{table}. BFS is blue, A-star is red and Naive implementation is green.}
+\endminipage
 \end{figure}
 
 
 #### Number of states created and visited
 
-This table gives the number of states created and visited by only one agent. Indeed, when there are several ones, the entire tree is recomputed by some agents and the size of the tree depends strongly on the other agents and the current state of the world.
+This graph show the number of states created and visited by only one agent. Indeed, when there are several ones, the entire tree is recomputed by some agents and the size of the tree depends strongly on the other agents and the current state of the world.
 
 <!--\begin{figure} [!h]
   \begin{center}
@@ -105,6 +113,8 @@ This table gives the number of states created and visited by only one agent. Ind
       \centering \includegraphics[scale=0.5]{img/nodes.png}
       \caption{\it Number of states created (dashed) and visited (solid) for 1 agent depending on the number of task for \textit{Switzerland} map with a seed of $23456$. BFS is blue and AStar is red.}
 \end{figure}
+
+We have also tested from how many tasks the computation of the plan takes more than one minute. For the *BFS*, it is enough to have 8 tasks (around 65 seconds). Nevertheless, for the *A-star* algorithm, from 8 tasks, it takes a lot of time to compute the tree because of the sort done at each loop.
 
 ## Comments
 
