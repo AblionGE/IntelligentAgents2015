@@ -290,7 +290,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 				// stop if a goal has been reached
 				if (goals.contains(currentState)) {
-					System.out.println("Visited States nb in BFS: " + visitedStates.size() + ", remaining in the queue: " + queue.size());
+					System.out.println("Visited States nb in BFS: " + visitedStates.size() + ", out of: " + (visitedStates.size()+queue.size()));
 					previousPath.addLast(currentState);
 					return previousPath;
 				} else {
@@ -352,7 +352,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 				// stop if a goal has been reached
 				if (goals.contains(currentState)) {
-					System.out.println("Visited States nb in A*: " + nbSteps + ", remaining in the queue: " + queue.size());
+					System.out.println("Visited States nb in A*: " + nbSteps + ", out of: " + (nbSteps+queue.size()));
 					previousPath.addLast(currentState);
 					return previousPath;
 				} else {

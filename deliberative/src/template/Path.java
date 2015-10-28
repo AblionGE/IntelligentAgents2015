@@ -9,7 +9,7 @@ import logist.topology.Topology.City;
  * Class that holds a state and the path traveled before arriving at it
  * 
  * @author Marc Schaer and Cynthia Oeschger
- *
+ * 
  */
 public class Path {
 
@@ -23,7 +23,7 @@ public class Path {
 	public Path(State state, LinkedList<State> statesList, boolean runningAstar) {
 		lastState = state;
 		this.statesList = statesList;
-		if(runningAstar) {
+		if (runningAstar) {
 			traveledDistance = travelDistance();
 			initCosts();
 		}
@@ -34,8 +34,9 @@ public class Path {
 		lastState = state;
 		statesList = (LinkedList<State>) path.getPath().clone();
 		statesList.addLast(path.getState());
-		if(runningAstar) {
-			traveledDistance = path.getTravelDistance() + distanceBetween(lastState, statesList.peekLast());
+		if (runningAstar) {
+			traveledDistance = path.getTravelDistance()
+					+ distanceBetween(lastState, statesList.peekLast());
 			initCosts();
 		}
 	}
@@ -74,34 +75,29 @@ public class Path {
 	}
 
 	/**
-	 * Estimates the distance that will be traveled
-	 * It is the heuristic function for A*
+	 * Estimates the distance that will be traveled. Takes into account the
+	 * distances each free task's pickup and delivery city and the distance
+	 * between the vehicle and its closest pickup city
 	 * 
 	 * @return
 	 */
 	private double estimateFutureDistance() {
-		// TODO peut-être trier les tasks pour estimer un chemin plus intelligent
 		double estimate = 0;
 		City lastCity = lastState.getAgentPosition();
-		
-		// naive taken tasks delivery
-		/*for (Task t : lastState.getTakenTasks()) {
-			estimate -= lastCity.distanceTo(t.deliveryCity);
-			lastCity = t.deliveryCity;
-		}*/
-		
+
 		// estimation to pick and deliver remaining tasks
-		lastCity = lastState.getAgentPosition();
 		Task closestTask = null;
 		double min = Double.MAX_VALUE;
+		double dist;
 		for (Task t : lastState.getFreeTasks()) {
-			double dist = t.pickupCity.distanceTo(t.deliveryCity);
+			dist = t.pickupCity.distanceTo(t.deliveryCity);
 			estimate += dist;
-			if(dist < min) {
+			if (dist < min) {
 				closestTask = t;
 			}
 		}
-		if(min < Double.MAX_VALUE) {
+		// estimation to go and pick the first remaining task
+		if (min < Double.MAX_VALUE) {
 			estimate += lastCity.distanceTo(closestTask.pickupCity);
 		}
 
@@ -110,6 +106,7 @@ public class Path {
 
 	/**
 	 * Distance between the agent's position between two states
+	 * 
 	 * @param s1
 	 * @param s2
 	 * @return
@@ -142,7 +139,8 @@ public class Path {
 		if (!(o instanceof Path))
 			return false;
 		Path pairo = (Path) o;
-		return this.lastState.equals(pairo.getState()) && this.statesList.equals(pairo.getPath());
+		return this.lastState.equals(pairo.getState())
+				&& this.statesList.equals(pairo.getPath());
 	}
 
 	public State getState() {
