@@ -2,6 +2,7 @@ package template;
 
 import java.util.LinkedList;
 
+import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.topology.Topology.City;
 
@@ -19,18 +20,20 @@ public class Path {
 	private double deliveredReward = 0;
 	private double undeliveredReward = 0;
 	private double expectedFutureDistance = 0;
+	private double totalReward = 0;
 
-	public Path(State state, LinkedList<State> statesList, boolean runningAstar) {
+	public Path(State state, LinkedList<State> statesList, Vehicle vehicle, boolean runningAstar) {
 		lastState = state;
 		this.statesList = statesList;
 		if (runningAstar) {
 			traveledDistance = travelDistance();
 			initCosts();
+			totalReward = totalReward(vehicle.costPerKm());
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	public Path(State state, Path path, boolean runningAstar) {
+	public Path(State state, Path path, Vehicle vehicle, boolean runningAstar) {
 		lastState = state;
 		statesList = (LinkedList<State>) path.getPath().clone();
 		statesList.addLast(path.getState());
@@ -38,6 +41,8 @@ public class Path {
 			traveledDistance = path.getTravelDistance()
 					+ distanceBetween(lastState, statesList.peekLast());
 			initCosts();
+			totalReward = totalReward(vehicle.costPerKm());
+			
 		}
 	}
 
@@ -153,6 +158,10 @@ public class Path {
 
 	public double getTravelDistance() {
 		return traveledDistance;
+	}
+
+	protected double getTotalReward() {
+		return totalReward;
 	}
 
 }

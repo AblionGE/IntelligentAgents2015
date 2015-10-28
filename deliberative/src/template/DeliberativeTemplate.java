@@ -5,6 +5,7 @@ import logist.simulation.Vehicle;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -82,6 +83,8 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		// goal states:
 		goalStates = setGoalStates(vehicle, tasks);
 
+		long startTime = new Date().getTime();
+		
 		switch (algorithm) {
 		case ASTAR:
 			plan = aStarPlan(vehicle, tasks);
@@ -95,6 +98,8 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 		default:
 			throw new AssertionError("Algorithm does not exist.");
 		}
+		long endTime = new Date().getTime();
+		System.out.println("Time to build the plan : " + (endTime - startTime) + " ms.");
 		return plan;
 	}
 
@@ -270,7 +275,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 	private LinkedList<State> bfs(State init, ArrayList<State> goals, Vehicle vehicle) {
 		// initialize queue for bfs
 		LinkedList<Path> queue = new LinkedList<Path>();
-		queue.addLast(new Path(init, new LinkedList<State>(), false));
+		queue.addLast(new Path(init, new LinkedList<State>(), vehicle, false));
 
 		Path currentPath;
 		State currentState;
@@ -299,7 +304,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 					children = new ArrayList<State>(currentState.computeChildren(vehicle));
 					Collections.sort(children, sComparator);
 					for (State s : children) {
-						queue.addLast(new Path(s, currentPath, false));
+						queue.addLast(new Path(s, currentPath, vehicle, false));
 					}
 				}
 			}
@@ -322,7 +327,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 		// initialize queue for A*
 		LinkedList<Path> queue = new LinkedList<Path>();
-		queue.addLast(new Path(init, new LinkedList<State>(), true));
+		queue.addLast(new Path(init, new LinkedList<State>(), vehicle,  true));
 
 		Path currentPath;
 		State currentState;
@@ -360,7 +365,7 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 					children = currentState.computeChildren(vehicle);
 					LinkedList<Path> tempQueue = new LinkedList<Path>();
 					for (State s : children) {
-						tempQueue.addLast(new Path(s, currentPath, true));
+						tempQueue.addLast(new Path(s, currentPath, vehicle, true));
 					}
 
 					// Sort successors given their cost function
@@ -371,8 +376,8 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 					int indexQueue = 0;
 					if (queue.size() > 0) {
 						for (int i = 0; i < tempQueue.size(); i++) {
-							while (indexQueue < queue.size() && tempQueue.get(i).totalReward(costPerKm) < queue
-									.get(indexQueue).totalReward(costPerKm)) {
+							while (indexQueue < queue.size() && tempQueue.get(i).getTotalReward() < queue
+									.get(indexQueue).getTotalReward()) {
 								indexQueue++;
 							}
 							queue.add(indexQueue, tempQueue.get(i));
