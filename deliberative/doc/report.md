@@ -57,7 +57,7 @@ The $f(n) = g(n) + h(n)$ function is computed as follows :
 
 # Results
 
-Here are the profits obtained by an execution on *Switzerland* map with a seed of $23456$ with 1,2 and 3 agents for three different implementations (*naive*, *BFS*, *A-star*). The *history.xml* files can be found in the *histories* folder. There are also some other results in this folder.
+Here are the profits obtained by an execution on *Switzerland* map with a seed of $23456$ with 1,2 and 3 agents for three different implementations (*naive*, *BFS*, *A-star*). Each vehicle has a *costPerKm* of 5 and the capacity is set to 30 with task of weight 3. The *history.xml* files can be found in the *histories* folder. There are also some other results in this folder.
 
 #### Total Profit
 
