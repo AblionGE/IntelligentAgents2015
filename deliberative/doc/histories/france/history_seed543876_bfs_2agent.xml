@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<history configuration="config/deliberative.xml">
+	<agents>
+		<agent name="deliberative-bfs">
+			<vehicle name="Vehicle 1"/>
+		</agent>
+		<agent name="deliberative-bfs">
+			<vehicle name="Vehicle 2"/>
+		</agent>
+	</agents>
+	<rounds>
+		<round id="1">
+			<tasks>
+				<task id="0" pickup="Le Havre" delivery="Marseille" weight="10" reward="42844"/>
+				<task id="1" pickup="Bordeaux" delivery="Lyon" weight="10" reward="69732"/>
+				<task id="2" pickup="Genève" delivery="Le Havre" weight="10" reward="54358"/>
+				<task id="3" pickup="Paris" delivery="Brest" weight="10" reward="69526"/>
+				<task id="4" pickup="Brest" delivery="Paris" weight="10" reward="69526"/>
+				<task id="5" pickup="Bordeaux" delivery="Strasbourg" weight="10" reward="36433"/>
+			</tasks>
+			<events>
+				<event id="0" time="0" vehicle="Vehicle 1" pickup="4"/>
+				<event id="1" time="0" vehicle="Vehicle 2" pickup="3"/>
+				<event id="2" time="300000000" vehicle="Vehicle 1" move="Paris"/>
+				<event id="3" time="300000000" vehicle="Vehicle 2" move="Le Havre"/>
+				<event id="4" time="2477777777" vehicle="Vehicle 2" pickup="0"/>
+				<event id="5" time="2777777777" vehicle="Vehicle 2" move="Paris"/>
+				<event id="6" time="4955555554" vehicle="Vehicle 2" move="Bordeaux"/>
+				<event id="7" time="6866666666" vehicle="Vehicle 1" deliver="4"/>
+				<event id="8" time="7166666666" vehicle="Vehicle 1" move="Bordeaux"/>
+				<event id="9" time="11444444442" vehicle="Vehicle 2" pickup="5"/>
+				<event id="10" time="11744444442" vehicle="Vehicle 2" move="Marseille"/>
+				<event id="11" time="13655555554" vehicle="Vehicle 1" pickup="1"/>
+				<event id="12" time="13955555554" vehicle="Vehicle 1" move="Lyon"/>
+				<event id="13" time="18922222217" vehicle="Vehicle 2" deliver="0"/>
+				<event id="14" time="19222222217" vehicle="Vehicle 2" move="Lyon"/>
+				<event id="15" time="20488888885" vehicle="Vehicle 1" deliver="1"/>
+				<event id="16" time="20788888885" vehicle="Vehicle 1" move="Genève"/>
+				<event id="17" time="22444444439" vehicle="Vehicle 1" pickup="2"/>
+				<event id="18" time="22733333326" vehicle="Vehicle 2" move="Genève"/>
+				<event id="19" time="22744444439" vehicle="Vehicle 1" move="Lyon"/>
+				<event id="20" time="24388888880" vehicle="Vehicle 2" move="Strasbourg"/>
+				<event id="21" time="24399999993" vehicle="Vehicle 1" move="Paris"/>
+				<event id="22" time="28711111100" vehicle="Vehicle 2" deliver="5"/>
+				<event id="23" time="29011111100" vehicle="Vehicle 2" move="Paris"/>
+				<event id="24" time="29577777769" vehicle="Vehicle 1" move="Le Havre"/>
+				<event id="25" time="31755555546" vehicle="Vehicle 1" deliver="2"/>
+				<event id="26" time="34422222209" vehicle="Vehicle 2" move="Brest"/>
+				<event id="27" time="40988888873" vehicle="Vehicle 2" deliver="3"/>
+			</events>
+		</round>
+	</rounds>
+	<statistics>
+		<stat rank="1" agent="deliberative-bfs">
+			<total-tasks value="3"/>
+			<total-distance value="2723.0"/>
+			<total-cost value="13615"/>
+			<total-reward value="193616"/>
+			<total-profit value="180001"/>
+		</stat>
+		<stat rank="2" agent="deliberative-bfs">
+			<total-tasks value="3"/>
+			<total-distance value="3554.0"/>
+			<total-cost value="17770"/>
+			<total-reward value="148803"/>
+			<total-profit value="131033"/>
+		</stat>
+	</statistics>
+</history>
