@@ -7,46 +7,46 @@ In the next sections, we will first define the state representation with the goa
 
 # Representation of states, goals and transitions 
 
-## State
+#### State
 We represent a state by four parameters: the agent's position, a set of tasks carried by the agent, a set of tasks that are free and a set of tasks that are already delivered :
 
 $$S = \{ (position, takenTasks, freeTasks, deliveredTasks) \}$$
 
-## Goals
+#### Goals
 The goal states are all the states where the *deliveredTasks* set is full of tasks, *takenTasks* and *freeTasks* are both empty and the position of the agent is a city where a delivery happend:
 
 $$S_g = \{ (position,\emptyset, \emptyset, deliveredTasks\}$$
 
-## Transitions
+#### Transitions
 The transitions are simply defined by two actions :
 
 * Move to pickup a task (move to a city and pickup a task in this city)
 * Deliver a task (move to a city and deliver a task in this city)
 
-## Old representations
+#### Old representations
 Before having this representation, we had chosen to represent a state by a tuple $(agentPosition, \{(task, currentCityOfTask)\}$. This representation was more precise than our final one, but it led to a huge tree that takes a lot of time to be computed\footnote{The code to compute states was also more complicated because we had to compute every combinations of tasks position.}.
 
 # Implementation
 
-## State
+#### State
 
 A State is represented by an object *State* which contains the agent's position, the three different sets of tasks and the current reward. The sets of tasks are stored in ordered sets to speed up the calculations.
 
 The children of this state are computed with the ```Set<State> computeChildren(Vehicle vehicle)``` method which returns the reachable states by picking a task or delivering one. It also tests if the vehicle can carry the task given its weight. We also need, in the later plan building, two functions that allow us to know if a task was picked up or delivered that are ```taskPickUpDifferences(State state)``` and ```taskDeliverDifferences(State state)```.
 
-## Path
+#### Path
 
 In order to store a sequence of states in the research tree, we created an object *Path* which stores a state and the path traveling to it. It also contains the profit made during this path and an expectation of the forthcoming profit. In order to save some computations, a boolean value is used to switch between the *A-star* and *BFS* algorithm, the later not needing any profit notion.
 
 The heuristic function for the *A-star* algorithm is computed in ```totalReward(int costPerKm)```. The function ```travelDistance()``` computes the distance made by the vehicle through the associated path and ```estimateFutureDistance()``` estimates the remaining travel to deliver all the tasks.
 
-## BFS
+#### BFS
 
 The BFS is simply coded as given in the exercise's slides. We can note that the ```visitedStates``` are stored in an ```ArrayList<State>``` and that we store the whole state path to a given node in it. We chose to sort the successors depending on their distance with their parent to speed up the computations. This operation is done using a ```StateDistanceComparator```. It also gives a better solution because the tree is built in a more optimal way than randomly.
 
 We also can note that, as we have only two actions (*pickup* and *deliver*), all branches will have the same depth, so a *DFS* algorithm should be better than a *BFS*.
 
-## A-Star
+#### A-Star
 
 The A-Star is also coded as given in the exercise's slides. We used a comparator ```PathComparator``` to order ```Path``` objects to sort the successors according to the following heuristic function $f(n)$. The merge operation with the current queue is done using an *insertion sort*.
 
@@ -56,6 +56,54 @@ The $f(n) = g(n) + h(n)$ function is computed as follows :
 * h(n) is a heuristic function that simply computes the reward given by all the tasks that are not yet delivered and the cost to deliver them. The cost is computed considering moving to each delivery city and moving to each pickup city (if the task is not yet in the vehicle). This heuristif function is optimal because we consider the expected profit. Paths with unpromising profits will be put at the end of the queue such that we will have the best solution for this problem.
 
 # Results
+
+Here are the profits obtained by an execution on *Switzerland* map with a seed of $23456$ with 1,2 and 3 agents for three different implementations (*naive*, *BFS*, *A-star*). The *history.xml* files can be found in the *histories* folder. There are also some other results in this folder.
+
+#### Total Profit
+
+The total profits for 1 to 3 agents for each algorithm
+
+\begin{figure} [!h]
+  \begin{center}
+    \begin{tabular}{|l|c|c|c|}
+    \hline
+    \textbf{Nb of Agents} & \bf1 & \bf2 & \bf3\\
+    \hline
+    \textbf{Naive} & 242'357 & 238'957 & 235'257\\
+    \hline
+    \textbf{BFS} & 252'307 & 249'907 & 246'957\\
+    \hline
+    \textbf{A*} & 254'657 & 250'707 & 248'257\\
+    \hline
+    \end{tabular}
+  \end{center}
+  \caption{Total profit for each algorithm with 1,2 and 3 agents for \textit{Switzerland} map with a seed of $23456$. Agent 1 starts in Lausanne, Agent 2 starts in Zürich and Agent 3 starts in Bern}
+\end{figure}
+
+#### Number of states created and visited
+
+This table gives the number of states created and visited by only one agent. Indeed, when there are several ones, the entire tree is recomputed by some agents and the size of the tree depends strongly on the other agents and the current state of the world.
+
+\begin{figure} [!h]
+  \begin{center}
+    \begin{tabular}{|l|c|c|}
+    \hline
+    & \bf Created & \bf Visited \\
+    \hline
+    \textbf{BFS} & 2479 & 2455 \\
+    \hline
+    \textbf{A*} & 1657 & 535\\
+    \hline
+    \end{tabular}
+  \end{center}
+  \caption{Number of states created and visited for 1 agent for \textit{Switzerland} map with a seed of $23456$}
+\end{figure}
+
+## Comments
+
+We can observe with these results that, as expected, the *A-star* algorithm is the best one and the *naive* one is the worst. Indeed, the heuristic function gives us more optimal exploration of nodes while the *BFS* simply goes through nodes without considering anything. We also can note that the *BFS* is quite good because we order children when we create them. If we don't, it will change nothing for the *A-star* algorithm, but the *BFS* will become worst, but it will be more probable that it is better than the naive algorithm (that simply takes tasks one after the other).
+
+We also observe that the number of created and visited states is clearly lower with the *A-star* algorithm than with *BFS*. It is an expected result because *A-star* find a goal state faster due to the heuristic function.
 
 # Conclusion
 In this assignment we had to find a good strategy for the states and their successors as well as for the heuristic function in the *A-star* algorithm. Another challenge was to implement the program in an efficient way to save space capacity and time during the optimal plan calculation.
