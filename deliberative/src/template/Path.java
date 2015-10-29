@@ -128,8 +128,8 @@ public class Path {
 	 * @return
 	 */
 	public double totalReward(int costPerKm) {
-		double g = -traveledDistance * costPerKm + deliveredReward;
-		double h = -expectedFutureDistance * costPerKm + undeliveredReward;
+		double g = traveledDistance * costPerKm;
+		double h = expectedFutureDistance * costPerKm;
 
 		return g + h;
 	}

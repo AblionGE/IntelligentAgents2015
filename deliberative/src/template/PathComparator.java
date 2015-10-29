@@ -24,7 +24,7 @@ class PathComparator implements Comparator<Path> {
 		Double c1 = o1.totalReward(costPerKm);
 		Double c2 = o2.totalReward(costPerKm);
 
-		return -(c1.compareTo(c2));
+		return (c1.compareTo(c2));
 	}
 
 	public void setVehicle(Vehicle v) {

@@ -79,9 +79,11 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 
 		// initial state:
 		initialState = setInitialState(vehicle, tasks);
+		System.out.println(tasks.toString());
 
 		// goal states:
 		goalStates = setGoalStates(vehicle, tasks);
+		System.out.println(goalStates.toString());
 
 		long startTime = new Date().getTime();
 		
