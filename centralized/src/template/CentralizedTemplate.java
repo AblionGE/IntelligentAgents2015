@@ -4,6 +4,8 @@ package template;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
+import logist.LogistPlatform;
 import logist.LogistSettings;
 
 import logist.Measures;
@@ -40,7 +42,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
         // this code is used to get the timeouts
         LogistSettings ls = null;
         try {
-            ls = Parsers.parseSettings("config\\settings_default.xml");
+            ls = LogistPlatform.getSettings();
         }
         catch (Exception exc) {
             System.out.println("There was a problem loading the configuration file.");
@@ -61,7 +63,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
         long time_start = System.currentTimeMillis();
         
 //		System.out.println("Agent " + agent.id() + " has tasks " + tasks);
-        Plan planVehicle1 = naivePlan(vehicles.get(0), tasks);
+        Plan planVehicle1 = individualVehiclePlan(vehicles.get(0), tasks);
 
         List<Plan> plans = new ArrayList<Plan>();
         plans.add(planVehicle1);
@@ -76,7 +78,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
         return plans;
     }
 
-    private Plan naivePlan(Vehicle vehicle, TaskSet tasks) {
+    private Plan individualVehiclePlan(Vehicle vehicle, TaskSet tasks) {
         City current = vehicle.getCurrentCity();
         Plan plan = new Plan(current);
 
