@@ -3,6 +3,7 @@ package template;
 //the list of imports
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -117,47 +118,64 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	 * @param tasks
 	 */
 	private HashMap<Vehicle, LinkedList<Action>> computeSLS(List<Vehicle> vehicles, TaskSet tasks) {
-		HashMap<Action, Action> nextActions = new HashMap<Action, Action>();
-		HashMap<Action, Action> oldNextActions = new HashMap<Action, Action>();
+		SolutionState bestState;
+		SolutionState oldState;
 		
 		int maxLoop = 1000;
 		int currentLoop = 0;
-		nextActions = computeInitState();
+		bestState = computeInitState(vehicles, tasks);
 		
 		// TODO : // add condition if no improvement
 		while (currentLoop < maxLoop) {
 			currentLoop++;
-			oldNextActions = nextActions;
-			ArrayList<HashMap<Action, Action>> neighbours = chooseNeighbours(nextActions);
-			nextActions = localChoice(oldNextActions, neighbours);
+			oldState = bestState;
+			ArrayList<SolutionState> neighbours = chooseNeighbours(bestState);
+			bestState = localChoice(oldState, neighbours);
 		}
 
-		return computeVehiclePlans(nextActions);
+		return computeVehiclePlans(bestState);
 	}
 
-	// TODO
-	public HashMap<Action, Action> computeInitState() {
-		return new HashMap<Action, Action>();
+	/**
+	 * Each vehicle has some tasks and they are picked up and delivered one after the other.
+	 * @param vehicles
+	 * @param tasks
+	 * @return
+	 */
+	public SolutionState computeInitState(List<Vehicle> vehicles, TaskSet tasks) {
+		HashMap<Vehicle, ArrayList<Task>> distributedTasks = new HashMap<Vehicle, ArrayList<Task>>();
+		ArrayList<Vehicle> arrayOfVehicles = new ArrayList<Vehicle>(vehicles);
+		ArrayList<Task> arrayOfTasks = new ArrayList<Task>(tasks);
+		
+		for (int i = 0; i < arrayOfTasks.size(); i++) {
+			Vehicle v = arrayOfVehicles.get(i % arrayOfVehicles.size());
+			ArrayList<Task> oldTasksList = distributedTasks.get(v);
+			if (oldTasksList == null) {
+				oldTasksList = new ArrayList<Task>();
+			}
+				oldTasksList.add(arrayOfTasks.get(i));
+				distributedTasks.put(v, oldTasksList);
+		}
+		
+		for (Vehicle v : vehicles) {
+			// TODO : create solution
+		}
+		return null;
 	}
 	
 	// TODO
-	public ArrayList<HashMap<Action, Action>> chooseNeighbours(HashMap<Action, Action> actions) {
-		ArrayList<HashMap<Action, Action>> neighbours = new ArrayList<HashMap<Action, Action>>();
+	public ArrayList<SolutionState> chooseNeighbours(SolutionState actions) {
+		ArrayList<SolutionState> neighbours = null;
 		return neighbours;
 	}
 	
 	// TODO
-	public boolean IsSatsifyingConstraints() {
-		return false;
-	}
-	
-	// TODO
-	public HashMap<Action, Action> localChoice(HashMap<Action, Action> old, ArrayList<HashMap<Action, Action>> neighbours) {
+	public SolutionState localChoice(SolutionState old, ArrayList<SolutionState> neighbours) {
 		return old;
 	}
 	
 	// TODO
-	public HashMap<Vehicle, LinkedList<Action>> computeVehiclePlans(HashMap<Action, Action> actions) {
+	public HashMap<Vehicle, LinkedList<Action>> computeVehiclePlans(SolutionState actions) {
 		HashMap<Vehicle, LinkedList<Action>> plans = new HashMap<Vehicle, LinkedList<Action>>();
 		
 		return plans;
