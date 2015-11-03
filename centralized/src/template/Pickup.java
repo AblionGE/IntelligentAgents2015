@@ -10,6 +10,7 @@ import logist.task.Task;
 public class Pickup {
 	
 	private Task task;
+	private int time;
 	
 	Pickup (Task task) {
 		this.task = task;
@@ -17,6 +18,14 @@ public class Pickup {
 
 	protected Task getTask() {
 		return task;
+	}
+
+	protected int getTime() {
+		return time;
+	}
+
+	protected void setTime(int time) {
+		this.time = time;
 	}
 
 }

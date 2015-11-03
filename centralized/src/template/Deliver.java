@@ -10,6 +10,7 @@ import logist.task.Task;
 public class Deliver {
 	
 	private Task task;
+	private int time;
 	
 	Deliver (Task task) {
 		this.task = task;
@@ -18,4 +19,13 @@ public class Deliver {
 	protected Task getTask() {
 		return task;
 	}
+
+	protected int getTime() {
+		return time;
+	}
+
+	protected void setTime(int time) {
+		this.time = time;
+	}
+
 }
