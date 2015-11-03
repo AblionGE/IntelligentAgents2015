@@ -2,18 +2,19 @@ package template;
 
 import logist.task.Task;
 
-/**
- * This class represent the action "Deliver" a task
- * and will correspond to move to the delivery city of the task and to deliver it.
- *
- */
-public class Deliver {
-	
+public class Action {
+
 	private Task task;
 	private int time;
+	private ActionsEnum action;
 	
-	Deliver (Task task) {
+	Action (ActionsEnum action, Task task) {
 		this.task = task;
+		this.action = action;
+	}
+
+	protected ActionsEnum getAction() {
+		return action;
 	}
 
 	protected Task getTask() {
@@ -27,5 +28,4 @@ public class Deliver {
 	protected void setTime(int time) {
 		this.time = time;
 	}
-
 }
