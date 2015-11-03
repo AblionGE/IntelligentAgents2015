@@ -37,8 +37,6 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	private Agent agent;
 	private long timeout_setup;
 	private long timeout_plan;
-	HashMap<Action, Action> nextActions = new HashMap<Action, Action>();
-	HashMap<Vehicle, LinkedList<Action>> vehiclePlans = new HashMap<Vehicle, LinkedList<Action>>();
 
 	@Override
 	public void setup(Topology topology, TaskDistribution distribution, Agent agent) {
@@ -67,7 +65,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		List<Plan> plans = new ArrayList<Plan>();
 
 		// Compute the centralized plan
-		computeSLS(vehicles, tasks);
+		HashMap<Vehicle, LinkedList<Action>> vehiclePlans = computeSLS(vehicles, tasks);
 
 		// System.out.println("Agent " + agent.id() + " has tasks " + tasks);
 		// Plan planVehicle1 = individualVehiclePlan(vehicles.get(0), tasks);
@@ -118,11 +116,50 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	 * @param vehicles
 	 * @param tasks
 	 */
-	private void computeSLS(List<Vehicle> vehicles, TaskSet tasks) {
+	private HashMap<Vehicle, LinkedList<Action>> computeSLS(List<Vehicle> vehicles, TaskSet tasks) {
+		HashMap<Action, Action> nextActions = new HashMap<Action, Action>();
+		HashMap<Action, Action> oldNextActions = new HashMap<Action, Action>();
+		
+		int maxLoop = 1000;
+		int currentLoop = 0;
+		nextActions = computeInitState();
+		
+		// TODO : // add condition if no improvement
+		while (currentLoop < maxLoop) {
+			currentLoop++;
+			oldNextActions = nextActions;
+			ArrayList<HashMap<Action, Action>> neighbours = chooseNeighbours(nextActions);
+			nextActions = localChoice(oldNextActions, neighbours);
+		}
 
+		return computeVehiclePlans(nextActions);
 	}
 
+	// TODO
+	public HashMap<Action, Action> computeInitState() {
+		return new HashMap<Action, Action>();
+	}
+	
+	// TODO
+	public ArrayList<HashMap<Action, Action>> chooseNeighbours(HashMap<Action, Action> actions) {
+		ArrayList<HashMap<Action, Action>> neighbours = new ArrayList<HashMap<Action, Action>>();
+		return neighbours;
+	}
+	
+	// TODO
 	public boolean IsSatsifyingConstraints() {
 		return false;
+	}
+	
+	// TODO
+	public HashMap<Action, Action> localChoice(HashMap<Action, Action> old, ArrayList<HashMap<Action, Action>> neighbours) {
+		return old;
+	}
+	
+	// TODO
+	public HashMap<Vehicle, LinkedList<Action>> computeVehiclePlans(HashMap<Action, Action> actions) {
+		HashMap<Vehicle, LinkedList<Action>> plans = new HashMap<Vehicle, LinkedList<Action>>();
+		
+		return plans;
 	}
 }
