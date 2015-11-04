@@ -1,5 +1,9 @@
 package template;
 
+/**
+ * This class is used to have functions verifying constraints
+ *
+ */
 public final class Constraints {
 	
 	/**

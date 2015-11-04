@@ -4,6 +4,12 @@ import java.util.HashMap;
 
 import logist.simulation.Vehicle;
 
+/**
+ * This class represent a solution state composed by 
+ * All actions to do and the action after and a relation for each vehicle
+ * and their first action
+ *
+ */
 public class SolutionState {
 	
 	private HashMap<Action, Action> nextActions = new HashMap<Action, Action>();
@@ -35,5 +41,38 @@ public class SolutionState {
 	protected void computeCost() {
 		
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((nextActions == null) ? 0 : nextActions.hashCode());
+		result = prime * result + ((nextActionsVehicle == null) ? 0 : nextActionsVehicle.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		SolutionState other = (SolutionState) obj;
+		if (nextActions == null) {
+			if (other.nextActions != null)
+				return false;
+		} else if (!nextActions.equals(other.nextActions))
+			return false;
+		if (nextActionsVehicle == null) {
+			if (other.nextActionsVehicle != null)
+				return false;
+		} else if (!nextActionsVehicle.equals(other.nextActionsVehicle))
+			return false;
+		return true;
+	}
+	
+	
 
 }
