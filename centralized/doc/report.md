@@ -39,7 +39,7 @@ We need to define some constraints to solve the *PDP* problem. The variable $x$ 
 As the reward for each plan will be exactly the same (we always deliver all tasks), the objective is simply to minimize the cost of delivering tasks ($distance \times costPerKM$). The formula to compute it is :
 
 \begin{gather*}
-  C = \sum_{i=1}^{N} dist(x_i, nextAction(x_i)) \times cost(vehicle(x_i)) + \sum_{k=1}^{M} dist(v_k, nextAction(v_k)) \times cost(v_k)
+  C = \sum_{i=1}^{2N} dist(x_i, nextAction(x_i)) \times cost(vehicle(x_i)) + \sum_{k=1}^{M} dist(v_k, nextAction(v_k)) \times cost(v_k)
 \end{gather*}
 where $dist(a,b)$ is the distance between task in action (or vehicle) $a$ and task in action (or vehicle) $b$. Variable $x$, as above, represents an action (*Pickup* or *Deliver*).
 

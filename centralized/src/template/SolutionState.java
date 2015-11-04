@@ -1,8 +1,12 @@
 package template;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Set;
 
 import logist.simulation.Vehicle;
+import logist.task.Task;
+import logist.topology.Topology.City;
 
 /**
  * This class represent a solution state composed by 
@@ -37,8 +41,51 @@ public class SolutionState {
 		this.nextActionsVehicle = nextActionsVehicle;
 	}
 	
-	// TODO
-	protected void computeCost() {
+	protected double getCost() {
+		return cost;
+	}
+
+	protected double computeCost() {
+		double totalCost = 0;
+		HashMap<Vehicle, LinkedList<Action>> paths = CentralizedTemplate.computeVehiclePlans(this);
+		Set<Vehicle> vehicles = paths.keySet();
+		
+		for (Vehicle v : vehicles) {
+			totalCost += computeVehicleDistance(v, nextActionsVehicle.get(v));
+			LinkedList<Action> currentPath = paths.get(v);
+			for (int i = 0; i < currentPath.size() - 1; i++) {
+				Action currentAction = currentPath.get(i);
+				totalCost += computeActionsDistance(currentAction, currentPath.get(i+1));
+			}
+			totalCost = totalCost * v.costPerKm();
+		}
+		this.cost = totalCost;
+		return totalCost;
+	}
+	
+	private double computeVehicleDistance(Vehicle v, Action a) {
+		City start = v.getCurrentCity();
+		City destination = a.getTask().pickupCity;
+		return start.distanceTo(destination);
+	}
+	
+	private double computeActionsDistance(Action a, Action b) {
+		City cityTaskA;
+		City cityTaskB;
+	
+		if (a.getAction() == ActionsEnum.PICKUP) {
+			cityTaskA = a.getTask().pickupCity;
+		} else {
+			cityTaskA = a.getTask().deliveryCity;
+		}
+		
+		if (b.getAction() == ActionsEnum.PICKUP) {
+			cityTaskB = b.getTask().pickupCity;
+		} else {
+			cityTaskB = b.getTask().deliveryCity;
+		} 
+		
+		return cityTaskA.distanceTo(cityTaskB);
 		
 	}
 

@@ -211,7 +211,9 @@ public class CentralizedTemplate implements CentralizedBehavior {
 				nextActions.put(previousAction, finalAction);
 			}
 		}
-		return new SolutionState(nextActions, nextActionsVehicle);
+		SolutionState solution = new SolutionState(nextActions, nextActionsVehicle);
+		
+		return solution;
 	}
 
 	// TODO
@@ -230,7 +232,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	 * @param solutionState
 	 * @return
 	 */
-	public HashMap<Vehicle, LinkedList<Action>> computeVehiclePlans(SolutionState solutionState) {
+	public static HashMap<Vehicle, LinkedList<Action>> computeVehiclePlans(SolutionState solutionState) {
 		HashMap<Vehicle, LinkedList<Action>> plans = new HashMap<Vehicle, LinkedList<Action>>();
 
 		HashMap<Vehicle, Action> vehicleAction = solutionState.getNextActionsVehicle();
