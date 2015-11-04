@@ -84,22 +84,24 @@ public class CentralizedTemplate implements CentralizedBehavior {
 
 		return plans;
 	}
-	
+
 	/**
 	 * Compute the plan for one vehicle
+	 * 
 	 * @param vehicle
-	 * @param movements an orderd list of movements to perform
+	 * @param movements
+	 *            an orderd list of movements to perform
 	 * @return
 	 */
 	private Plan individualVehiclePlan(Vehicle vehicle, LinkedList<Movement> movements) {
 		City current = vehicle.getCurrentCity();
 		Plan plan = new Plan(current);
-		
+
 		// If vehicle has nothing to do
 		if (movements == null) {
 			return Plan.EMPTY;
 		}
-		
+
 		for (Movement a : movements) {
 			// move: current city => pickup location
 			if (a.getMovement() == MovementsEnumeration.PICKUP) {
@@ -154,6 +156,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	 * @param tasks
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public SolutionState computeInitState(List<Vehicle> vehicles, TaskSet tasks) {
 		HashMap<Vehicle, ArrayList<Task>> distributedTasks = new HashMap<Vehicle, ArrayList<Task>>();
 		ArrayList<Vehicle> arrayOfVehicles = new ArrayList<Vehicle>(vehicles);
@@ -206,12 +209,16 @@ public class CentralizedTemplate implements CentralizedBehavior {
 					previousMovement = nextPickupMovement;
 
 				}
-				Movement finalMovement = new Movement(MovementsEnumeration.DELIVER, vTasks.get(vTasks.size() - 1), time);
+				Movement finalMovement = new Movement(MovementsEnumeration.DELIVER, vTasks.get(vTasks.size() - 1),
+						time);
 				nextMovements.put(previousMovement, finalMovement);
 			}
 		}
 		SolutionState solution = new SolutionState(nextMovements, nextMovementsVehicle);
-		
+
+		// Compute the cost of this plan a save it into the SolutionState object
+		solution.computeCost();
+
 		return solution;
 	}
 
@@ -221,13 +228,49 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		return neighbours;
 	}
 
-	// TODO
-	public SolutionState localChoice(SolutionState old, ArrayList<SolutionState> neighbours) {
-		return old;
+	public SolutionState localChoice(SolutionState old, ArrayList<SolutionState> neighbours, double probability) {
+		SolutionState bestSolution;
+
+		if (neighbours == null || neighbours.size() == 0) {
+			return old;
+		}
+
+		double bestCost = old.getCost();
+		ArrayList<SolutionState> bestSolutions = new ArrayList<SolutionState>();
+
+		for (SolutionState neighbour : neighbours) {
+			double cost = neighbour.computeCost();
+			if (cost < bestCost) {
+				bestSolutions = new ArrayList<SolutionState>();
+				bestSolutions.add(neighbour);
+				bestCost = cost;
+			} else if (cost == bestCost) {
+				bestSolutions.add(neighbour);
+			}
+		}
+
+		if (bestSolutions.size() > 1) {
+			// random number to select a best solution
+			Random ran = new Random();
+			int x = ran.nextInt(bestSolutions.size());
+			bestSolution = bestSolutions.get(x);
+		} else {
+			bestSolution = bestSolutions.get(0);
+		}
+		
+		Random ran = new Random();
+		int x = ran.nextInt(100);
+		
+		if (x > probability * 100) {
+			bestSolution = old;
+		}
+
+		return bestSolution;
 	}
 
 	/**
 	 * It computes for each vehicle an orderd list of tasks
+	 * 
 	 * @param solutionState
 	 * @return
 	 */
