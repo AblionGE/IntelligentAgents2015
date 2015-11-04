@@ -26,8 +26,7 @@ import logist.topology.Topology;
 import logist.topology.Topology.City;
 
 /**
- * A very simple action agent that assigns all tasks to its first vehicle and
- * handles them sequentially.
+ * 
  *
  */
 @SuppressWarnings("unused")
@@ -66,13 +65,13 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		List<Plan> plans = new ArrayList<Plan>();
 
 		// Compute the centralized plan
-		HashMap<Vehicle, LinkedList<Action>> vehiclePlans = computeSLS(vehicles, tasks);
+		HashMap<Vehicle, LinkedList<Movement>> vehiclePlans = computeSLS(vehicles, tasks);
 
 		// System.out.println("Agent " + agent.id() + " has tasks " + tasks);
 		// Plan planVehicle1 = individualVehiclePlan(vehicles.get(0), tasks);
 		for (Vehicle vehicle : vehicles) {
-			LinkedList<Action> actions = vehiclePlans.get(vehicle);
-			Plan plan = individualVehiclePlan(vehicle, actions);
+			LinkedList<Movement> movements = vehiclePlans.get(vehicle);
+			Plan plan = individualVehiclePlan(vehicle, movements);
 			plans.add(plan);
 		}
 		/*
@@ -89,21 +88,21 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	/**
 	 * Compute the plan for one vehicle
 	 * @param vehicle
-	 * @param actions an orderd list of action to perform
+	 * @param movements an orderd list of movements to perform
 	 * @return
 	 */
-	private Plan individualVehiclePlan(Vehicle vehicle, LinkedList<Action> actions) {
+	private Plan individualVehiclePlan(Vehicle vehicle, LinkedList<Movement> movements) {
 		City current = vehicle.getCurrentCity();
 		Plan plan = new Plan(current);
 		
 		// If vehicle has nothing to do
-		if (actions == null) {
+		if (movements == null) {
 			return Plan.EMPTY;
 		}
 		
-		for (Action a : actions) {
+		for (Movement a : movements) {
 			// move: current city => pickup location
-			if (a.getAction() == ActionsEnum.PICKUP) {
+			if (a.getMovement() == MovementsEnumeration.PICKUP) {
 				for (City city : current.pathTo(a.getTask().pickupCity)) {
 					plan.appendMove(city);
 				}
@@ -112,7 +111,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			}
 
 			// move: pickup location => delivery location
-			if (a.getAction() == ActionsEnum.DELIVER) {
+			if (a.getMovement() == MovementsEnumeration.DELIVER) {
 				for (City city : a.getTask().path()) {
 					plan.appendMove(city);
 				}
@@ -129,7 +128,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	 * @param vehicles
 	 * @param tasks
 	 */
-	private HashMap<Vehicle, LinkedList<Action>> computeSLS(List<Vehicle> vehicles, TaskSet tasks) {
+	private HashMap<Vehicle, LinkedList<Movement>> computeSLS(List<Vehicle> vehicles, TaskSet tasks) {
 		SolutionState bestState;
 		SolutionState oldState;
 
@@ -187,37 +186,37 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			distributedTasks.put(v, (ArrayList<Task>) oldTasksList.clone());
 		}
 
-		HashMap<Action, Action> nextActions = new HashMap<Action, Action>();
-		HashMap<Vehicle, Action> nextActionsVehicle = new HashMap<Vehicle, Action>();
+		HashMap<Movement, Movement> nextMovements = new HashMap<Movement, Movement>();
+		HashMap<Vehicle, Movement> nextMovementsVehicle = new HashMap<Vehicle, Movement>();
 		for (Vehicle v : vehicles) {
 			ArrayList<Task> vTasks = distributedTasks.get(v);
 			if (vTasks != null) {
 				int time = 1;
-				Action firstAction = new Action(ActionsEnum.PICKUP, vTasks.get(0), time);
+				Movement firstMovement = new Movement(MovementsEnumeration.PICKUP, vTasks.get(0), time);
 				time++;
-				Action previousAction = firstAction;
-				nextActionsVehicle.put(v, firstAction);
+				Movement previousMovement = firstMovement;
+				nextMovementsVehicle.put(v, firstMovement);
 				for (int i = 1; i < vTasks.size(); i++) {
-					Action nextDeliverAction = new Action(ActionsEnum.DELIVER, vTasks.get(i - 1), time);
-					nextActions.put(previousAction, nextDeliverAction);
+					Movement nextDeliverMovement = new Movement(MovementsEnumeration.DELIVER, vTasks.get(i - 1), time);
+					nextMovements.put(previousMovement, nextDeliverMovement);
 					time++;
-					Action nextPickupAction = new Action(ActionsEnum.PICKUP, vTasks.get(i), time);
+					Movement nextPickupMovement = new Movement(MovementsEnumeration.PICKUP, vTasks.get(i), time);
 					time++;
-					nextActions.put(nextDeliverAction, nextPickupAction);
-					previousAction = nextPickupAction;
+					nextMovements.put(nextDeliverMovement, nextPickupMovement);
+					previousMovement = nextPickupMovement;
 
 				}
-				Action finalAction = new Action(ActionsEnum.DELIVER, vTasks.get(vTasks.size() - 1), time);
-				nextActions.put(previousAction, finalAction);
+				Movement finalMovement = new Movement(MovementsEnumeration.DELIVER, vTasks.get(vTasks.size() - 1), time);
+				nextMovements.put(previousMovement, finalMovement);
 			}
 		}
-		SolutionState solution = new SolutionState(nextActions, nextActionsVehicle);
+		SolutionState solution = new SolutionState(nextMovements, nextMovementsVehicle);
 		
 		return solution;
 	}
 
 	// TODO
-	public ArrayList<SolutionState> chooseNeighbours(SolutionState actions) {
+	public ArrayList<SolutionState> chooseNeighbours(SolutionState movements) {
 		ArrayList<SolutionState> neighbours = null;
 		return neighbours;
 	}
@@ -232,24 +231,24 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	 * @param solutionState
 	 * @return
 	 */
-	public static HashMap<Vehicle, LinkedList<Action>> computeVehiclePlans(SolutionState solutionState) {
-		HashMap<Vehicle, LinkedList<Action>> plans = new HashMap<Vehicle, LinkedList<Action>>();
+	public static HashMap<Vehicle, LinkedList<Movement>> computeVehiclePlans(SolutionState solutionState) {
+		HashMap<Vehicle, LinkedList<Movement>> plans = new HashMap<Vehicle, LinkedList<Movement>>();
 
-		HashMap<Vehicle, Action> vehicleAction = solutionState.getNextActionsVehicle();
-		HashMap<Action, Action> actions = solutionState.getNextActions();
+		HashMap<Vehicle, Movement> vehicleMovement = solutionState.getNextMovementsVehicle();
+		HashMap<Movement, Movement> movements = solutionState.getNextMovements();
 
-		for (Vehicle v : vehicleAction.keySet()) {
-			LinkedList<Action> orderedActions = new LinkedList<Action>();
-			orderedActions.add(vehicleAction.get(v));
+		for (Vehicle v : vehicleMovement.keySet()) {
+			LinkedList<Movement> orderedMovements = new LinkedList<Movement>();
+			orderedMovements.add(vehicleMovement.get(v));
 
-			Action next = vehicleAction.get(v);
+			Movement next = vehicleMovement.get(v);
 			while (next != null) {
-				next = actions.get(next);
+				next = movements.get(next);
 				if (next != null) {
-					orderedActions.add(next);
+					orderedMovements.add(next);
 				}
 			}
-			plans.put(v, orderedActions);
+			plans.put(v, orderedMovements);
 		}
 		return plans;
 	}

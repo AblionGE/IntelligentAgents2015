@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import java.util.Set;
 
 import logist.simulation.Vehicle;
-import logist.task.Task;
 import logist.topology.Topology.City;
 
 /**
@@ -16,29 +15,29 @@ import logist.topology.Topology.City;
  */
 public class SolutionState {
 	
-	private HashMap<Action, Action> nextActions = new HashMap<Action, Action>();
-	private HashMap<Vehicle, Action> nextActionsVehicle = new HashMap<Vehicle, Action>();
+	private HashMap<Movement, Movement> nextMovements = new HashMap<Movement, Movement>();
+	private HashMap<Vehicle, Movement> nextMovementsVehicle = new HashMap<Vehicle, Movement>();
 	private double cost;
 	
-	SolutionState(HashMap<Action, Action> nextActions, HashMap<Vehicle, Action> nextActionsVehicle) {
-		this.nextActions = nextActions;
-		this.nextActionsVehicle = nextActionsVehicle;
+	SolutionState(HashMap<Movement, Movement> nextMovements, HashMap<Vehicle, Movement> nextMovementsVehicle) {
+		this.nextMovements = nextMovements;
+		this.nextMovementsVehicle = nextMovementsVehicle;
 	}
 
-	protected HashMap<Action, Action> getNextActions() {
-		return nextActions;
+	protected HashMap<Movement, Movement> getNextMovements() {
+		return nextMovements;
 	}
 
-	protected void setNextActions(HashMap<Action, Action> nextActions) {
-		this.nextActions = nextActions;
+	protected void setNextActions(HashMap<Movement, Movement> nextMovements) {
+		this.nextMovements = nextMovements;
 	}
 
-	protected HashMap<Vehicle, Action> getNextActionsVehicle() {
-		return nextActionsVehicle;
+	protected HashMap<Vehicle, Movement> getNextMovementsVehicle() {
+		return nextMovementsVehicle;
 	}
 
-	protected void setNextActionsVehicle(HashMap<Vehicle, Action> nextActionsVehicle) {
-		this.nextActionsVehicle = nextActionsVehicle;
+	protected void setNextActionsVehicle(HashMap<Vehicle, Movement> nextMovementsVehicle) {
+		this.nextMovementsVehicle = nextMovementsVehicle;
 	}
 	
 	protected double getCost() {
@@ -47,15 +46,15 @@ public class SolutionState {
 
 	protected double computeCost() {
 		double totalCost = 0;
-		HashMap<Vehicle, LinkedList<Action>> paths = CentralizedTemplate.computeVehiclePlans(this);
+		HashMap<Vehicle, LinkedList<Movement>> paths = CentralizedTemplate.computeVehiclePlans(this);
 		Set<Vehicle> vehicles = paths.keySet();
 		
 		for (Vehicle v : vehicles) {
-			totalCost += computeVehicleDistance(v, nextActionsVehicle.get(v));
-			LinkedList<Action> currentPath = paths.get(v);
+			totalCost += computeVehicleDistance(v, nextMovementsVehicle.get(v));
+			LinkedList<Movement> currentPath = paths.get(v);
 			for (int i = 0; i < currentPath.size() - 1; i++) {
-				Action currentAction = currentPath.get(i);
-				totalCost += computeActionsDistance(currentAction, currentPath.get(i+1));
+				Movement currentMovement = currentPath.get(i);
+				totalCost += computeMovementsDistance(currentMovement, currentPath.get(i+1));
 			}
 			totalCost = totalCost * v.costPerKm();
 		}
@@ -63,23 +62,23 @@ public class SolutionState {
 		return totalCost;
 	}
 	
-	private double computeVehicleDistance(Vehicle v, Action a) {
+	private double computeVehicleDistance(Vehicle v, Movement a) {
 		City start = v.getCurrentCity();
 		City destination = a.getTask().pickupCity;
 		return start.distanceTo(destination);
 	}
 	
-	private double computeActionsDistance(Action a, Action b) {
+	private double computeMovementsDistance(Movement a, Movement b) {
 		City cityTaskA;
 		City cityTaskB;
 	
-		if (a.getAction() == ActionsEnum.PICKUP) {
+		if (a.getMovement() == MovementsEnumeration.PICKUP) {
 			cityTaskA = a.getTask().pickupCity;
 		} else {
 			cityTaskA = a.getTask().deliveryCity;
 		}
 		
-		if (b.getAction() == ActionsEnum.PICKUP) {
+		if (b.getMovement() == MovementsEnumeration.PICKUP) {
 			cityTaskB = b.getTask().pickupCity;
 		} else {
 			cityTaskB = b.getTask().deliveryCity;
@@ -93,8 +92,8 @@ public class SolutionState {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((nextActions == null) ? 0 : nextActions.hashCode());
-		result = prime * result + ((nextActionsVehicle == null) ? 0 : nextActionsVehicle.hashCode());
+		result = prime * result + ((nextMovements == null) ? 0 : nextMovements.hashCode());
+		result = prime * result + ((nextMovementsVehicle == null) ? 0 : nextMovementsVehicle.hashCode());
 		return result;
 	}
 
@@ -107,15 +106,15 @@ public class SolutionState {
 		if (getClass() != obj.getClass())
 			return false;
 		SolutionState other = (SolutionState) obj;
-		if (nextActions == null) {
-			if (other.nextActions != null)
+		if (nextMovements == null) {
+			if (other.nextMovements != null)
 				return false;
-		} else if (!nextActions.equals(other.nextActions))
+		} else if (!nextMovements.equals(other.nextMovements))
 			return false;
-		if (nextActionsVehicle == null) {
-			if (other.nextActionsVehicle != null)
+		if (nextMovementsVehicle == null) {
+			if (other.nextMovementsVehicle != null)
 				return false;
-		} else if (!nextActionsVehicle.equals(other.nextActionsVehicle))
+		} else if (!nextMovementsVehicle.equals(other.nextMovementsVehicle))
 			return false;
 		return true;
 	}

@@ -11,7 +11,7 @@ public final class Constraints {
 	 * @param state
 	 * @return
 	 */
-	public static boolean checkActionDoneOnce(SolutionState state) {
+	public static boolean checkMovementDoneOnce(SolutionState state) {
 		return false;
 	}
 	
@@ -20,7 +20,7 @@ public final class Constraints {
 	 * @param state
 	 * @return
 	 */
-	public static boolean checkFirstActionTime(SolutionState state) {
+	public static boolean checkFirstMovementTime(SolutionState state) {
 		return false;
 	}
 	
@@ -40,7 +40,7 @@ public final class Constraints {
 	 * @param state
 	 * @return
 	 */
-	public static boolean checkActionConsistency(SolutionState state) {
+	public static boolean checkMovementConsistency(SolutionState state) {
 		return false;
 	}
 	
