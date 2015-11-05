@@ -268,9 +268,10 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		if (nbTasks >= 2) {
 			for (int i = 1; i < nbTasks - 1; i++) {
 				for (int j = i + 1; j < i + nbTasks; j++) {
-					//SolutionState ss = changingTaskOrder(oldState, vehicle, i, j);
+					// SolutionState ss = changingTaskOrder(oldState, vehicle,
+					// i, j);
 					if (true) {// TODO check constraints
-						//neighbours.add(ss);
+						// neighbours.add(ss);
 					}
 				}
 			}
@@ -323,9 +324,46 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		return new SolutionState(null, null);
 	}
 
-	// TODO comme dans le paper
+	
+	// FIXME : bien relire
 	private SolutionState changingTaskOrder(SolutionState oldState, Vehicle vehicle, Movement move1, Movement move2) {
-		return new SolutionState(null, null);
+		HashMap<Vehicle, Movement> nextVehicleMovement = oldState.getNextMovementsVehicle();
+		HashMap<Movement, Movement> nextMovement = oldState.getNextMovements();
+		Movement prevMove1 = null;
+		Movement prevMove2 = null;
+		Movement succMove1 = null;
+		Movement succMove2 = null;
+
+		// Get successors of each move
+		succMove1 = nextMovement.get(move1);
+		succMove2 = nextMovement.get(move2);
+
+		// Get predecessors of each move and make new connection
+		LinkedList<Movement> vPlan = oldState.getPlans().get(vehicle);
+
+		int indexMove1 = vPlan.indexOf(move1);
+		if (indexMove1 > 0) {
+			prevMove1 = vPlan.get(indexMove1 - 1);
+			nextMovement.put(prevMove1, move2);
+		} else {
+			nextVehicleMovement.put(vehicle, move2);
+			prevMove1 = move1;
+		}
+
+		int indexMove2 = vPlan.indexOf(move2);
+		if (indexMove2 > 0) {
+			prevMove2 = vPlan.get(indexMove2 - 1);
+			nextMovement.put(prevMove2, move1);
+		} else {
+			nextVehicleMovement.put(vehicle, move1);
+			prevMove2 = move2;
+		}
+
+		// Get Successors and make new connection
+		nextMovement.put(move1, succMove2);
+		nextMovement.put(move2, succMove1);
+
+		return new SolutionState(nextMovement, nextVehicleMovement);
 	}
 
 }

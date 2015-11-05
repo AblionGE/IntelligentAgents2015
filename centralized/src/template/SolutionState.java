@@ -28,24 +28,27 @@ public class SolutionState {
 		this.timedMovements = computeTime(this.plans);
 	}
 
+	@SuppressWarnings("unchecked")
 	protected HashMap<Movement, Movement> getNextMovements() {
-		return nextMovements;
+		return (HashMap<Movement, Movement>) nextMovements.clone();
 	}
 
 	protected void setNextMovements(HashMap<Movement, Movement> nextMovements) {
 		this.nextMovements = nextMovements;
 	}
 
+	@SuppressWarnings("unchecked")
 	protected HashMap<Vehicle, Movement> getNextMovementsVehicle() {
-		return nextMovementsVehicle;
+		return (HashMap<Vehicle, Movement>) nextMovementsVehicle.clone();
 	}
 
 	protected void setNextMovementsVehicle(HashMap<Vehicle, Movement> nextMovementsVehicle) {
 		this.nextMovementsVehicle = nextMovementsVehicle;
 	}
 	
+	@SuppressWarnings("unchecked")
 	protected HashMap<Movement, Integer> getTimedMovements() {
-		return timedMovements;
+		return (HashMap<Movement, Integer>) timedMovements.clone();
 	}
 
 	protected void setTimedMovements(HashMap<Movement, Integer> timedMovements) {
