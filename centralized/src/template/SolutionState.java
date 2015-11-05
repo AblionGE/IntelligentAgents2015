@@ -49,7 +49,17 @@ public class SolutionState {
 	protected HashMap<Vehicle, LinkedList<Movement>> getPlans() {
 		return plans;
 	}
-
+	
+	/**
+	 * Number of tasks taken by vehicle v
+	 * @param v
+	 * @return
+	 */
+	// TODO
+	public int taskNumber(Vehicle v) {
+		return (int)plans.get(v).size() / 2;
+	}
+	
 	protected double computeCost() {
 		double totalCost = 0;
 		Set<Vehicle> vehicles = plans.keySet();
