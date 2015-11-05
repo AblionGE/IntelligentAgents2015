@@ -274,7 +274,6 @@ public class CentralizedTemplate implements CentralizedBehavior {
 				}
 			}
 		}
-
 		return neighbours;
 	}
 

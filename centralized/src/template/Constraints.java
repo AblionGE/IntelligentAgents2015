@@ -30,6 +30,7 @@ public final class Constraints {
 		errors += checkMovementConsistency(state);
 		errors += checkFirstTaskIsPickup(state);
 		errors += checkFirstTaskIsPickup(state);
+		errors += checkLoad(state);
 
 		return errors;
 	}
@@ -143,4 +144,37 @@ public final class Constraints {
 		return 0;
 	}
 
+	private static int checkLoad(SolutionState state) {
+		Set<Vehicle> vehicles = state.getPlans().keySet();
+		for (Vehicle v : vehicles) {
+			int retValue = checkVehicleLoad(state, v);
+			if (retValue != 0) {
+				return retValue;
+			}
+		}
+		return 0;
+	}
+	
+	public static int checkVehicleLoad(SolutionState state, Vehicle v) {
+		int currentLoad = 0;
+		LinkedList<Movement> movements = state.getPlans().get(v);
+		for (int i = 0; i < movements.size(); i++) {
+			Movement m = movements.get(i);
+			if (m.getAction() == Action.PICKUP) {
+				currentLoad += m.getTask().weight;
+				if (currentLoad > v.capacity()) {
+					return 1;
+				}
+			} else {
+				currentLoad -= m.getTask().weight;
+				if (currentLoad < 0) {
+					return 1;
+				}
+			}
+		}
+		if (currentLoad != 0) {
+			return 1;
+		}
+		return 0;
+	}
 }
