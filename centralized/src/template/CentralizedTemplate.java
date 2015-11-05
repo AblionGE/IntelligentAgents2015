@@ -145,7 +145,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		int stateRepetition = 0;
 		bestState = computeInitState(vehicles, tasks);
 
-		/*while (stateRepetition < maxStateRepetition && currentLoop < maxLoop) {
+		while (stateRepetition < maxStateRepetition && currentLoop < maxLoop) {
 			currentLoop++;
 			oldState = bestState;
 			ArrayList<SolutionState> neighbours = chooseNeighbours(bestState, vehicles);
@@ -155,7 +155,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			} else {
 				stateRepetition = 0;
 			}
-		}*/
+		}
 
 		System.out.println("Number of loops in SLS: " + currentLoop);
 		return bestState.getPlans();
@@ -263,13 +263,14 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		}
 
 		// apply changing task order operator:
+		// FIXME : NO ! We should loop over Movements, not tasks !
 		int nbTasks = oldState.taskNumber(vehicle);
 		if (nbTasks >= 2) {
 			for (int i = 1; i < nbTasks - 1; i++) {
 				for (int j = i + 1; j < i + nbTasks; j++) {
-					SolutionState ss = changingTaskOrder(oldState, vehicle, i, j);
+					//SolutionState ss = changingTaskOrder(oldState, vehicle, i, j);
 					if (true) {// TODO check constraints
-						neighbours.add(ss);
+						//neighbours.add(ss);
 					}
 				}
 			}
@@ -323,7 +324,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	}
 
 	// TODO comme dans le paper
-	private SolutionState changingTaskOrder(SolutionState oldState, Vehicle vehicle, int idx1, int idx2) {
+	private SolutionState changingTaskOrder(SolutionState oldState, Vehicle vehicle, Movement move1, Movement move2) {
 		return new SolutionState(null, null);
 	}
 
