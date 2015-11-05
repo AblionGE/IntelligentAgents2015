@@ -10,13 +10,11 @@ import logist.task.Task;
 public class Movement {
 
 	private Task task;
-	private int time;
 	private Action action;
 	
-	Movement (Action action, Task task, int time) {
+	Movement (Action action, Task task) {
 		this.task = task;
 		this.action = action;
-		this.time = time;
 	}
 
 	protected Action getAction() {
@@ -27,17 +25,10 @@ public class Movement {
 		return task;
 	}
 
-	protected int getTime() {
-		return time;
-	}
-
-	protected void setTime(int time) {
-		this.time = time;
-	}
 
 	@Override
 	public String toString() {
-		return "Movement [task=" + task + ", time=" + time + ", action=" + action + "]";
+		return "Movement [task=" + task + ", action=" + action + "]";
 	}
 
 	@Override
@@ -49,7 +40,6 @@ public class Movement {
 		return result;
 	}
 
-	// equals does not test the time property !!
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)

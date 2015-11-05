@@ -17,13 +17,15 @@ public class SolutionState {
 	
 	private HashMap<Movement, Movement> nextMovements = new HashMap<Movement, Movement>();
 	private HashMap<Vehicle, Movement> nextMovementsVehicle = new HashMap<Vehicle, Movement>();
+	private HashMap<Movement, Integer> timedMovements = new HashMap<Movement, Integer>();
 	private HashMap<Vehicle, LinkedList<Movement>> plans;
 	private double cost;
 	
 	SolutionState(HashMap<Movement, Movement> nextMovements, HashMap<Vehicle, Movement> nextMovementsVehicle) {
 		this.nextMovements = nextMovements;
 		this.nextMovementsVehicle = nextMovementsVehicle;
-		this. plans = computeVehiclePlans(this);
+		this.plans = computeVehiclePlans(this);
+		this.timedMovements = computeTime(this.plans);
 	}
 
 	protected HashMap<Movement, Movement> getNextMovements() {
@@ -42,6 +44,14 @@ public class SolutionState {
 		this.nextMovementsVehicle = nextMovementsVehicle;
 	}
 	
+	protected HashMap<Movement, Integer> getTimedMovements() {
+		return timedMovements;
+	}
+
+	protected void setTimedMovements(HashMap<Movement, Integer> timedMovements) {
+		this.timedMovements = timedMovements;
+	}
+
 	protected double getCost() {
 		return cost;
 	}
@@ -128,13 +138,32 @@ public class SolutionState {
 		}
 		return plans;
 	}
+	
+	private HashMap<Movement, Integer> computeTime(HashMap<Vehicle, LinkedList<Movement>> plans) {
+		Set<Vehicle> vehicles = plans.keySet();
+		HashMap<Movement, Integer> timedMovements = new HashMap<Movement, Integer>();
+		for (Vehicle v : vehicles) {
+			LinkedList<Movement> movements = plans.get(v);
+			int time = 1;
+			for (Movement m : movements) {
+				timedMovements.put(m, time);
+				time++;
+			}
+		}
+		return timedMovements;
+	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		long temp;
+		temp = Double.doubleToLongBits(cost);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
 		result = prime * result + ((nextMovements == null) ? 0 : nextMovements.hashCode());
 		result = prime * result + ((nextMovementsVehicle == null) ? 0 : nextMovementsVehicle.hashCode());
+		result = prime * result + ((plans == null) ? 0 : plans.hashCode());
+		result = prime * result + ((timedMovements == null) ? 0 : timedMovements.hashCode());
 		return result;
 	}
 
@@ -147,6 +176,8 @@ public class SolutionState {
 		if (getClass() != obj.getClass())
 			return false;
 		SolutionState other = (SolutionState) obj;
+		if (Double.doubleToLongBits(cost) != Double.doubleToLongBits(other.cost))
+			return false;
 		if (nextMovements == null) {
 			if (other.nextMovements != null)
 				return false;
@@ -157,9 +188,17 @@ public class SolutionState {
 				return false;
 		} else if (!nextMovementsVehicle.equals(other.nextMovementsVehicle))
 			return false;
+		if (plans == null) {
+			if (other.plans != null)
+				return false;
+		} else if (!plans.equals(other.plans))
+			return false;
+		if (timedMovements == null) {
+			if (other.timedMovements != null)
+				return false;
+		} else if (!timedMovements.equals(other.timedMovements))
+			return false;
 		return true;
 	}
-	
-	
 
 }

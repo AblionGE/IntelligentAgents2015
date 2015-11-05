@@ -64,7 +64,7 @@ public final class Constraints {
 		HashMap<Vehicle, Movement> nextMove = state.getNextMovementsVehicle();
 		Set<Vehicle> vehicles = nextMove.keySet();
 		for (Vehicle v : vehicles) {
-			if (nextMove.get(v).getTime() != 1) {
+			if (state.getTimedMovements().get(nextMove.get(v)) != 1) {
 				return 1;
 			}
 		}
@@ -84,7 +84,7 @@ public final class Constraints {
 			LinkedList<Movement> movements = plans.get(v);
 			int timeCounter = 1;
 			for (int i = 0; i < movements.size(); i++) {
-				if (movements.get(i).getTime() != timeCounter) {
+				if (state.getTimedMovements().get(movements.get(i)) != timeCounter) {
 					return 1;
 				} else {
 					timeCounter++;

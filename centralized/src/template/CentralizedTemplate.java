@@ -35,7 +35,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	private final double SLS_PROBABILITY = 0.5;
 	private final int MAX_SLS_LOOPS = 10000;
 	private final int MAX_SLS_STATE_REPETITION = 10;
-	
+
 	private Topology topology;
 	private TaskDistribution distribution;
 	private Agent agent;
@@ -145,12 +145,12 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		int stateRepetition = 0;
 		bestState = computeInitState(vehicles, tasks);
 
-
 		while (stateRepetition < maxStateRepetition && currentLoop < maxLoop) {
-			currentLoop++; oldState = bestState;
+			currentLoop++;
+			oldState = bestState;
 			ArrayList<SolutionState> neighbours = chooseNeighbours(bestState, vehicles);
 			bestState = localChoice(oldState, neighbours, p);
-			if(bestState.equals(oldState)) {
+			if (bestState.equals(oldState)) {
 				stateRepetition++;
 			} else {
 				stateRepetition = 0;
@@ -207,23 +207,18 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		for (Vehicle v : vehicles) {
 			ArrayList<Task> vTasks = distributedTasks.get(v);
 			if (vTasks != null) {
-				int time = 1;
-				Movement firstMovement = new Movement(Action.PICKUP, vTasks.get(0), time);
-				time++;
+				Movement firstMovement = new Movement(Action.PICKUP, vTasks.get(0));
 				Movement previousMovement = firstMovement;
 				nextMovementsVehicle.put(v, firstMovement);
 				for (int i = 1; i < vTasks.size(); i++) {
-					Movement nextDeliverMovement = new Movement(Action.DELIVER, vTasks.get(i - 1), time);
+					Movement nextDeliverMovement = new Movement(Action.DELIVER, vTasks.get(i - 1));
 					nextMovements.put(previousMovement, nextDeliverMovement);
-					time++;
-					Movement nextPickupMovement = new Movement(Action.PICKUP, vTasks.get(i), time);
-					time++;
+					Movement nextPickupMovement = new Movement(Action.PICKUP, vTasks.get(i));
 					nextMovements.put(nextDeliverMovement, nextPickupMovement);
 					previousMovement = nextPickupMovement;
 
 				}
-				Movement finalMovement = new Movement(Action.DELIVER, vTasks.get(vTasks.size() - 1),
-						time);
+				Movement finalMovement = new Movement(Action.DELIVER, vTasks.get(vTasks.size() - 1));
 				nextMovements.put(previousMovement, finalMovement);
 			}
 		}
@@ -239,43 +234,43 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	// algo from paper
 	public ArrayList<SolutionState> chooseNeighbours(SolutionState oldState, List<Vehicle> vehicles) {
 		ArrayList<SolutionState> neighbours = new ArrayList<SolutionState>();
-		HashMap<Vehicle,Movement> nextMovementsVehicle = oldState.getNextMovementsVehicle();
-		
+		HashMap<Vehicle, Movement> nextMovementsVehicle = oldState.getNextMovementsVehicle();
+
 		// pick a random vehicle
-		Random ran = new Random(); //FIXME change seed
+		Random ran = new Random(); // FIXME change seed
 		int x = ran.nextInt(vehicles.size());
 		Vehicle vehicle = vehicles.get(x);
-		while(nextMovementsVehicle.get(vehicle) == null) {
+		while (nextMovementsVehicle.get(vehicle) == null) {
 			x = ran.nextInt(vehicles.size());
 			vehicle = vehicles.get(x);
 		}
-		
+
 		// apply changing vehicle operator:
-		for(Vehicle v: vehicles) {
-			if(!v.equals(vehicle)) {
+		for (Vehicle v : vehicles) {
+			if (!v.equals(vehicle)) {
 				Movement m = nextMovementsVehicle.get(vehicle);
-				if(m.getTask().weight < v.capacity()) {
+				if (m.getTask().weight < v.capacity()) {
 					SolutionState ss = changingVehicle(oldState, vehicle, v);
-					if(true) {// TODO check constaints
+					if (true) {// TODO check constaints
 						neighbours.add(ss);
 					}
 				}
 			}
 		}
-		
+
 		// apply changing task order operator:
 		int nbTasks = oldState.taskNumber(vehicle);
-		if(nbTasks >= 2) {
-			for (int i = 1; i < nbTasks-1; i++) {
-				for (int j = i+1; j < i+nbTasks; j++) {
+		if (nbTasks >= 2) {
+			for (int i = 1; i < nbTasks - 1; i++) {
+				for (int j = i + 1; j < i + nbTasks; j++) {
 					SolutionState ss = changingTaskOrder(oldState, vehicle, i, j);
-					if(true) {// TODO check constraints
+					if (true) {// TODO check constraints
 						neighbours.add(ss);
 					}
 				}
 			}
 		}
-		
+
 		return neighbours;
 	}
 
@@ -319,12 +314,11 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		return bestSolution;
 	}
 
-	
 	// TODO comme dans le paper
 	private SolutionState changingVehicle(SolutionState oldState, Vehicle v1, Vehicle v2) {
 		return new SolutionState(null, null);
 	}
-	
+
 	// TODO comme dans le paper
 	private SolutionState changingTaskOrder(SolutionState oldState, Vehicle vehicle, int idx1, int idx2) {
 		return new SolutionState(null, null);
