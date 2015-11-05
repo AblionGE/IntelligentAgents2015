@@ -26,6 +26,7 @@ We need to define some constraints to solve the *PDP* problem. The variable $x$ 
 
 * $nextMovement(x_i) \neq x_i$
 * $nextVehicleMovement(v_i) = x_j \Rightarrow time(x_j) = 1$ : $nextVehicleMovement$ is always at the beginning.
+* $nextVehicleMovement(x_i) \Rightarrow$ always a *Pickup* action.
 * $nextMovement(x_i) = x_j \Rightarrow time(x_j) = time(x_i) + 1$
 * $time(Pickup(t_i)) < time(Deliver(t_i))$ : a task must be picked up before delivered.
 * $nextVehicleMovement(v_k) = x_i \Rightarrow vehicle(x_i) = v_k$
