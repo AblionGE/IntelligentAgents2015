@@ -55,7 +55,6 @@ public class SolutionState {
 	 * @param v
 	 * @return
 	 */
-	// TODO
 	public int taskNumber(Vehicle v) {
 		return (int)plans.get(v).size() / 2;
 	}
