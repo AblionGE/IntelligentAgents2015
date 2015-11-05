@@ -17,11 +17,13 @@ public class SolutionState {
 	
 	private HashMap<Movement, Movement> nextMovements = new HashMap<Movement, Movement>();
 	private HashMap<Vehicle, Movement> nextMovementsVehicle = new HashMap<Vehicle, Movement>();
+	private HashMap<Vehicle, LinkedList<Movement>> plans;
 	private double cost;
 	
 	SolutionState(HashMap<Movement, Movement> nextMovements, HashMap<Vehicle, Movement> nextMovementsVehicle) {
 		this.nextMovements = nextMovements;
 		this.nextMovementsVehicle = nextMovementsVehicle;
+		this. plans = computeVehiclePlans(this);
 	}
 
 	protected HashMap<Movement, Movement> getNextMovements() {
@@ -44,14 +46,16 @@ public class SolutionState {
 		return cost;
 	}
 
+	protected HashMap<Vehicle, LinkedList<Movement>> getPlans() {
+		return plans;
+	}
+
 	protected double computeCost() {
 		double totalCost = 0;
-		HashMap<Vehicle, LinkedList<Movement>> paths = CentralizedTemplate.computeVehiclePlans(this);
-		Set<Vehicle> vehicles = paths.keySet();
-		
+		Set<Vehicle> vehicles = plans.keySet();
 		for (Vehicle v : vehicles) {
 			totalCost += computeVehicleDistance(v, nextMovementsVehicle.get(v));
-			LinkedList<Movement> currentPath = paths.get(v);
+			LinkedList<Movement> currentPath = plans.get(v);
 			for (int i = 0; i < currentPath.size() - 1; i++) {
 				Movement currentMovement = currentPath.get(i);
 				totalCost += computeMovementsDistance(currentMovement, currentPath.get(i+1));
@@ -86,6 +90,34 @@ public class SolutionState {
 		
 		return cityTaskA.distanceTo(cityTaskB);
 		
+	}
+	
+	/**
+	 * It computes for each vehicle an ordered list of tasks
+	 * 
+	 * @param solutionState
+	 * @return
+	 */
+	private HashMap<Vehicle, LinkedList<Movement>> computeVehiclePlans(SolutionState solutionState) {
+		HashMap<Vehicle, LinkedList<Movement>> plans = new HashMap<Vehicle, LinkedList<Movement>>();
+
+		HashMap<Vehicle, Movement> vehicleMovement = solutionState.getNextMovementsVehicle();
+		HashMap<Movement, Movement> movements = solutionState.getNextMovements();
+
+		for (Vehicle v : vehicleMovement.keySet()) {
+			LinkedList<Movement> orderedMovements = new LinkedList<Movement>();
+			orderedMovements.add(vehicleMovement.get(v));
+
+			Movement next = vehicleMovement.get(v);
+			while (next != null) {
+				next = movements.get(next);
+				if (next != null) {
+					orderedMovements.add(next);
+				}
+			}
+			plans.put(v, orderedMovements);
+		}
+		return plans;
 	}
 
 	@Override

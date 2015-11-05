@@ -1,5 +1,14 @@
 package template;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+
+import logist.simulation.Vehicle;
+
 /**
  * This class is used to have functions verifying constraints
  *
@@ -7,12 +16,39 @@ package template;
 public final class Constraints {
 	
 	/**
+	 * This function verifies all constraints
+	 * @param state
+	 * @return the number of errors.
+	 */
+	public static int checkSolutionState(SolutionState state) {
+		int errors = 0;
+		
+		errors += checkMovementDoneOnce(state);
+		errors += checkFirstMovementTime(state);
+		errors += checkTime(state);
+		errors += checkMovementConsistency(state);
+		errors += checkRelationTaskVehicle(state);
+		
+		return errors;
+	}
+	/**
 	 * Check that each action is done only once
 	 * @param state
 	 * @return
 	 */
-	public static boolean checkMovementDoneOnce(SolutionState state) {
-		return false;
+	private static int checkMovementDoneOnce(SolutionState state) {
+		HashMap<Vehicle, LinkedList<Movement>> plans = state.getPlans();
+		
+		Collection<LinkedList<Movement>> m = plans.values();
+		
+		for (LinkedList<Movement> movements : m) {
+			int sizeOfMovements = movements.size();
+			Set<Movement> set = new HashSet<Movement>(movements);
+			if (set.size() != sizeOfMovements) {
+				return 1;
+			}
+		}
+		return 0;
 	}
 	
 	/**
@@ -20,8 +56,8 @@ public final class Constraints {
 	 * @param state
 	 * @return
 	 */
-	public static boolean checkFirstMovementTime(SolutionState state) {
-		return false;
+	private static int checkFirstMovementTime(SolutionState state) {
+		return 0;
 	}
 	
 	/**
@@ -29,8 +65,8 @@ public final class Constraints {
 	 * @param state
 	 * @return
 	 */
-	public static boolean checkTime(SolutionState state) {
-		return false;
+	private static int checkTime(SolutionState state) {
+		return 0;
 	}
 	
 	/**
@@ -40,8 +76,8 @@ public final class Constraints {
 	 * @param state
 	 * @return
 	 */
-	public static boolean checkMovementConsistency(SolutionState state) {
-		return false;
+	private static int checkMovementConsistency(SolutionState state) {
+		return 0;
 	}
 	
 	/**
@@ -49,8 +85,8 @@ public final class Constraints {
 	 * @param state
 	 * @return
 	 */
-	public static boolean checkRelationTaskVehicle(SolutionState state){
-		return false;
+	private static int checkRelationTaskVehicle(SolutionState state){
+		return 0;
 	}
 
 }

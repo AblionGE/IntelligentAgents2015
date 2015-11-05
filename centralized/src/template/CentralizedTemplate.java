@@ -158,7 +158,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		}
 
 		System.out.println("Number of loops in SLS: " + currentLoop);
-		return computeVehiclePlans(bestState);
+		return bestState.getPlans();
 	}
 
 	/**
@@ -279,34 +279,6 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		}
 
 		return bestSolution;
-	}
-
-	/**
-	 * It computes for each vehicle an ordered list of tasks
-	 * 
-	 * @param solutionState
-	 * @return
-	 */
-	public static HashMap<Vehicle, LinkedList<Movement>> computeVehiclePlans(SolutionState solutionState) {
-		HashMap<Vehicle, LinkedList<Movement>> plans = new HashMap<Vehicle, LinkedList<Movement>>();
-
-		HashMap<Vehicle, Movement> vehicleMovement = solutionState.getNextMovementsVehicle();
-		HashMap<Movement, Movement> movements = solutionState.getNextMovements();
-
-		for (Vehicle v : vehicleMovement.keySet()) {
-			LinkedList<Movement> orderedMovements = new LinkedList<Movement>();
-			orderedMovements.add(vehicleMovement.get(v));
-
-			Movement next = vehicleMovement.get(v);
-			while (next != null) {
-				next = movements.get(next);
-				if (next != null) {
-					orderedMovements.add(next);
-				}
-			}
-			plans.put(v, orderedMovements);
-		}
-		return plans;
 	}
 
 }
