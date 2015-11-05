@@ -4,23 +4,23 @@ import logist.task.Task;
 
 /**
  * This class represents an movement that can be to pickup or deliver a task.
- * It also contains the time when te movement must be done and it has a task.
+ * It also contains the time when the movement must be done and it has a task.
  *
  */
 public class Movement {
 
 	private Task task;
 	private int time;
-	private MovementsEnumeration movement;
+	private Action action;
 	
-	Movement (MovementsEnumeration movement, Task task, int time) {
+	Movement (Action action, Task task, int time) {
 		this.task = task;
-		this.movement = movement;
+		this.action = action;
 		this.time = time;
 	}
 
-	protected MovementsEnumeration getMovement() {
-		return movement;
+	protected Action getAction() {
+		return action;
 	}
 
 	protected Task getTask() {
@@ -37,7 +37,7 @@ public class Movement {
 
 	@Override
 	public String toString() {
-		return "Movement [task=" + task + ", time=" + time + ", movement=" + movement + "]";
+		return "Movement [task=" + task + ", time=" + time + ", action=" + action + "]";
 	}
 	
 }

@@ -1,5 +1,5 @@
 package template;
 
-enum MovementsEnumeration {
+enum Action {
 PICKUP, DELIVER
 }

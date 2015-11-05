@@ -32,6 +32,10 @@ import logist.topology.Topology.City;
 @SuppressWarnings("unused")
 public class CentralizedTemplate implements CentralizedBehavior {
 
+	private final double SLS_PROBABILITY = 0.5;
+	private final int MAX_SLS_LOOPS = 1000;
+	private final int MAX_SLS_STATE_REPETITION = 10;
+	
 	private Topology topology;
 	private TaskDistribution distribution;
 	private Agent agent;
@@ -104,7 +108,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 
 		for (Movement a : movements) {
 			// move: current city => pickup location
-			if (a.getMovement() == MovementsEnumeration.PICKUP) {
+			if (a.getAction() == Action.PICKUP) {
 				for (City city : current.pathTo(a.getTask().pickupCity)) {
 					plan.appendMove(city);
 				}
@@ -113,7 +117,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			}
 
 			// move: pickup location => delivery location
-			if (a.getMovement() == MovementsEnumeration.DELIVER) {
+			if (a.getAction() == Action.DELIVER) {
 				for (City city : a.getTask().path()) {
 					plan.appendMove(city);
 				}
@@ -134,17 +138,26 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		SolutionState bestState;
 		SolutionState oldState;
 
-		int maxLoop = 1000;
+		double p = SLS_PROBABILITY;
+		int maxLoop = MAX_SLS_LOOPS;
+		int maxStateRepetition = MAX_SLS_STATE_REPETITION;
 		int currentLoop = 0;
+		int stateRepetition = 0;
 		bestState = computeInitState(vehicles, tasks);
 
-		// TODO : // add condition if no improvement
-		/*
-		 * while (currentLoop < maxLoop) { currentLoop++; oldState = bestState;
-		 * ArrayList<SolutionState> neighbours = chooseNeighbours(bestState);
-		 * bestState = localChoice(oldState, neighbours); }
-		 */
 
+		while (stateRepetition < maxStateRepetition && currentLoop < maxLoop) {
+			currentLoop++; oldState = bestState;
+			ArrayList<SolutionState> neighbours = chooseNeighbours(bestState);
+			bestState = localChoice(oldState, neighbours, p);
+			if(bestState.equals(oldState)) {
+				stateRepetition++;
+			} else {
+				stateRepetition = 0;
+			}
+		}
+
+		System.out.println("Number of loops in SLS: " + currentLoop);
 		return computeVehiclePlans(bestState);
 	}
 
@@ -195,21 +208,21 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			ArrayList<Task> vTasks = distributedTasks.get(v);
 			if (vTasks != null) {
 				int time = 1;
-				Movement firstMovement = new Movement(MovementsEnumeration.PICKUP, vTasks.get(0), time);
+				Movement firstMovement = new Movement(Action.PICKUP, vTasks.get(0), time);
 				time++;
 				Movement previousMovement = firstMovement;
 				nextMovementsVehicle.put(v, firstMovement);
 				for (int i = 1; i < vTasks.size(); i++) {
-					Movement nextDeliverMovement = new Movement(MovementsEnumeration.DELIVER, vTasks.get(i - 1), time);
+					Movement nextDeliverMovement = new Movement(Action.DELIVER, vTasks.get(i - 1), time);
 					nextMovements.put(previousMovement, nextDeliverMovement);
 					time++;
-					Movement nextPickupMovement = new Movement(MovementsEnumeration.PICKUP, vTasks.get(i), time);
+					Movement nextPickupMovement = new Movement(Action.PICKUP, vTasks.get(i), time);
 					time++;
 					nextMovements.put(nextDeliverMovement, nextPickupMovement);
 					previousMovement = nextPickupMovement;
 
 				}
-				Movement finalMovement = new Movement(MovementsEnumeration.DELIVER, vTasks.get(vTasks.size() - 1),
+				Movement finalMovement = new Movement(Action.DELIVER, vTasks.get(vTasks.size() - 1),
 						time);
 				nextMovements.put(previousMovement, finalMovement);
 			}
@@ -257,10 +270,10 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		} else {
 			bestSolution = bestSolutions.get(0);
 		}
-		
+
 		Random ran = new Random();
 		int x = ran.nextInt(100);
-		
+
 		if (x > probability * 100) {
 			bestSolution = old;
 		}
@@ -269,7 +282,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	}
 
 	/**
-	 * It computes for each vehicle an orderd list of tasks
+	 * It computes for each vehicle an ordered list of tasks
 	 * 
 	 * @param solutionState
 	 * @return

@@ -28,7 +28,7 @@ public class SolutionState {
 		return nextMovements;
 	}
 
-	protected void setNextActions(HashMap<Movement, Movement> nextMovements) {
+	protected void setNextMovements(HashMap<Movement, Movement> nextMovements) {
 		this.nextMovements = nextMovements;
 	}
 
@@ -36,7 +36,7 @@ public class SolutionState {
 		return nextMovementsVehicle;
 	}
 
-	protected void setNextActionsVehicle(HashMap<Vehicle, Movement> nextMovementsVehicle) {
+	protected void setNextMovementsVehicle(HashMap<Vehicle, Movement> nextMovementsVehicle) {
 		this.nextMovementsVehicle = nextMovementsVehicle;
 	}
 	
@@ -72,13 +72,13 @@ public class SolutionState {
 		City cityTaskA;
 		City cityTaskB;
 	
-		if (a.getMovement() == MovementsEnumeration.PICKUP) {
+		if (a.getAction() == Action.PICKUP) {
 			cityTaskA = a.getTask().pickupCity;
 		} else {
 			cityTaskA = a.getTask().deliveryCity;
 		}
 		
-		if (b.getMovement() == MovementsEnumeration.PICKUP) {
+		if (b.getAction() == Action.PICKUP) {
 			cityTaskB = b.getTask().pickupCity;
 		} else {
 			cityTaskB = b.getTask().deliveryCity;
