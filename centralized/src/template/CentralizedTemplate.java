@@ -145,7 +145,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		int stateRepetition = 0;
 		bestState = computeInitState(vehicles, tasks);
 
-		while (stateRepetition < maxStateRepetition && currentLoop < maxLoop) {
+		/*while (stateRepetition < maxStateRepetition && currentLoop < maxLoop) {
 			currentLoop++;
 			oldState = bestState;
 			ArrayList<SolutionState> neighbours = chooseNeighbours(bestState, vehicles);
@@ -155,7 +155,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			} else {
 				stateRepetition = 0;
 			}
-		}
+		}*/
 
 		System.out.println("Number of loops in SLS: " + currentLoop);
 		return bestState.getPlans();
@@ -226,6 +226,10 @@ public class CentralizedTemplate implements CentralizedBehavior {
 
 		// Compute the cost of this plan a save it into the SolutionState object
 		solution.computeCost();
+		int contraintsErrors = Constraints.checkSolutionState(solution);
+		if (contraintsErrors != 0) {
+			System.err.println("The initial solution does not respect " + contraintsErrors + " errors.");
+		}
 
 		return solution;
 	}

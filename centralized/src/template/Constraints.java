@@ -29,6 +29,7 @@ public final class Constraints {
 		errors += checkTime(state);
 		errors += checkMovementConsistency(state);
 		errors += checkFirstTaskIsPickup(state);
+		errors += checkFirstTaskIsPickup(state);
 
 		return errors;
 	}
@@ -109,7 +110,7 @@ public final class Constraints {
 			LinkedList<Movement> movements = plans.get(v);
 			for (Movement m : movements) {
 				if (verification.containsKey(m.getTask())) {
-					verification.put(m.getTask(), verification.get(m.getTask()));
+					verification.put(m.getTask(), verification.get(m.getTask()) + 1);
 				} else {
 					verification.put(m.getTask(), 1);
 				}
