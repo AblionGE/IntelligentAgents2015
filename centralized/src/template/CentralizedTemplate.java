@@ -32,9 +32,9 @@ import logist.topology.Topology.City;
 @SuppressWarnings("unused")
 public class CentralizedTemplate implements CentralizedBehavior {
 
-	private final double SLS_PROBABILITY = 0.5;
+	private final double SLS_PROBABILITY = 1.0;
 	private final int MAX_SLS_LOOPS = 10000;
-	private final int MAX_SLS_STATE_REPETITION = 10;
+	private final int MAX_SLS_STATE_REPETITION = 100;
 
 	private Topology topology;
 	private TaskDistribution distribution;
@@ -88,6 +88,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 
 		return plans;
 	}
+
 
 	/**
 	 * Compute the plan for one vehicle
@@ -157,7 +158,10 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			}
 		}
 
+		System.out.println(" ======================================================== ");
 		System.out.println("Number of loops in SLS: " + currentLoop);
+		System.out.println("Expected cost: " + bestState.getCost());
+		System.out.println(bestState.toString());
 		return bestState.getPlans();
 	}
 
@@ -170,7 +174,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public SolutionState computeInitState(List<Vehicle> vehicles, TaskSet tasks) {
+	private SolutionState computeInitState(List<Vehicle> vehicles, TaskSet tasks) {
 		HashMap<Vehicle, ArrayList<Task>> distributedTasks = new HashMap<Vehicle, ArrayList<Task>>();
 		ArrayList<Vehicle> arrayOfVehicles = new ArrayList<Vehicle>(vehicles);
 		ArrayList<Task> arrayOfTasks = new ArrayList<Task>(tasks);
@@ -225,7 +229,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		SolutionState solution = new SolutionState(nextMovements, nextMovementsVehicle);
 
 		// Compute the cost of this plan a save it into the SolutionState object
-		solution.computeCost();
+		solution.getCost();
 		int contraintsErrors = Constraints.checkSolutionState(solution);
 		if (contraintsErrors != 0) {
 			System.err.println("The initial solution does not respect " + contraintsErrors + " errors.");
@@ -234,11 +238,11 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		return solution;
 	}
 
-	// TODO
 	// algo from paper
-	public ArrayList<SolutionState> chooseNeighbours(SolutionState oldState, List<Vehicle> vehicles) {
+	private ArrayList<SolutionState> chooseNeighbours(SolutionState oldState, List<Vehicle> vehicles) {
 		ArrayList<SolutionState> neighbours = new ArrayList<SolutionState>();
-		HashMap<Vehicle, Movement> nextMovementsVehicle = oldState.getNextMovementsVehicle();
+		HashMap<Vehicle,Movement> nextMovementsVehicle = oldState.getNextMovementsVehicle();
+		SolutionState ss;
 
 		// pick a random vehicle
 		Random ran = new Random(); // FIXME change seed
@@ -250,12 +254,13 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		}
 
 		// apply changing vehicle operator:
-		for (Vehicle v : vehicles) {
-			if (!v.equals(vehicle)) {
-				Movement m = nextMovementsVehicle.get(vehicle);
-				if (m.getTask().weight < v.capacity()) {
-					SolutionState ss = changingVehicle(oldState, vehicle, v);
-					if (true) {// TODO check constaints
+		Movement m;
+		for(Vehicle v: vehicles) {
+			if(!v.equals(vehicle)) {
+				m = nextMovementsVehicle.get(vehicle);
+				if(m.getTask().weight < v.capacity()) {
+					ss = changingVehicle(oldState, vehicle, v);
+					if(Constraints.checkSolutionState(ss) == 0) {
 						neighbours.add(ss);
 					}
 				}
@@ -268,18 +273,17 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		if (nbTasks >= 2) {
 			for (int i = 1; i < nbTasks - 1; i++) {
 				for (int j = i + 1; j < i + nbTasks; j++) {
-					// SolutionState ss = changingTaskOrder(oldState, vehicle,
-					// i, j);
-					if (true) {// TODO check constraints
-						// neighbours.add(ss);
-					}
+					/*SolutionState ss = changingTaskOrder(oldState, vehicle,i, j);
+					if (Constraints.checkSolutionState(ss) == 0) {
+						 neighbours.add(ss);
+					}*/
 				}
 			}
 		}
 		return neighbours;
 	}
 
-	public SolutionState localChoice(SolutionState old, ArrayList<SolutionState> neighbours, double probability) {
+	private SolutionState localChoice(SolutionState old, ArrayList<SolutionState> neighbours, double probability) {
 		SolutionState bestSolution;
 
 		if (neighbours == null || neighbours.size() == 0) {
@@ -288,14 +292,16 @@ public class CentralizedTemplate implements CentralizedBehavior {
 
 		double bestCost = old.getCost();
 		ArrayList<SolutionState> bestSolutions = new ArrayList<SolutionState>();
+		bestSolutions.add(old);
 
+		double cost;
 		for (SolutionState neighbour : neighbours) {
-			double cost = neighbour.computeCost();
-			if (cost < bestCost) {
-				bestSolutions = new ArrayList<SolutionState>();
-				bestSolutions.add(neighbour);
-				bestCost = cost;
-			} else if (cost == bestCost) {
+			cost = neighbour.getCost();
+			if(cost <= bestCost) {
+				if (cost < bestCost) {
+					bestSolutions.clear();
+					bestCost = cost;
+				}
 				bestSolutions.add(neighbour);
 			}
 		}
@@ -312,19 +318,68 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		Random ran = new Random();
 		int x = ran.nextInt(100);
 
-		if (x > probability * 100) {
+		if (x >= probability * 100) {
 			bestSolution = old;
 		}
 
 		return bestSolution;
 	}
 
-	// TODO comme dans le paper
+
+	/**
+	 * Remove a task from the plan of vehicle v1
+	 * Append the task at the beginning of the vehicle v2
+	 * @param oldState
+	 * @param v1
+	 * @param v2
+	 * @return state following from this exchange
+	 */
 	private SolutionState changingVehicle(SolutionState oldState, Vehicle v1, Vehicle v2) {
-		return new SolutionState(null, null);
+		HashMap<Vehicle,Movement> nextMovementsVehicle = oldState.getNextMovementsVehicle();
+		HashMap<Movement,Movement> nextMovements = oldState.getNextMovements();
+
+		Movement m1 = nextMovementsVehicle.get(v1);
+		Movement m1Deliver = null;
+		Movement m2 = nextMovementsVehicle.get(v2);
+
+		Movement m1Next = nextMovements.get(m1);
+		if(m1Next.getAction() == Action.DELIVER) {
+			// deliver m1 right after having it picked up
+			m1Deliver = m1Next;
+			m1Next = nextMovements.get(m1Next);
+		} else {
+			// deliver m1 after pickup other tasks
+			Movement prev = m1Next;
+			Movement current = nextMovements.get(m1Next);
+			while(current != null && !current.getTask().equals(m1.getTask())) {
+				prev = current;
+				current = nextMovements.get(current);
+			}
+			if(current != null) {
+				// remove delivery of m1 from v1's plan
+				Movement next = nextMovements.get(current);
+				nextMovements.put(prev, next);
+				m1Deliver = current;
+			} else {
+				System.out.println("Deliver not found for task " + m1.getTask().id);
+			}
+		}
+
+		// remove m1 from the plan for vehicle v1
+		// append m1 to the beginning of the plan for vehicle v2
+		if(m1Next != null) {
+			nextMovementsVehicle.put(v1, m1Next);
+		} else {
+			nextMovementsVehicle.remove(v1);
+		}
+		nextMovements.put(m1, m1Deliver);
+		nextMovements.put(m1Deliver, m2);
+		nextMovementsVehicle.put(v2, m1);
+
+		return new SolutionState(nextMovements, nextMovementsVehicle);
 	}
 
-	
+
 	// FIXME : bien relire
 	private SolutionState changingTaskOrder(SolutionState oldState, Vehicle vehicle, Movement move1, Movement move2) {
 		HashMap<Vehicle, Movement> nextVehicleMovement = oldState.getNextMovementsVehicle();

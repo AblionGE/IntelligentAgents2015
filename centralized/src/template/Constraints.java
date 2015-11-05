@@ -35,6 +35,29 @@ public final class Constraints {
 		return errors;
 	}
 
+	public static int checkVehicleLoad(SolutionState state, Vehicle v) {
+		int currentLoad = 0;
+		LinkedList<Movement> movements = state.getPlans().get(v);
+		for (int i = 0; i < movements.size(); i++) {
+			Movement m = movements.get(i);
+			if (m.getAction() == Action.PICKUP) {
+				currentLoad += m.getTask().weight;
+				if (currentLoad > v.capacity()) {
+					return 1;
+				}
+			} else {
+				currentLoad -= m.getTask().weight;
+				if (currentLoad < 0) {
+					return 1;
+				}
+			}
+		}
+		if (currentLoad != 0) {
+			return 1;
+		}
+		return 0;
+	}
+
 	/**
 	 * Check that each action is done only once
 	 * 
@@ -151,29 +174,6 @@ public final class Constraints {
 			if (retValue != 0) {
 				return retValue;
 			}
-		}
-		return 0;
-	}
-	
-	public static int checkVehicleLoad(SolutionState state, Vehicle v) {
-		int currentLoad = 0;
-		LinkedList<Movement> movements = state.getPlans().get(v);
-		for (int i = 0; i < movements.size(); i++) {
-			Movement m = movements.get(i);
-			if (m.getAction() == Action.PICKUP) {
-				currentLoad += m.getTask().weight;
-				if (currentLoad > v.capacity()) {
-					return 1;
-				}
-			} else {
-				currentLoad -= m.getTask().weight;
-				if (currentLoad < 0) {
-					return 1;
-				}
-			}
-		}
-		if (currentLoad != 0) {
-			return 1;
 		}
 		return 0;
 	}

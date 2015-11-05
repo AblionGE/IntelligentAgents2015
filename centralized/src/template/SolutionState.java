@@ -13,56 +13,22 @@ import logist.topology.Topology.City;
  * and their first action
  *
  */
-public class SolutionState {
-	
+public class SolutionState implements Cloneable{
+
 	private HashMap<Movement, Movement> nextMovements = new HashMap<Movement, Movement>();
 	private HashMap<Vehicle, Movement> nextMovementsVehicle = new HashMap<Vehicle, Movement>();
 	private HashMap<Movement, Integer> timedMovements = new HashMap<Movement, Integer>();
 	private HashMap<Vehicle, LinkedList<Movement>> plans;
 	private double cost;
-	
+
 	SolutionState(HashMap<Movement, Movement> nextMovements, HashMap<Vehicle, Movement> nextMovementsVehicle) {
 		this.nextMovements = nextMovements;
 		this.nextMovementsVehicle = nextMovementsVehicle;
 		this.plans = computeVehiclePlans(this);
 		this.timedMovements = computeTime(this.plans);
+		cost = -1;
 	}
 
-	@SuppressWarnings("unchecked")
-	protected HashMap<Movement, Movement> getNextMovements() {
-		return (HashMap<Movement, Movement>) nextMovements.clone();
-	}
-
-	protected void setNextMovements(HashMap<Movement, Movement> nextMovements) {
-		this.nextMovements = nextMovements;
-	}
-
-	@SuppressWarnings("unchecked")
-	protected HashMap<Vehicle, Movement> getNextMovementsVehicle() {
-		return (HashMap<Vehicle, Movement>) nextMovementsVehicle.clone();
-	}
-
-	protected void setNextMovementsVehicle(HashMap<Vehicle, Movement> nextMovementsVehicle) {
-		this.nextMovementsVehicle = nextMovementsVehicle;
-	}
-	
-	@SuppressWarnings("unchecked")
-	protected HashMap<Movement, Integer> getTimedMovements() {
-		return (HashMap<Movement, Integer>) timedMovements.clone();
-	}
-
-	protected void setTimedMovements(HashMap<Movement, Integer> timedMovements) {
-		this.timedMovements = timedMovements;
-	}
-
-	protected double getCost() {
-		return cost;
-	}
-
-	protected HashMap<Vehicle, LinkedList<Movement>> getPlans() {
-		return plans;
-	}
-	
 	/**
 	 * Number of tasks taken by vehicle v
 	 * @param v
@@ -71,8 +37,8 @@ public class SolutionState {
 	public int taskNumber(Vehicle v) {
 		return (int)plans.get(v).size() / 2;
 	}
-	
-	protected double computeCost() {
+
+	private void computeCost() {
 		double totalCost = 0;
 		Set<Vehicle> vehicles = plans.keySet();
 		for (Vehicle v : vehicles) {
@@ -85,35 +51,34 @@ public class SolutionState {
 			totalCost = totalCost * v.costPerKm();
 		}
 		this.cost = totalCost;
-		return totalCost;
 	}
-	
+
 	private double computeVehicleDistance(Vehicle v, Movement a) {
 		City start = v.getCurrentCity();
 		City destination = a.getTask().pickupCity;
 		return start.distanceTo(destination);
 	}
-	
+
 	private double computeMovementsDistance(Movement a, Movement b) {
 		City cityTaskA;
 		City cityTaskB;
-	
+
 		if (a.getAction() == Action.PICKUP) {
 			cityTaskA = a.getTask().pickupCity;
 		} else {
 			cityTaskA = a.getTask().deliveryCity;
 		}
-		
+
 		if (b.getAction() == Action.PICKUP) {
 			cityTaskB = b.getTask().pickupCity;
 		} else {
 			cityTaskB = b.getTask().deliveryCity;
 		} 
-		
+
 		return cityTaskA.distanceTo(cityTaskB);
-		
+
 	}
-	
+
 	/**
 	 * It computes for each vehicle an ordered list of tasks
 	 * 
@@ -128,20 +93,17 @@ public class SolutionState {
 
 		for (Vehicle v : vehicleMovement.keySet()) {
 			LinkedList<Movement> orderedMovements = new LinkedList<Movement>();
-			orderedMovements.add(vehicleMovement.get(v));
 
 			Movement next = vehicleMovement.get(v);
 			while (next != null) {
+				orderedMovements.add(next);
 				next = movements.get(next);
-				if (next != null) {
-					orderedMovements.add(next);
-				}
 			}
 			plans.put(v, orderedMovements);
 		}
 		return plans;
 	}
-	
+
 	private HashMap<Movement, Integer> computeTime(HashMap<Vehicle, LinkedList<Movement>> plans) {
 		Set<Vehicle> vehicles = plans.keySet();
 		HashMap<Movement, Integer> timedMovements = new HashMap<Movement, Integer>();
@@ -154,6 +116,18 @@ public class SolutionState {
 			}
 		}
 		return timedMovements;
+	}
+
+	@Override
+	public String toString() {
+		String s = "State: ";
+		for(Vehicle v: plans.keySet()) {
+			s += "\nVehicle " + v.id() + ": ";
+			for (Movement m: plans.get(v)) {
+				s += m.toString() + ", ";
+			}
+		}
+		return s;
 	}
 
 	@Override
@@ -202,6 +176,32 @@ public class SolutionState {
 		} else if (!timedMovements.equals(other.timedMovements))
 			return false;
 		return true;
+	}
+
+	@SuppressWarnings("unchecked")
+	protected HashMap<Movement, Movement> getNextMovements() {
+		return (HashMap<Movement, Movement>) nextMovements.clone();
+	}
+
+	@SuppressWarnings("unchecked")
+	protected HashMap<Vehicle, Movement> getNextMovementsVehicle() {
+		return (HashMap<Vehicle, Movement>) nextMovementsVehicle.clone();
+	}
+
+	@SuppressWarnings("unchecked")
+	protected HashMap<Movement, Integer> getTimedMovements() {
+		return (HashMap<Movement, Integer>) timedMovements.clone();
+	}
+
+	protected double getCost() {
+		if(cost < 0) {
+			computeCost();
+		}
+		return cost;
+	}
+
+	protected HashMap<Vehicle, LinkedList<Movement>> getPlans() {
+		return plans;
 	}
 
 }
