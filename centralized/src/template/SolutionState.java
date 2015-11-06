@@ -29,15 +29,6 @@ public class SolutionState implements Cloneable{
 		cost = -1;
 	}
 
-	/**
-	 * Number of tasks taken by vehicle v
-	 * @param v
-	 * @return
-	 */
-	public int taskNumber(Vehicle v) {
-		return (int)plans.get(v).size() / 2;
-	}
-
 	private void computeCost() {
 		double totalCost = 0;
 		Set<Vehicle> vehicles = plans.keySet();
