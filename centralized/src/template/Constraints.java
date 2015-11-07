@@ -133,9 +133,9 @@ public final class Constraints {
 		for (Vehicle v : vehicles) {
 			LinkedList<Movement> movements = plans.get(v);
 			for (Movement m : movements) {
-				if (verification.containsKey(m.getTask())) {
+				if (verification.containsKey(m.getTask()) && m.getAction() == Action.DELIVER) {
 					verification.put(m.getTask(), verification.get(m.getTask()) + 1);
-				} else {
+				} else if(m.getAction() == Action.PICKUP){
 					verification.put(m.getTask(), 1);
 				}
 			}

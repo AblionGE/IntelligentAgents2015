@@ -34,7 +34,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 
 	private final double SLS_PROBABILITY = 1.0;
 	private final int MAX_SLS_LOOPS = 10000;
-	private final int MAX_SLS_STATE_REPETITION = 100;
+	private final int MAX_SLS_STATE_REPETITION = 5;
 
 	private Topology topology;
 	private TaskDistribution distribution;
@@ -52,7 +52,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			ls = LogistPlatform.getSettings();
 		} catch (Exception exc) {
 			System.out
-					.println("There was a problem loading the configuration file.");
+			.println("There was a problem loading the configuration file.");
 		}
 
 		// the setup method cannot last more than timeout_setup milliseconds
@@ -123,7 +123,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 
 			// move: pickup location => delivery location
 			if (a.getAction() == Action.DELIVER) {
-				for (City city : a.getTask().path()) {
+				for (City city : current.pathTo(a.getTask().deliveryCity)) {
 					plan.appendMove(city);
 				}
 				plan.appendDelivery(a.getTask());
@@ -164,11 +164,10 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			}
 		}
 
-		System.out
-				.println(" ======================================================== ");
+		System.out.println(" ======================================================== ");
 		System.out.println("Number of loops in SLS: " + currentLoop);
 		System.out.println("Expected cost: " + bestState.getCost());
-		System.out.println(bestState.toString());
+		System.out.println("Best " + bestState.toString());
 		return bestState.getPlans();
 	}
 
@@ -262,7 +261,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		SolutionState ss;
 
 		// pick a random vehicle
-		Random ran = new Random(); // FIXME change seed
+		Random ran = new Random();
 		int x = ran.nextInt(vehicles.size());
 		Vehicle vehicle = vehicles.get(x);
 		while (nextMovementsVehicle.get(vehicle) == null) {
@@ -285,11 +284,11 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		}
 
 		// apply changing task order operator:
-		Movement pMov, dMov, pNextMov, dNextMov;
+		Movement pMov, dMov;
 		LinkedList<Movement> plan = oldState.getPlans().get(vehicle);
 		int size = plan.size();
 		if (size > 2) {
-			for (int k = 0; k < size; k++) {
+			for (int k = 0; k < size-1; k++) {
 				// select a pickup movement
 				pMov = plan.get(k);
 				if (pMov.getAction() == Action.PICKUP) {
@@ -300,22 +299,20 @@ public class CentralizedTemplate implements CentralizedBehavior {
 						dMov = plan.get(kk);
 						kk++;
 					}
-					if (kk >= size) {
-						System.out.println("Deliver not found for task "
-								+ pMov.getTask().id);
+					if (dMov.getTask().id != pMov.getTask().id) {
+						System.out.println("Deliver not found for task " + pMov.getTask().id);
 						dMov = null;
 					}
 
 					// all permutations:
 					if (dMov != null) {
-						for (int i = 1; i < size - 1; i++) {
-							// pNextMov = plan.get(i);
-							for (int j = i + 1; j < i + size; j++) {
-								// dNextMov = plan.get(j);
-								ss = changingTaskOrder(oldState, vehicle, k,
-										kk - 1, i, j);
-								if (Constraints.checkSolutionState(ss) == 0) {
-									neighbours.add(ss);
+						for (int i = 0; i < size - 1; i++) {
+							for (int j = i + 1; j < size; j++) {
+								if(i != k || j != kk-1) {
+									ss = changingTaskOrder(oldState, vehicle, k, kk-1, i, j);
+									if (Constraints.checkSolutionState(ss) == 0) {
+										neighbours.add(ss);
+									}
 								}
 							}
 						}
@@ -407,8 +404,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 				nextMovements.put(prev, next);
 				m1Deliver = current;
 			} else {
-				System.out.println("Deliver not found for task "
-						+ m1.getTask().id);
+				System.out.println("Deliver not found for task " + m1.getTask().id);
 			}
 		}
 
@@ -426,40 +422,36 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		return new SolutionState(nextMovements, nextMovementsVehicle);
 	}
 
-	// FIXME : bien relire
+
+	@SuppressWarnings("unchecked")
 	private SolutionState changingTaskOrder(SolutionState oldState,
 			Vehicle vehicle, int pickupIdx, int deliverIdx, int pickupNextIdx,
 			int deliverNextIdx) {
-		HashMap<Vehicle, Movement> nextVehicleMovement = oldState
-				.getNextMovementsVehicle();
+		HashMap<Vehicle, Movement> nextVehicleMovement = oldState.getNextMovementsVehicle();
 		HashMap<Movement, Movement> nextMovement = oldState.getNextMovements();
-		LinkedList<Movement> plan = oldState.getPlans().get(vehicle);
+		LinkedList<Movement> plan = (LinkedList<Movement>) oldState.getPlans().get(vehicle).clone();
 
-		/*
-		 * Movement prevMove1 = null; Movement prevMove2 = null; Movement
-		 * succMove1 = null; Movement succMove2 = null;
-		 * 
-		 * // Get successors of each move succMove1 = nextMovement.get(move1);
-		 * succMove2 = nextMovement.get(move2);
-		 * 
-		 * // Get predecessors of each move and make new connection
-		 * LinkedList<Movement> vPlan = oldState.getPlans().get(vehicle);
-		 * 
-		 * int indexMove1 = vPlan.indexOf(move1); if (indexMove1 > 0) {
-		 * prevMove1 = vPlan.get(indexMove1 - 1); nextMovement.put(prevMove1,
-		 * move2); } else { nextVehicleMovement.put(vehicle, move2); prevMove1 =
-		 * move1; }
-		 * 
-		 * int indexMove2 = vPlan.indexOf(move2); if (indexMove2 > 0) {
-		 * prevMove2 = vPlan.get(indexMove2 - 1); nextMovement.put(prevMove2,
-		 * move1); } else { nextVehicleMovement.put(vehicle, move1); prevMove2 =
-		 * move2; }
-		 * 
-		 * // Get Successors and make new connection nextMovement.put(move1,
-		 * succMove2); nextMovement.put(move2, succMove1);
-		 */
+		// construct new plan as a linked list of movements
+		if(deliverIdx != deliverNextIdx) {
+			Movement changing = plan.get(deliverIdx);
+			plan.remove(deliverIdx);
+			plan.add(deliverNextIdx, changing);
+		}
+		if(pickupIdx != pickupNextIdx) {
+			Movement changing = plan.get(pickupIdx);
+			plan.remove(pickupIdx);
+			plan.add(pickupNextIdx, changing);
+		}
+
+		// creates a new state given the new plan
+		nextVehicleMovement.put(vehicle, plan.getFirst());
+		for (int i = 0; i < plan.size()-1; i++) {
+			nextMovement.put(plan.get(i), plan.get(i+1));
+		}
+		nextMovement.put(plan.getLast(), null);
 
 		return new SolutionState(nextMovement, nextVehicleMovement);
 	}
+	
 
 }
