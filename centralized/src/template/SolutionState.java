@@ -1,5 +1,6 @@
 package template;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Set;
@@ -8,17 +9,17 @@ import logist.simulation.Vehicle;
 import logist.topology.Topology.City;
 
 /**
- * This class represent a solution state composed by 
- * All actions to do and the action after and a relation for each vehicle
- * and their first action
+ * This class represent a solution state composed by All actions to do and the
+ * action after and a relation for each vehicle and their first action
  *
  */
-public class SolutionState implements Cloneable{
+public class SolutionState implements Cloneable {
 
 	private HashMap<Movement, Movement> nextMovements = new HashMap<Movement, Movement>();
 	private HashMap<Vehicle, Movement> nextMovementsVehicle = new HashMap<Vehicle, Movement>();
 	private HashMap<Movement, Integer> timedMovements = new HashMap<Movement, Integer>();
 	private HashMap<Vehicle, LinkedList<Movement>> plans;
+	private HashMap<Vehicle, ArrayList<SolutionState>> neighbours = new HashMap<Vehicle, ArrayList<SolutionState>>();
 	private double cost;
 
 	SolutionState(HashMap<Movement, Movement> nextMovements, HashMap<Vehicle, Movement> nextMovementsVehicle) {
@@ -37,7 +38,7 @@ public class SolutionState implements Cloneable{
 			LinkedList<Movement> currentPath = plans.get(v);
 			for (int i = 0; i < currentPath.size() - 1; i++) {
 				Movement currentMovement = currentPath.get(i);
-				totalCost += computeMovementsDistance(currentMovement, currentPath.get(i+1));
+				totalCost += computeMovementsDistance(currentMovement, currentPath.get(i + 1));
 			}
 			totalCost = totalCost * v.costPerKm();
 		}
@@ -64,7 +65,7 @@ public class SolutionState implements Cloneable{
 			cityTaskB = b.getTask().pickupCity;
 		} else {
 			cityTaskB = b.getTask().deliveryCity;
-		} 
+		}
 
 		return cityTaskA.distanceTo(cityTaskB);
 
@@ -112,9 +113,9 @@ public class SolutionState implements Cloneable{
 	@Override
 	public String toString() {
 		String s = "State: ";
-		for(Vehicle v: plans.keySet()) {
+		for (Vehicle v : plans.keySet()) {
 			s += "\nVehicle " + v.id() + ": ";
-			for (Movement m: plans.get(v)) {
+			for (Movement m : plans.get(v)) {
 				s += m.toString() + ", ";
 			}
 		}
@@ -185,7 +186,7 @@ public class SolutionState implements Cloneable{
 	}
 
 	protected double getCost() {
-		if(cost < 0) {
+		if (cost < 0) {
 			computeCost();
 		}
 		return cost;
@@ -195,4 +196,7 @@ public class SolutionState implements Cloneable{
 		return plans;
 	}
 
+	protected HashMap<Vehicle, ArrayList<SolutionState>> getNeighbours() {
+		return neighbours;
+	}
 }

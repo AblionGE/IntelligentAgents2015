@@ -3,6 +3,7 @@ package template;
 //the list of imports
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,16 +33,16 @@ import logist.topology.Topology.City;
 @SuppressWarnings("unused")
 public class CentralizedTemplate implements CentralizedBehavior {
 
-	private final double SLS_PROBABILITY = 0.8;
+	private final double SLS_PROBABILITY = 0.3;
 	private final int MAX_SLS_LOOPS = 1000;
-	private final int MAX_SLS_STATE_REPETITION = 5;
+	private final int MAX_SLS_STATE_REPETITION = 50;
 
 	private Topology topology;
 	private TaskDistribution distribution;
 	private Agent agent;
 	private long timeout_setup;
 	private long timeout_plan;
-
+	
 	@Override
 	public void setup(Topology topology, TaskDistribution distribution, Agent agent) {
 
@@ -148,7 +149,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		while (stateRepetition < maxStateRepetition && currentLoop < maxLoop) {
 			currentLoop++;
 			System.out.println(currentLoop + ", cost : " + bestState.getCost());
-			System.out.println(bestState.toString());
+			// System.out.println(bestState.toString());
 			oldState = bestState;
 			ArrayList<SolutionState> neighbours = chooseNeighbours(bestState, vehicles);
 			if (neighbours == null) {
@@ -248,6 +249,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		ArrayList<SolutionState> neighbours = new ArrayList<SolutionState>();
 		HashMap<Vehicle, Movement> nextMovementsVehicle = oldState.getNextMovementsVehicle();
 		SolutionState ss;
+	
 
 		// pick a random vehicle
 		Random ran = new Random();
@@ -258,49 +260,54 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			vehicle = vehicles.get(x);
 		}
 
-		// apply changing vehicle operator:
-		Movement m;
-		for (Vehicle v : vehicles) {
-			if (!v.equals(vehicle)) {
-				m = nextMovementsVehicle.get(vehicle);
-				if (m.getTask().weight < v.capacity()) {
-					ss = changingVehicle(oldState, vehicle, v);
-					if (Constraints.checkSolutionState(ss) == 0) {
-						neighbours.add(ss);
+		// works only if it was previous state
+		// We need to store visited states somewhere... HashMap ?
+		if (!oldState.getNeighbours().containsKey(vehicle)) {
+
+			// apply changing vehicle operator:
+			Movement m;
+			for (Vehicle v : vehicles) {
+				if (!v.equals(vehicle)) {
+					m = nextMovementsVehicle.get(vehicle);
+					if (m.getTask().weight < v.capacity()) {
+						ss = changingVehicle(oldState, vehicle, v);
+						if (Constraints.checkSolutionState(ss) == 0) {
+							neighbours.add(ss);
+						}
 					}
 				}
 			}
-		}
 
-		// apply changing task order operator:
-		Movement pMov, dMov;
-		LinkedList<Movement> plan = oldState.getPlans().get(vehicle);
-		int size = plan.size();
-		if (size > 2) {
-			for (int k = 0; k < size - 1; k++) {
-				// select a pickup movement
-				pMov = plan.get(k);
-				if (pMov.getAction() == Action.PICKUP) {
-					// find the corresponding deliver movement
-					dMov = plan.get(k + 1);
-					int kk = k + 2;
-					while (dMov.getTask().id != pMov.getTask().id && kk < size) {
-						dMov = plan.get(kk);
-						kk++;
-					}
-					if (dMov.getTask().id != pMov.getTask().id) {
-						System.out.println("Deliver not found for task " + pMov.getTask().id);
-						dMov = null;
-					}
+			// apply changing task order operator:
+			Movement pMov, dMov;
+			LinkedList<Movement> plan = oldState.getPlans().get(vehicle);
+			int size = plan.size();
+			if (size > 2) {
+				for (int k = 0; k < size - 1; k++) {
+					// select a pickup movement
+					pMov = plan.get(k);
+					if (pMov.getAction() == Action.PICKUP) {
+						// find the corresponding deliver movement
+						dMov = plan.get(k + 1);
+						int kk = k + 2;
+						while (dMov.getTask().id != pMov.getTask().id && kk < size) {
+							dMov = plan.get(kk);
+							kk++;
+						}
+						if (dMov.getTask().id != pMov.getTask().id) {
+							System.out.println("Deliver not found for task " + pMov.getTask().id);
+							dMov = null;
+						}
 
-					// all permutations:
-					if (dMov != null) {
-						for (int i = 0; i < size - 1; i++) {
-							for (int j = i + 1; j < size; j++) {
-								if (i != k || j != kk - 1) {
-									ss = changingTaskOrder(oldState, vehicle, k, kk - 1, i, j);
-									if (Constraints.checkSolutionState(ss) == 0) {
-										neighbours.add(ss);
+						// all permutations:
+						if (dMov != null) {
+							for (int i = 0; i < size - 1; i++) {
+								for (int j = i + 1; j < size; j++) {
+									if (i != k || j != kk - 1) {
+										ss = changingTaskOrder(oldState, vehicle, k, kk - 1, i, j);
+										if (Constraints.checkSolutionState(ss) == 0) {
+											neighbours.add(ss);
+										}
 									}
 								}
 							}
@@ -308,20 +315,31 @@ public class CentralizedTemplate implements CentralizedBehavior {
 					}
 				}
 			}
+			oldState.getNeighbours().put(vehicle, neighbours);
+		} else {
+			neighbours = oldState.getNeighbours().get(vehicle);
 		}
+
 		return neighbours;
 	}
 
+	/**
+	 * Choose the next best solution
+	 * @param old
+	 * @param neighbours
+	 * @param probability
+	 * @return
+	 */
 	private SolutionState localChoice(SolutionState old, ArrayList<SolutionState> neighbours, double probability) {
 		SolutionState bestSolution;
 
 		if (neighbours == null || neighbours.size() == 0) {
+			System.err.println("Neighbours should not be null !");
 			return old;
 		}
 
 		double bestCost = old.getCost();
 		ArrayList<SolutionState> bestSolutions = new ArrayList<SolutionState>();
-		// bestSolutions.add(old);
 
 		double cost;
 		for (SolutionState neighbour : neighbours) {
@@ -338,6 +356,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		if (bestSolutions.size() == 0) {
 			return old;
 		}
+
 		if (bestSolutions.size() > 1) {
 			// random number to select a best solution
 			Random ran = new Random();
@@ -347,13 +366,11 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			bestSolution = bestSolutions.get(0);
 		}
 
-		if (old.getCost() >= bestCost) {
-			Random ran = new Random();
-			int x = ran.nextInt(100);
+		Random ran = new Random();
+		int x = ran.nextInt(100);
 
-			if (x >= probability * 100) {
-				bestSolution = old;
-			}
+		if (x >= probability * 100) {
+			bestSolution = old;
 		}
 
 		return bestSolution;
