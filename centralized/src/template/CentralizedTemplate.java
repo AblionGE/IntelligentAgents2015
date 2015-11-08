@@ -32,8 +32,8 @@ import logist.topology.Topology.City;
 @SuppressWarnings("unused")
 public class CentralizedTemplate implements CentralizedBehavior {
 
-	private final double SLS_PROBABILITY = 1.0;
-	private final int MAX_SLS_LOOPS = 10000;
+	private final double SLS_PROBABILITY = 0.8;
+	private final int MAX_SLS_LOOPS = 1000;
 	private final int MAX_SLS_STATE_REPETITION = 5;
 
 	private Topology topology;
@@ -43,16 +43,14 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	private long timeout_plan;
 
 	@Override
-	public void setup(Topology topology, TaskDistribution distribution,
-			Agent agent) {
+	public void setup(Topology topology, TaskDistribution distribution, Agent agent) {
 
 		// this code is used to get the timeouts
 		LogistSettings ls = null;
 		try {
 			ls = LogistPlatform.getSettings();
 		} catch (Exception exc) {
-			System.out
-			.println("There was a problem loading the configuration file.");
+			System.out.println("There was a problem loading the configuration file.");
 		}
 
 		// the setup method cannot last more than timeout_setup milliseconds
@@ -71,8 +69,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		List<Plan> plans = new ArrayList<Plan>();
 
 		// Compute the centralized plan
-		HashMap<Vehicle, LinkedList<Movement>> vehiclePlans = computeSLS(
-				vehicles, tasks);
+		HashMap<Vehicle, LinkedList<Movement>> vehiclePlans = computeSLS(vehicles, tasks);
 
 		// System.out.println("Agent " + agent.id() + " has tasks " + tasks);
 		// Plan planVehicle1 = individualVehiclePlan(vehicles.get(0), tasks);
@@ -87,8 +84,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 
 		long time_end = System.currentTimeMillis();
 		long duration = time_end - time_start;
-		System.out.println("The plan was generated in " + duration
-				+ " milliseconds.");
+		System.out.println("The plan was generated in " + duration + " milliseconds.");
 
 		return plans;
 	}
@@ -101,8 +97,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	 *            an orderd list of movements to perform
 	 * @return
 	 */
-	private Plan individualVehiclePlan(Vehicle vehicle,
-			LinkedList<Movement> movements) {
+	private Plan individualVehiclePlan(Vehicle vehicle, LinkedList<Movement> movements) {
 		City current = vehicle.getCurrentCity();
 		Plan plan = new Plan(current);
 
@@ -139,8 +134,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	 * @param vehicles
 	 * @param tasks
 	 */
-	private HashMap<Vehicle, LinkedList<Movement>> computeSLS(
-			List<Vehicle> vehicles, TaskSet tasks) {
+	private HashMap<Vehicle, LinkedList<Movement>> computeSLS(List<Vehicle> vehicles, TaskSet tasks) {
 		SolutionState bestState;
 		SolutionState oldState;
 
@@ -153,9 +147,14 @@ public class CentralizedTemplate implements CentralizedBehavior {
 
 		while (stateRepetition < maxStateRepetition && currentLoop < maxLoop) {
 			currentLoop++;
+			System.out.println(currentLoop + ", cost : " + bestState.getCost());
+			System.out.println(bestState.toString());
 			oldState = bestState;
-			ArrayList<SolutionState> neighbours = chooseNeighbours(bestState,
-					vehicles);
+			ArrayList<SolutionState> neighbours = chooseNeighbours(bestState, vehicles);
+			if (neighbours == null) {
+				currentLoop = maxLoop;
+				System.out.println("No more promissing neighbours");
+			}
 			bestState = localChoice(oldState, neighbours, p);
 			if (bestState.equals(oldState)) {
 				stateRepetition++;
@@ -198,16 +197,14 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			if (v.capacity() < arrayOfTasks.get(i).weight) {
 				// we need to check if it fits into another vehicle
 				for (int j = 0; j < arrayOfVehicles.size(); j++) {
-					if (arrayOfTasks.get(i).weight <= arrayOfVehicles.get(j)
-							.capacity()) {
+					if (arrayOfTasks.get(i).weight <= arrayOfVehicles.get(j).capacity()) {
 						v = arrayOfVehicles.get(j);
 						j = arrayOfVehicles.size();
 						found = true;
 					}
 				}
 				if (!found) {
-					System.err.println("No vehicle can carry task "
-							+ arrayOfTasks.get(i).toString());
+					System.err.println("No vehicle can carry task " + arrayOfTasks.get(i).toString());
 				}
 			}
 			oldTasksList.add(arrayOfTasks.get(i));
@@ -219,45 +216,37 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		for (Vehicle v : vehicles) {
 			ArrayList<Task> vTasks = distributedTasks.get(v);
 			if (vTasks != null) {
-				Movement firstMovement = new Movement(Action.PICKUP,
-						vTasks.get(0));
+				Movement firstMovement = new Movement(Action.PICKUP, vTasks.get(0));
 				Movement previousMovement = firstMovement;
 				nextMovementsVehicle.put(v, firstMovement);
 				for (int i = 1; i < vTasks.size(); i++) {
-					Movement nextDeliverMovement = new Movement(Action.DELIVER,
-							vTasks.get(i - 1));
+					Movement nextDeliverMovement = new Movement(Action.DELIVER, vTasks.get(i - 1));
 					nextMovements.put(previousMovement, nextDeliverMovement);
-					Movement nextPickupMovement = new Movement(Action.PICKUP,
-							vTasks.get(i));
+					Movement nextPickupMovement = new Movement(Action.PICKUP, vTasks.get(i));
 					nextMovements.put(nextDeliverMovement, nextPickupMovement);
 					previousMovement = nextPickupMovement;
 
 				}
-				Movement finalMovement = new Movement(Action.DELIVER,
-						vTasks.get(vTasks.size() - 1));
+				Movement finalMovement = new Movement(Action.DELIVER, vTasks.get(vTasks.size() - 1));
 				nextMovements.put(previousMovement, finalMovement);
 			}
 		}
-		SolutionState solution = new SolutionState(nextMovements,
-				nextMovementsVehicle);
+		SolutionState solution = new SolutionState(nextMovements, nextMovementsVehicle);
 
 		// Compute the cost of this plan a save it into the SolutionState object
 		solution.getCost();
 		int contraintsErrors = Constraints.checkSolutionState(solution);
 		if (contraintsErrors != 0) {
-			System.err.println("The initial solution does not respect "
-					+ contraintsErrors + " errors.");
+			System.err.println("The initial solution does not respect " + contraintsErrors + " errors.");
 		}
 
 		return solution;
 	}
 
 	// algo from paper
-	private ArrayList<SolutionState> chooseNeighbours(SolutionState oldState,
-			List<Vehicle> vehicles) {
+	private ArrayList<SolutionState> chooseNeighbours(SolutionState oldState, List<Vehicle> vehicles) {
 		ArrayList<SolutionState> neighbours = new ArrayList<SolutionState>();
-		HashMap<Vehicle, Movement> nextMovementsVehicle = oldState
-				.getNextMovementsVehicle();
+		HashMap<Vehicle, Movement> nextMovementsVehicle = oldState.getNextMovementsVehicle();
 		SolutionState ss;
 
 		// pick a random vehicle
@@ -288,7 +277,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		LinkedList<Movement> plan = oldState.getPlans().get(vehicle);
 		int size = plan.size();
 		if (size > 2) {
-			for (int k = 0; k < size-1; k++) {
+			for (int k = 0; k < size - 1; k++) {
 				// select a pickup movement
 				pMov = plan.get(k);
 				if (pMov.getAction() == Action.PICKUP) {
@@ -308,8 +297,8 @@ public class CentralizedTemplate implements CentralizedBehavior {
 					if (dMov != null) {
 						for (int i = 0; i < size - 1; i++) {
 							for (int j = i + 1; j < size; j++) {
-								if(i != k || j != kk-1) {
-									ss = changingTaskOrder(oldState, vehicle, k, kk-1, i, j);
+								if (i != k || j != kk - 1) {
+									ss = changingTaskOrder(oldState, vehicle, k, kk - 1, i, j);
 									if (Constraints.checkSolutionState(ss) == 0) {
 										neighbours.add(ss);
 									}
@@ -323,8 +312,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		return neighbours;
 	}
 
-	private SolutionState localChoice(SolutionState old,
-			ArrayList<SolutionState> neighbours, double probability) {
+	private SolutionState localChoice(SolutionState old, ArrayList<SolutionState> neighbours, double probability) {
 		SolutionState bestSolution;
 
 		if (neighbours == null || neighbours.size() == 0) {
@@ -333,7 +321,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 
 		double bestCost = old.getCost();
 		ArrayList<SolutionState> bestSolutions = new ArrayList<SolutionState>();
-		bestSolutions.add(old);
+		// bestSolutions.add(old);
 
 		double cost;
 		for (SolutionState neighbour : neighbours) {
@@ -347,6 +335,9 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			}
 		}
 
+		if (bestSolutions.size() == 0) {
+			return old;
+		}
 		if (bestSolutions.size() > 1) {
 			// random number to select a best solution
 			Random ran = new Random();
@@ -356,11 +347,13 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			bestSolution = bestSolutions.get(0);
 		}
 
-		Random ran = new Random();
-		int x = ran.nextInt(100);
+		if (old.getCost() >= bestCost) {
+			Random ran = new Random();
+			int x = ran.nextInt(100);
 
-		if (x >= probability * 100) {
-			bestSolution = old;
+			if (x >= probability * 100) {
+				bestSolution = old;
+			}
 		}
 
 		return bestSolution;
@@ -375,10 +368,8 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	 * @param v2
 	 * @return state following from this exchange
 	 */
-	private SolutionState changingVehicle(SolutionState oldState, Vehicle v1,
-			Vehicle v2) {
-		HashMap<Vehicle, Movement> nextMovementsVehicle = oldState
-				.getNextMovementsVehicle();
+	private SolutionState changingVehicle(SolutionState oldState, Vehicle v1, Vehicle v2) {
+		HashMap<Vehicle, Movement> nextMovementsVehicle = oldState.getNextMovementsVehicle();
 		HashMap<Movement, Movement> nextMovements = oldState.getNextMovements();
 
 		Movement m1 = nextMovementsVehicle.get(v1);
@@ -422,22 +413,20 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		return new SolutionState(nextMovements, nextMovementsVehicle);
 	}
 
-
 	@SuppressWarnings("unchecked")
-	private SolutionState changingTaskOrder(SolutionState oldState,
-			Vehicle vehicle, int pickupIdx, int deliverIdx, int pickupNextIdx,
-			int deliverNextIdx) {
+	private SolutionState changingTaskOrder(SolutionState oldState, Vehicle vehicle, int pickupIdx, int deliverIdx,
+			int pickupNextIdx, int deliverNextIdx) {
 		HashMap<Vehicle, Movement> nextVehicleMovement = oldState.getNextMovementsVehicle();
 		HashMap<Movement, Movement> nextMovement = oldState.getNextMovements();
 		LinkedList<Movement> plan = (LinkedList<Movement>) oldState.getPlans().get(vehicle).clone();
 
 		// construct new plan as a linked list of movements
-		if(deliverIdx != deliverNextIdx) {
+		if (deliverIdx != deliverNextIdx) {
 			Movement changing = plan.get(deliverIdx);
 			plan.remove(deliverIdx);
 			plan.add(deliverNextIdx, changing);
 		}
-		if(pickupIdx != pickupNextIdx) {
+		if (pickupIdx != pickupNextIdx) {
 			Movement changing = plan.get(pickupIdx);
 			plan.remove(pickupIdx);
 			plan.add(pickupNextIdx, changing);
@@ -445,13 +434,12 @@ public class CentralizedTemplate implements CentralizedBehavior {
 
 		// creates a new state given the new plan
 		nextVehicleMovement.put(vehicle, plan.getFirst());
-		for (int i = 0; i < plan.size()-1; i++) {
-			nextMovement.put(plan.get(i), plan.get(i+1));
+		for (int i = 0; i < plan.size() - 1; i++) {
+			nextMovement.put(plan.get(i), plan.get(i + 1));
 		}
 		nextMovement.put(plan.getLast(), null);
 
 		return new SolutionState(nextMovement, nextVehicleMovement);
 	}
-	
 
 }
