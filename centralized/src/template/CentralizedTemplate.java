@@ -33,8 +33,8 @@ import logist.topology.Topology.City;
 @SuppressWarnings("unused")
 public class CentralizedTemplate implements CentralizedBehavior {
 
-	private final double SLS_PROBABILITY = 0.5;
-	private final int MAX_SLS_LOOPS = 1000;
+	private final double SLS_PROBABILITY = 1;
+	private final int MAX_SLS_LOOPS = 3000;
 	private final int MAX_SLS_STATE_REPETITION = 50;
 
 	private Topology topology;
@@ -51,7 +51,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		try {
 			ls = LogistPlatform.getSettings();
 		} catch (Exception exc) {
-			System.out.println("There was a problem loading the configuration file.");
+			System.out.println("There is a problem loading the configuration file.");
 		}
 
 		// the setup method cannot last more than timeout_setup milliseconds
@@ -72,16 +72,11 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		// Compute the centralized plan
 		HashMap<Vehicle, LinkedList<Movement>> vehiclePlans = computeSLS(vehicles, tasks);
 
-		// System.out.println("Agent " + agent.id() + " has tasks " + tasks);
-		// Plan planVehicle1 = individualVehiclePlan(vehicles.get(0), tasks);
 		for (Vehicle vehicle : vehicles) {
 			LinkedList<Movement> movements = vehiclePlans.get(vehicle);
 			Plan plan = individualVehiclePlan(vehicle, movements);
 			plans.add(plan);
 		}
-		/*
-		 * while (plans.size() < vehicles.size()) { plans.add(Plan.EMPTY); }
-		 */
 
 		long time_end = System.currentTimeMillis();
 		long duration = time_end - time_start;
@@ -149,7 +144,6 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		while (stateRepetition < maxStateRepetition && currentLoop < maxLoop) {
 			currentLoop++;
 			System.out.println(currentLoop + ", cost : " + bestState.getCost());
-			// System.out.println(bestState.toString());
 			oldState = bestState;
 
 			Random random = new Random();
@@ -265,59 +259,48 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			x = ran.nextInt(vehicles.size());
 			vehicle = vehicles.get(x);
 		}
-
-		// FIXME
-		// works only if it was previous state
-		// We need to store visited states somewhere... HashMap ?
-		if (!oldState.getNeighbours().containsKey(vehicle)) {
-
-			// apply changing vehicle operator:
-			Movement m;
-			for (Vehicle v : vehicles) {
-				if (!v.equals(vehicle)) {
-					m = nextMovementsVehicle.get(vehicle);
-					if (m.getTask().weight < v.capacity()) {
-						ss = changingVehicle(oldState, vehicle, v);
-						if (Constraints.checkSolutionState(ss) == 0) {
-							neighbours.add(ss);
-						}
-					}
+		// apply changing vehicle operator:
+		Movement m;
+		for (Vehicle v : vehicles) {
+			if (!v.equals(vehicle)) {
+				m = nextMovementsVehicle.get(vehicle);
+				if (m.getTask().weight < v.capacity()) {
+					ss = changingVehicle(oldState, vehicle, v);
+					neighbours.add(ss);
 				}
 			}
+		}
 
-			// apply changing task order operator:
-			Movement pMov, dMov;
-			LinkedList<Movement> plan = oldState.getPlans().get(vehicle);
-			int size = plan.size();
-			if (size > 2) {
-				for (int k = 0; k < size - 1; k++) {
-					// select a pickup movement
-					pMov = plan.get(k);
-					if (pMov.getAction() == Action.PICKUP) {
-						// find the corresponding deliver movement
-						dMov = plan.get(k + 1);
-						int kk = k + 2;
-						while (dMov.getTask().id != pMov.getTask().id && kk < size) {
-							dMov = plan.get(kk);
-							kk++;
-						}
-						if (dMov.getTask().id != pMov.getTask().id) {
-							System.out.println(
-									"Deliver not found for task " + pMov.getTask().id + " in changingTaskOrder.");
-							dMov = null;
-						}
+		// apply changing task order operator:
+		Movement pMov, dMov;
+		LinkedList<Movement> plan = oldState.getPlans().get(vehicle);
+		int size = plan.size();
+		if (size > 2) {
+			for (int k = 0; k < size - 1; k++) {
+				// select a pickup movement
+				pMov = plan.get(k);
+				if (pMov.getAction() == Action.PICKUP) {
+					// find the corresponding deliver movement
+					dMov = plan.get(k + 1);
+					int kk = k + 2;
+					while (dMov.getTask().id != pMov.getTask().id && kk < size) {
+						dMov = plan.get(kk);
+						kk++;
+					}
+					if (dMov.getTask().id != pMov.getTask().id) {
+						System.out
+								.println("Deliver not found for task " + pMov.getTask().id + " in changingTaskOrder.");
+						dMov = null;
+					}
 
-						// all permutations:
-						if (dMov != null) {
-							for (int i = 0; i < size - 1; i++) {
-								for (int j = i + 1; j < size; j++) {
-									if (i != k || j != kk - 1) {
-										ss = changingTaskOrder(oldState, vehicle, k, kk - 1, i, j);
-										if (ss != null) {
-											if (Constraints.checkSolutionState(ss) == 0) {
-												neighbours.add(ss);
-											}
-										}
+					// all permutations:
+					if (dMov != null) {
+						for (int i = 0; i < size - 1; i++) {
+							for (int j = i + 1; j < size; j++) {
+								if (i != k || j != kk - 1) {
+									ss = changingTaskOrder(oldState, vehicle, k, kk - 1, i, j);
+									if (ss != null) {
+										neighbours.add(ss);
 									}
 								}
 							}
@@ -325,10 +308,8 @@ public class CentralizedTemplate implements CentralizedBehavior {
 					}
 				}
 			}
-			oldState.getNeighbours().put(vehicle, neighbours);
-		} else {
-			neighbours = oldState.getNeighbours().get(vehicle);
 		}
+		oldState.getNeighbours().put(vehicle, neighbours);
 
 		return neighbours;
 	}
@@ -356,6 +337,9 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		for (SolutionState neighbour : neighbours) {
 			cost = neighbour.getCost();
 			if (cost <= bestCost) {
+				if (Constraints.checkSolutionState(neighbour) != 0) {
+					continue;
+				}
 				if (cost < bestCost) {
 					bestSolutions.clear();
 					bestCost = cost;
