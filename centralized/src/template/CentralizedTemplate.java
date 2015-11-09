@@ -33,9 +33,10 @@ import logist.topology.Topology.City;
 @SuppressWarnings("unused")
 public class CentralizedTemplate implements CentralizedBehavior {
 
-	private final double SLS_PROBABILITY = 1;
+	private final double SLS_PROBABILITY = 0.4;
 	private final int MAX_SLS_LOOPS = 3000;
 	private final int MAX_SLS_STATE_REPETITION = 50;
+	private final int MAX_SLS_COST_REPETITION = 1000;
 
 	private Topology topology;
 	private TaskDistribution distribution;
@@ -139,9 +140,12 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		int maxStateRepetition = MAX_SLS_STATE_REPETITION;
 		int currentLoop = 0;
 		int stateRepetition = 0;
+		int costRepetition = 0;
 		bestState = computeInitState(vehicles, tasks);
+		double bestCost = bestState.getCost();
 
-		while (stateRepetition < maxStateRepetition && currentLoop < maxLoop) {
+		while (stateRepetition < maxStateRepetition && currentLoop < maxLoop
+				&& costRepetition < MAX_SLS_COST_REPETITION) {
 			currentLoop++;
 			System.out.println(currentLoop + ", cost : " + bestState.getCost());
 			oldState = bestState;
@@ -149,7 +153,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			Random random = new Random();
 			int r = random.nextInt(100);
 			ArrayList<SolutionState> neighbours = null;
-			if (r <= p * 100) {
+			if (r < p * 100) {
 				neighbours = chooseNeighbours(bestState, vehicles);
 				if (neighbours == null) {
 					currentLoop = maxLoop;
@@ -163,6 +167,15 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			} else {
 				stateRepetition = 0;
 			}
+
+			double newCost = bestState.getCost();
+			if (bestCost == newCost) {
+				costRepetition++;
+			} else {
+				costRepetition = 0;
+			}
+			bestCost = newCost;
+
 		}
 
 		System.out.println(" ======================================================== ");
