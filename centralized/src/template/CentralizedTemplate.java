@@ -33,7 +33,7 @@ import logist.topology.Topology.City;
 @SuppressWarnings("unused")
 public class CentralizedTemplate implements CentralizedBehavior {
 
-	private final double SLS_PROBABILITY = 0.3;
+	private final double SLS_PROBABILITY = 0.5;
 	private final int MAX_SLS_LOOPS = 1000;
 	private final int MAX_SLS_STATE_REPETITION = 50;
 
@@ -42,6 +42,8 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	private Agent agent;
 	private long timeout_setup;
 	private long timeout_plan;
+	
+	private HashMap<SolutionState, SolutionState> visitedStates = new HashMap<SolutionState, SolutionState>();
 	
 	@Override
 	public void setup(Topology topology, TaskDistribution distribution, Agent agent) {
@@ -145,13 +147,23 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		int currentLoop = 0;
 		int stateRepetition = 0;
 		bestState = computeInitState(vehicles, tasks);
+		
 
 		while (stateRepetition < maxStateRepetition && currentLoop < maxLoop) {
 			currentLoop++;
 			System.out.println(currentLoop + ", cost : " + bestState.getCost());
 			// System.out.println(bestState.toString());
 			oldState = bestState;
-			ArrayList<SolutionState> neighbours = chooseNeighbours(bestState, vehicles);
+			if (visitedStates.get(bestState) != null) {
+				HashMap<Vehicle, ArrayList<SolutionState>> oldNeighbours = visitedStates.get(bestState).getNeighbours();
+				Set<Vehicle> vehicles1 = oldNeighbours.keySet();
+				for (Vehicle v : vehicles1) {
+					bestState.getNeighbours().put(v, oldNeighbours.get(v));
+				}
+			}
+			visitedStates.put(bestState, bestState);
+						
+			ArrayList<SolutionState> neighbours = chooseNeighbours(visitedStates.get(bestState), vehicles);
 			if (neighbours == null) {
 				currentLoop = maxLoop;
 				System.out.println("No more promissing neighbours");
@@ -260,6 +272,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			vehicle = vehicles.get(x);
 		}
 
+		// FIXME
 		// works only if it was previous state
 		// We need to store visited states somewhere... HashMap ?
 		if (!oldState.getNeighbours().containsKey(vehicle)) {
