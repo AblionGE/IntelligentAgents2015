@@ -1,6 +1,5 @@
 package template;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Set;
@@ -19,7 +18,6 @@ public class SolutionState {
 	private HashMap<Vehicle, Movement> nextMovementsVehicle = new HashMap<Vehicle, Movement>();
 	private HashMap<Movement, Integer> timedMovements = new HashMap<Movement, Integer>();
 	private HashMap<Vehicle, LinkedList<Movement>> plans;
-	private HashMap<Vehicle, ArrayList<SolutionState>> neighbours = new HashMap<Vehicle, ArrayList<SolutionState>>();
 	private double cost;
 
 	SolutionState(HashMap<Movement, Movement> nextMovements, HashMap<Vehicle, Movement> nextMovementsVehicle) {
@@ -194,9 +192,5 @@ public class SolutionState {
 
 	protected HashMap<Vehicle, LinkedList<Movement>> getPlans() {
 		return plans;
-	}
-
-	protected HashMap<Vehicle, ArrayList<SolutionState>> getNeighbours() {
-		return neighbours;
 	}
 }

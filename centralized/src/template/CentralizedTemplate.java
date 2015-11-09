@@ -144,38 +144,42 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		bestState = computeInitState(vehicles, tasks);
 		double bestCost = bestState.getCost();
 
-		while (stateRepetition < maxStateRepetition && currentLoop < maxLoop
-				&& costRepetition < MAX_SLS_COST_REPETITION) {
-			currentLoop++;
-			System.out.println(currentLoop + ", cost : " + bestState.getCost());
-			oldState = bestState;
+		// If there are tasks to deliver
+		if (bestCost > 0) {
 
-			Random random = new Random();
-			int r = random.nextInt(100);
-			ArrayList<SolutionState> neighbours = null;
-			if (r < p * 100) {
-				neighbours = chooseNeighbours(bestState, vehicles);
-				if (neighbours == null) {
-					currentLoop = maxLoop;
-					System.out.println("No more promissing neighbours");
+			while (stateRepetition < maxStateRepetition && currentLoop < maxLoop
+					&& costRepetition < MAX_SLS_COST_REPETITION) {
+				currentLoop++;
+				System.out.println(currentLoop + ", cost : " + bestState.getCost());
+				oldState = bestState;
+
+				Random random = new Random();
+				int r = random.nextInt(100);
+				ArrayList<SolutionState> neighbours = null;
+				if (r < p * 100) {
+					neighbours = chooseNeighbours(bestState, vehicles);
+					if (neighbours == null) {
+						currentLoop = maxLoop;
+						System.out.println("No more promissing neighbours");
+					}
+					bestState = localChoice(oldState, neighbours);
 				}
-				bestState = localChoice(oldState, neighbours);
-			}
 
-			if (bestState.equals(oldState)) {
-				stateRepetition++;
-			} else {
-				stateRepetition = 0;
-			}
+				if (bestState.equals(oldState)) {
+					stateRepetition++;
+				} else {
+					stateRepetition = 0;
+				}
 
-			double newCost = bestState.getCost();
-			if (bestCost == newCost) {
-				costRepetition++;
-			} else {
-				costRepetition = 0;
-			}
-			bestCost = newCost;
+				double newCost = bestState.getCost();
+				if (bestCost == newCost) {
+					costRepetition++;
+				} else {
+					costRepetition = 0;
+				}
+				bestCost = newCost;
 
+			}
 		}
 
 		System.out.println(" ======================================================== ");
@@ -322,7 +326,6 @@ public class CentralizedTemplate implements CentralizedBehavior {
 				}
 			}
 		}
-		oldState.getNeighbours().put(vehicle, neighbours);
 
 		return neighbours;
 	}
