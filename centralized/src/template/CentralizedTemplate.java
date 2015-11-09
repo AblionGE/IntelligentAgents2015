@@ -151,12 +151,19 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			System.out.println(currentLoop + ", cost : " + bestState.getCost());
 			// System.out.println(bestState.toString());
 			oldState = bestState;
-			ArrayList<SolutionState> neighbours = chooseNeighbours(bestState, vehicles);
-			if (neighbours == null) {
-				currentLoop = maxLoop;
-				System.out.println("No more promissing neighbours");
+
+			Random random = new Random();
+			int r = random.nextInt(100);
+			ArrayList<SolutionState> neighbours = null;
+			if (r <= p * 100) {
+				neighbours = chooseNeighbours(bestState, vehicles);
+				if (neighbours == null) {
+					currentLoop = maxLoop;
+					System.out.println("No more promissing neighbours");
+				}
+				bestState = localChoice(oldState, neighbours);
 			}
-			bestState = localChoice(oldState, neighbours, p);
+
 			if (bestState.equals(oldState)) {
 				stateRepetition++;
 			} else {
@@ -259,6 +266,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			vehicle = vehicles.get(x);
 		}
 
+		// FIXME
 		// works only if it was previous state
 		// We need to store visited states somewhere... HashMap ?
 		if (!oldState.getNeighbours().containsKey(vehicle)) {
@@ -270,8 +278,6 @@ public class CentralizedTemplate implements CentralizedBehavior {
 					m = nextMovementsVehicle.get(vehicle);
 					if (m.getTask().weight < v.capacity()) {
 						ss = changingVehicle(oldState, vehicle, v);
-						// FIXME : tasks are not always changed completly
-						// (pickup and deliver ?)
 						if (Constraints.checkSolutionState(ss) == 0) {
 							neighbours.add(ss);
 						}
@@ -296,7 +302,8 @@ public class CentralizedTemplate implements CentralizedBehavior {
 							kk++;
 						}
 						if (dMov.getTask().id != pMov.getTask().id) {
-							System.out.println("Deliver not found for task " + pMov.getTask().id);
+							System.out.println(
+									"Deliver not found for task " + pMov.getTask().id + " in changingTaskOrder.");
 							dMov = null;
 						}
 
@@ -306,7 +313,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 								for (int j = i + 1; j < size; j++) {
 									if (i != k || j != kk - 1) {
 										ss = changingTaskOrder(oldState, vehicle, k, kk - 1, i, j);
-										if (Constraints.checkVehicleLoad(ss, vehicle) == 0) {
+										if (ss != null) {
 											if (Constraints.checkSolutionState(ss) == 0) {
 												neighbours.add(ss);
 											}
@@ -334,7 +341,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	 * @param probability
 	 * @return
 	 */
-	private SolutionState localChoice(SolutionState old, ArrayList<SolutionState> neighbours, double probability) {
+	private SolutionState localChoice(SolutionState old, ArrayList<SolutionState> neighbours) {
 		SolutionState bestSolution;
 
 		if (neighbours == null || neighbours.size() == 0) {
@@ -368,13 +375,6 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			bestSolution = bestSolutions.get(x);
 		} else {
 			bestSolution = bestSolutions.get(0);
-		}
-
-		Random ran = new Random();
-		int x = ran.nextInt(100);
-
-		if (x >= probability * 100) {
-			bestSolution = old;
 		}
 
 		return bestSolution;
@@ -416,7 +416,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 				nextMovements.put(prev, next);
 				m1Deliver = current;
 			} else {
-				System.out.println("Deliver not found for task " + m1.getTask().id);
+				System.out.println("Deliver not found for task " + m1.getTask().id + " in changingVehicle().");
 			}
 		}
 
@@ -441,16 +441,20 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		HashMap<Movement, Movement> nextMovement = oldState.getNextMovements();
 		LinkedList<Movement> plan = (LinkedList<Movement>) oldState.getPlans().get(vehicle).clone();
 
-		// construct new plan as a linked list of movements
+		Movement deliverChanging = plan.get(deliverIdx);
+		Movement pickupChanging = plan.get(pickupIdx);
+
 		if (deliverIdx != deliverNextIdx) {
-			Movement changing = plan.get(deliverIdx);
 			plan.remove(deliverIdx);
-			plan.add(deliverNextIdx, changing);
+			plan.add(deliverNextIdx, deliverChanging);
 		}
 		if (pickupIdx != pickupNextIdx) {
-			Movement changing = plan.get(pickupIdx);
-			plan.remove(pickupIdx);
-			plan.add(pickupNextIdx, changing);
+			if (deliverNextIdx <= pickupIdx && deliverIdx != deliverNextIdx) {
+				plan.remove(pickupIdx + 1);
+			} else {
+				plan.remove(pickupIdx);
+			}
+			plan.add(pickupNextIdx, pickupChanging);
 		}
 
 		// creates a new state given the new plan
@@ -460,7 +464,13 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		}
 		nextMovement.put(plan.getLast(), null);
 
-		return new SolutionState(nextMovement, nextVehicleMovement);
+		SolutionState solution = new SolutionState(nextMovement, nextVehicleMovement);
+
+		if (Constraints.checkVehicleLoad(solution, vehicle) != 0) {
+			return null;
+		}
+
+		return solution;
 	}
 
 }

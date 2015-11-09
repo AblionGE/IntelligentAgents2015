@@ -24,11 +24,16 @@ public final class Constraints {
 	public static int checkSolutionState(SolutionState state) {
 		int errors = 0;
 
+		if (state == null) {
+			return 1;
+		}
+
 		HashMap<Vehicle, LinkedList<Movement>> plans = state.getPlans();
 		Set<Vehicle> vehicles = plans.keySet();
 		for (Vehicle v : vehicles) {
 
 			int timeCounter = 1;
+			int currentLoad = 0;
 			HashMap<Task, Integer> consistencyVerification = new HashMap<Task, Integer>();
 
 			errors += checkVehicleLoad(state, v);
@@ -38,15 +43,39 @@ public final class Constraints {
 			for (int i = 0; i < movements.size(); i++) {
 				consistencyVerification = computeMovementConsistency(movements.get(i), consistencyVerification);
 				errors += checkTime(state, timeCounter, movements.get(i));
+				int loadResult = checkLoad(movements.get(i), v, currentLoad);
+				if (loadResult < 0) {
+					errors += 1;
+					return errors;
+				}
+				currentLoad = loadResult;
 				timeCounter++;
 			}
 			errors += verificationMovementConsistency(consistencyVerification);
+			if (currentLoad != 0){
+				errors += 1;
+			}
 		}
-
+		
 		errors += checkMovementDoneOnce(state);
 		errors += checkFirstTaskIsPickedUp(state);
 
 		return errors;
+	}
+
+	private static int checkLoad(Movement m, Vehicle v, int currentLoad) {
+		if (m.getAction() == Action.PICKUP) {
+			currentLoad += m.getTask().weight;
+			if (currentLoad > v.capacity()) {
+				return -1;
+			}
+		} else {
+			currentLoad -= m.getTask().weight;
+			if (currentLoad < 0) {
+				return -1;
+			}
+		}
+		return currentLoad;
 	}
 
 	public static int checkVehicleLoad(SolutionState state, Vehicle v) {
@@ -121,7 +150,8 @@ public final class Constraints {
 	}
 
 	/**
-	 * Compute number of pickup and delivery for each task for a specific movement in a specific vehicle
+	 * Compute number of pickup and delivery for each task for a specific
+	 * movement in a specific vehicle
 	 * 
 	 * @param state
 	 * @return
@@ -137,6 +167,7 @@ public final class Constraints {
 
 	/**
 	 * Verify that there is only one pickup and one deliver for each vehicle
+	 * 
 	 * @param verification
 	 * @return
 	 */
