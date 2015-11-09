@@ -24,13 +24,27 @@ public final class Constraints {
 	public static int checkSolutionState(SolutionState state) {
 		int errors = 0;
 
+		HashMap<Vehicle, LinkedList<Movement>> plans = state.getPlans();
+		Set<Vehicle> vehicles = plans.keySet();
+		for (Vehicle v : vehicles) {
+
+			int timeCounter = 1;
+			HashMap<Task, Integer> consistencyVerification = new HashMap<Task, Integer>();
+
+			errors += checkVehicleLoad(state, v);
+			errors += checkFirstMovementTime(state, v);
+
+			LinkedList<Movement> movements = plans.get(v);
+			for (int i = 0; i < movements.size(); i++) {
+				consistencyVerification = computeMovementConsistency(movements.get(i), consistencyVerification);
+				errors += checkTime(state, timeCounter, movements.get(i));
+				timeCounter++;
+			}
+			errors += verificationMovementConsistency(consistencyVerification);
+		}
+
 		errors += checkMovementDoneOnce(state);
-		errors += checkFirstMovementTime(state);
-		errors += checkTime(state);
-		errors += checkMovementConsistency(state);
-		errors += checkFirstTaskIsPickup(state);
-		errors += checkFirstTaskIsPickup(state);
-		errors += checkLoad(state);
+		errors += checkFirstTaskIsPickedUp(state);
 
 		return errors;
 	}
@@ -85,13 +99,10 @@ public final class Constraints {
 	 * @param state
 	 * @return
 	 */
-	private static int checkFirstMovementTime(SolutionState state) {
+	private static int checkFirstMovementTime(SolutionState state, Vehicle v) {
 		HashMap<Vehicle, Movement> nextMove = state.getNextMovementsVehicle();
-		Set<Vehicle> vehicles = nextMove.keySet();
-		for (Vehicle v : vehicles) {
-			if (state.getTimedMovements().get(nextMove.get(v)) != 1) {
-				return 1;
-			}
+		if (state.getTimedMovements().get(nextMove.get(v)) != 1) {
+			return 1;
 		}
 		return 0;
 	}
@@ -102,48 +113,38 @@ public final class Constraints {
 	 * @param state
 	 * @return
 	 */
-	private static int checkTime(SolutionState state) {
-		HashMap<Vehicle, LinkedList<Movement>> plans = state.getPlans();
-		Set<Vehicle> vehicles = plans.keySet();
-		for (Vehicle v : vehicles) {
-			LinkedList<Movement> movements = plans.get(v);
-			int timeCounter = 1;
-			for (int i = 0; i < movements.size(); i++) {
-				if (state.getTimedMovements().get(movements.get(i)) != timeCounter) {
-					return 1;
-				} else {
-					timeCounter++;
-				}
-			}
+	private static int checkTime(SolutionState state, int timeCounter, Movement m) {
+		if (state.getTimedMovements().get(m) != timeCounter) {
+			return 1;
 		}
 		return 0;
 	}
 
 	/**
-	 * Test if pickup of each task is before the delivery and check if the
-	 * pickup and delivery for one task is done by the same vehicle.
+	 * Compute number of pickup and delivery for each task for a specific movement in a specific vehicle
 	 * 
 	 * @param state
 	 * @return
 	 */
-	private static int checkMovementConsistency(SolutionState state) {
-		HashMap<Vehicle, LinkedList<Movement>> plans = state.getPlans();
-		HashMap<Task, Integer> verification = new HashMap<Task, Integer>();
-		Set<Vehicle> vehicles = plans.keySet();
-		for (Vehicle v : vehicles) {
-			LinkedList<Movement> movements = plans.get(v);
-			for (Movement m : movements) {
-				if (verification.containsKey(m.getTask()) && m.getAction() == Action.DELIVER) {
-					verification.put(m.getTask(), verification.get(m.getTask()) + 1);
-				} else if(m.getAction() == Action.PICKUP){
-					verification.put(m.getTask(), 1);
-				}
-			}
-			Collection<Integer> nbOfActionsPerTask = verification.values();
-			for (Integer i : nbOfActionsPerTask) {
-				if (i != 2) {
-					return 1;
-				}
+	private static HashMap<Task, Integer> computeMovementConsistency(Movement m, HashMap<Task, Integer> verification) {
+		if (verification.containsKey(m.getTask()) && m.getAction() == Action.DELIVER) {
+			verification.put(m.getTask(), verification.get(m.getTask()) + 1);
+		} else if (m.getAction() == Action.PICKUP) {
+			verification.put(m.getTask(), 1);
+		}
+		return verification;
+	}
+
+	/**
+	 * Verify that there is only one pickup and one deliver for each vehicle
+	 * @param verification
+	 * @return
+	 */
+	private static int verificationMovementConsistency(HashMap<Task, Integer> verification) {
+		Collection<Integer> nbOfActionsPerTask = verification.values();
+		for (Integer i : nbOfActionsPerTask) {
+			if (i != 2) {
+				return 1;
 			}
 		}
 		return 0;
@@ -155,7 +156,7 @@ public final class Constraints {
 	 * @param state
 	 * @return
 	 */
-	private static int checkFirstTaskIsPickup(SolutionState state) {
+	private static int checkFirstTaskIsPickedUp(SolutionState state) {
 		HashMap<Vehicle, Movement> nextActionVehicle = state.getNextMovementsVehicle();
 		Collection<Movement> movements = nextActionVehicle.values();
 		for (Movement m : movements) {
@@ -163,17 +164,6 @@ public final class Constraints {
 				return 1;
 			}
 
-		}
-		return 0;
-	}
-
-	private static int checkLoad(SolutionState state) {
-		Set<Vehicle> vehicles = state.getPlans().keySet();
-		for (Vehicle v : vehicles) {
-			int retValue = checkVehicleLoad(state, v);
-			if (retValue != 0) {
-				return retValue;
-			}
 		}
 		return 0;
 	}

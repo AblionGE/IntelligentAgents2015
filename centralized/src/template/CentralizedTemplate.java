@@ -42,7 +42,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	private Agent agent;
 	private long timeout_setup;
 	private long timeout_plan;
-	
+
 	@Override
 	public void setup(Topology topology, TaskDistribution distribution, Agent agent) {
 
@@ -249,7 +249,6 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		ArrayList<SolutionState> neighbours = new ArrayList<SolutionState>();
 		HashMap<Vehicle, Movement> nextMovementsVehicle = oldState.getNextMovementsVehicle();
 		SolutionState ss;
-	
 
 		// pick a random vehicle
 		Random ran = new Random();
@@ -271,6 +270,8 @@ public class CentralizedTemplate implements CentralizedBehavior {
 					m = nextMovementsVehicle.get(vehicle);
 					if (m.getTask().weight < v.capacity()) {
 						ss = changingVehicle(oldState, vehicle, v);
+						// FIXME : tasks are not always changed completly
+						// (pickup and deliver ?)
 						if (Constraints.checkSolutionState(ss) == 0) {
 							neighbours.add(ss);
 						}
@@ -305,8 +306,10 @@ public class CentralizedTemplate implements CentralizedBehavior {
 								for (int j = i + 1; j < size; j++) {
 									if (i != k || j != kk - 1) {
 										ss = changingTaskOrder(oldState, vehicle, k, kk - 1, i, j);
-										if (Constraints.checkSolutionState(ss) == 0) {
-											neighbours.add(ss);
+										if (Constraints.checkVehicleLoad(ss, vehicle) == 0) {
+											if (Constraints.checkSolutionState(ss) == 0) {
+												neighbours.add(ss);
+											}
 										}
 									}
 								}
@@ -325,6 +328,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 
 	/**
 	 * Choose the next best solution
+	 * 
 	 * @param old
 	 * @param neighbours
 	 * @param probability
