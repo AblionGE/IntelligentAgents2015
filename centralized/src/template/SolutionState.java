@@ -13,7 +13,7 @@ import logist.topology.Topology.City;
  * action after and a relation for each vehicle and their first action
  *
  */
-public class SolutionState implements Cloneable {
+public class SolutionState {
 
 	private HashMap<Movement, Movement> nextMovements = new HashMap<Movement, Movement>();
 	private HashMap<Vehicle, Movement> nextMovementsVehicle = new HashMap<Vehicle, Movement>();

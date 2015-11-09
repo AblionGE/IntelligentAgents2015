@@ -33,7 +33,7 @@ import logist.topology.Topology.City;
 @SuppressWarnings("unused")
 public class CentralizedTemplate implements CentralizedBehavior {
 
-	private final double SLS_PROBABILITY = 0.3;
+	private final double SLS_PROBABILITY = 0.5;
 	private final int MAX_SLS_LOOPS = 1000;
 	private final int MAX_SLS_STATE_REPETITION = 50;
 
