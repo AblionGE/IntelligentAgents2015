@@ -1,42 +1,56 @@
- Introduction
+# Introduction
 
-# Encoding the COP
+For this exercise, we were asked to build a centralized agent for the pickup and delivery problem in order to make an efficient delivery plan for a whole compagny and coordinate the actions of its vehicles. The planning is build as a constraint satisfaction problem using the stochastic local search algorithm.
+
+# Problem description
+
+The goal of the compagny is to determine a plan for each of its vehicles such that:
+
+* all tasks assigned to the compagny are delivered
+* vehicles can carry more than one task at a time if their capacity allows them to
+* the total revenue of the compagny (the sum of the individual revenues obtained by each vehicle) is maximized
+
+# Solution: Encoding as a CSP
 
 ## Representation
 
-For solving this problem, we need several variables :
+We use a structure called *Movement* which contains:
 
-* *nextMovement* : this is the next action to perform. There exists two different actions :
-    * *Pickup* : move to a city and take a task in the vehicle
-    * *Deliver* : move to a city and deliver a task that is in the vehicle
-* *nextVehicleMovement* : exactly like *nextMovement* but it represents the first action for a vehicle (which is always a *Pickup*)
+* a Task object 
+* an Action which is either *Pickup* or *Deliver*.
 
-    Each movement (or vehicle in case of *nextVehicleMovement*) is represented by a key in a ```HashMap``` and each value represents the next action to perform.
+We have $V=\{ v_1 , v_2, ... , v_{N_v}\}$ the set of available vehicles, $T=\{ t_1 , t_2 , ... , t_{N_T} \}$ the set of tasks to be delivered and $M=\{ m_1 , m_2 , ... , m_{2N_T} \}$ the set of movements containg two elements per task.
 
-* *time* : this is the time when an action is performed. This is represented in a ```HashMap<Movement, Integer>```.
-* *vehicle* : the list of vehicles and their assigned actions. This is represented as a ```HashMap<Vehicle, LinkedList<Movement>>``` which contains for each vehicle the ordered actions to perform.
+For solving the constraint satisfaction optimization problem, we use the following variables :
+
+* *nextMovement* : a ```HashMap``` of $2N_T$ variables. It contains one key per existing movement for which their values are the next movement to be performed. The value can be *NULL* and means that the key is the last movement done by a vehicle (and must thus have a *Deliver* action).
+* *nextVehicleMovement* : a ```HashMap``` of $N_V$ variables. It contains one key per existing vehicle for which their values are the first movement to be performed by each vehicle (which contains always a *Pickup* action). The value can be *NULL* and means that the vehicle corresponding to the key will carry no task.
+
+* *time* : this is the time when a movement is performed. This is represented in a ```HashMap<Movement, Integer>``` of $2N_T$ variables.
+* *plans* : the list of movements ordered in performed time for each vehicle. This is represented as a ```HashMap<Vehicle, LinkedList<Movement>>```.
 
 ## Constraints
 
-We need to define some constraints to solve the *PDP* problem. The variable $x$ is used to define both actions.
-
-* $nextMovement(x_i) \neq x_i$
-* $nextVehicleMovement(v_i) = x_j \Rightarrow time(x_j) = 1$ : $nextVehicleMovement$ is always at the beginning.
-* $nextVehicleMovement(x_i) \Rightarrow$ always a *Pickup* action.
-* $nextMovement(x_i) = x_j \Rightarrow time(x_j) = time(x_i) + 1$
-* $time(Pickup(t_i)) < time(Deliver(t_i))$ : a task must be picked up before delivered.
-* $nextVehicleMovement(v_k) = x_i \Rightarrow x_i \in vehicle(v_k)$
-* $nextMovement(x_i) = x_j \Rightarrow x_i \in vehicle(v_k), x_j \in vehicle(v_k)$ 
-* $Pickup(t_i) \in vehicle(v_k) \Rightarrow Deliver(t_i) \in vehicle(v_k)$ : the vehicle that takes a task must deliver it.
+* $nextMovement(m) \neq m$
+* $nextVehicleMovement(v) = m \Rightarrow time(m) = 1$.
+* $nextVehicleMovement(v) = m \Rightarrow$ m.Action == *Pickup*.
+* $nextVehicleMovement(v) = m \Rightarrow m \in plans.get(v)$
+* $nextMovement(m_i) = m_j \Rightarrow time(m_j) = time(m_i) + 1$
+* $nextMovement(m_i) = m_j$ and $m_i \in plans.get(v) \Rightarrow m_j \in plans.get(v)$ 
+* For a task *t* and its corresponding movements $m_{pickup}$ and $m_{deliver}$: $time(m_{pickup}) < time(m_{deliver})$ : a task must be picked up before being delivered.
+* For a task *t* and its corresponding movements $m_{pickup}$ and $m_{deliver}$: $m_{pickup} \in vehicle(v) \Leftrightarrow m_{deliver} \in vehicle(v)$ : the vehicle that picks up a task must deliver it and vice versa.
 * All tasks must be delivered.
-* The capacity of a vehicle cannot be exceeded.
+* The capacity of a vehicle cannot be exceeded at any time.
 
 ## Objective
 
-As the reward for each plan will be exactly the same (we always deliver all tasks), the objective is simply to minimize the cost of delivering tasks ($distance \times costPerKM$). The formula to compute it is :
+As the reward for each plan will be exactly the same (we always deliver all tasks), the objective is simply to minimize the cost of delivering tasks ($distance \times costPerKM$) of each vehicle:
 
+<!--\begin{gather*}
+  C = \sum_{i=1}^{2N_T} dist(m_i, nextMovement(m_i)) \times cost(vehicle(m_i)) + \sum_{k=1}^{N_V} dist(v_k, nextMovement(v_k)) \times cost(v_k)
+\end{gather*} -->
 \begin{gather*}
-  C = \sum_{i=1}^{2N} dist(x_i, nextMovement(x_i)) \times cost(vehicle(x_i)) + \sum_{k=1}^{M} dist(v_k, nextMovement(v_k)) \times cost(v_k)
+C = \sum_{i=1}^{N_V} \left( dist(v_i, nextVehicleMovement(v_i)) + \sum_{k=1}^{length(plan.get(v_i))-1} dist(m_k, m_{k+1})\right) \times cost(v_i)
 \end{gather*}
 where $dist(a,b)$ is the distance between task in action (or vehicle) $a$ and task in action (or vehicle) $b$. Variable $x$, as above, represents an action (*Pickup* or *Deliver*).
 
@@ -76,7 +90,7 @@ Afterwards, we select the best ```localChoice()``` and with probability *p* we s
 
 About the termination, we have 3 conditions : the maximum number of loops is reached (3000 loops in our code, but it strongly depends on which kind of results\footnote{It depends if we want more precise results or not.} we want and on the number of tasks to deliver. The second condition is the number of loop where the best state is the same. This number is fixed to 50 to be sure to be on a local minimum. Finally, the third condition is a number of loops where the best computed cost is the same. Indeed, we observed that sometimes it continues to loop without improving the cost. This phenomenon is due to some local changes on a vehicle where tasks are simply swaped without changing the cost. This leads to a inifinite loop even if we are in a local minimum. We set this value to 1000 to avoid stopping the algorithm too quickly, in case a better solution is present in neighbours.
 
-# Results
+# Evaluation
 
 **TODO**
 
