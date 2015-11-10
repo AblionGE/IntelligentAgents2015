@@ -4,9 +4,9 @@ For this exercise, we were asked to build a centralized agent for the pickup and
 
 The goal of the compagny is to determine a plan for each of its vehicles such that:
 
-* all tasks assigned to the compagny are delivered
-* vehicles can carry more than one task at a time if their capacity allows them to
-* the total revenue of the compagny (the sum of the individual revenues obtained by each vehicle) is maximized
+* all tasks assigned to the compagny are delivered;
+* vehicles can carry more than one task at a time if their capacity allows them to;
+* the total revenue of the compagny (the sum of the individual revenues obtained by each vehicle) is maximized;
 
 # Solution: Encoding as a CSP
 
@@ -71,26 +71,31 @@ It also contains some useful functions : ```computeTime()``` to compute the time
 
 **Constraints:** We have coded a class that contains methods to check the constraints presented above. We can note that our implementation should not create uncorrect states. For performance purposes, the constraints are checked only in the ```localChoice``` method, after having the cost of a solution which is promissing.
 
-**Algorithm:** The *SLS* algorithm is implemented as in the algorithm 1 in the document "*Finding the Optimal Delivery Plan : Model as a Constraint Satisfaction Problem*":
+**Algorithm:** The *SLS* algorithm is implemented as in the algorithm 1 in the document "*Finding the Optimal Delivery Plan : Model as a Constraint Satisfaction Problem*" with some modifications. Nevertheless, it stays stochastic and local:
 
 * *SelectInitialSolution()* is implemented as explained in the above section.
 * *ChooseNeighbours()* creates the neighbours candidates as follows: 1) moves the first task of one vehicle and gives it to another vehicle. The task is placed in the new vehicle's plan such that *Pickup* and *Deliver* of that task are the first two movements in the vehicle's plan. 2) change the positions of the movements related to a task in the plan of the vehicle carrying it. More specifically, it creates $O(n^2)$ neighbours by considering any possible combinations by moving the *Pickup* movement, or the *Deliver* movement, or both of a task, keeping the consistency such that *Pickup* happens before *Deliver*.
-* *LocalChoice()* implemented as explained in the document execpted that we check if the constraints are satisfied before returning the choosen state.
+* *LocalChoice()* implemented as explained in the document excepted that we check if the constraints are satisfied before returning the choosen state and that we choose between the old solution and the new one outside of the function for performance purposes.
 
-**Termination:** We have 3 termination conditions :
+**Termination:** We have 2 termination conditions :
 
 * the maximum number of loops is reached (3000 in our code but should be adapted depending on the number of tasks to deliver).
-* the number of loops where the best state doesn't change is reached (50).
-* the number of loops where the best cost doesn't change is reached (1000), to avoid looping too much when only some local changes happen on a vehicle where tasks are simply swaped without changing the cost.
+* the number of loops where the best cost doesn't change is reached (50), to avoid looping too much when only some local changes happen on a vehicle where tasks are simply swaped without changing the cost. This count is incremented only when the algorithm computes a new neighbouring state.
 
 # Evaluation
 
-**TODO**
+We can observe that the simulations does not always result in an optimal plan. This happens because of the presence of local minima and that there are some random factors in the choices of neighbours, resulting in different possible plans for the same settings. The probability *p* to choose the old solution in the algorithm makes the algorithm converge faster but it can more easily result in a local minimum and not give an optimal plan.
 
-parler du choix de *p*, du nombre de taches, du fait de rester coincer facilement dans des minima locaux...
+By running several times the simulation, we observe that the total cost for the compagny depends on the number of tasks because, in general, with more tasks, more distance has to be travelled and the cost increases. The cost does not always depend on the number of vehicles: depending on the repartition of the tasks and the original location of the vehicles, an optimal plan can require that one or more vehicles carry no task, resulting in that case in a constant cost if there is an augmentation of the number of vehicles.
 
-On pourrait faire un joli graphe avec le cout pour plusieurs execution avec le meme nombre
+An optimal plan does not necessarly be fair as it can be observed from Figure **2**.
+
+The most expensive step of the algorithm in terms of running time is the function ```chooseNeighbours()``` which is at best $O(N_V + \left( \frac{N_t}{N_V}\right) ^3)$ and at worst $O(N_V + N_t^3)$. The dependence of the number of tasks for the algorithm's complexity is then much more significative than the number of vehicles. It is illustrated in Figure **1**. 
 
 # Conclusion
 
-We can observe that this algorithm is quite good even if in some cases we can be stucked in a local minimum that can be far away from the optimal solution. Despite this, in general we have some good results not so far from the optimal solution. We know what to have a good solution we need to run this algorithm several times.
+We can observe that this algorithm is better than having deliberative agents even if in some cases we can be stucked in a local minimum that can be far away from the optimal solution. We know that to have a good solution we need to run this algorithm several times.
+
+
+
+

@@ -61,7 +61,7 @@
 				<set speed="90" />
 				<set capacity="30" />
 				<set cost-per-km="5" />
-			</vehicle>
+			</vehicle> -->
 			
 		</company>
 	</companies>

@@ -35,8 +35,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 
 	private final double SLS_PROBABILITY = 0.4;
 	private final int MAX_SLS_LOOPS = 3000;
-	private final int MAX_SLS_STATE_REPETITION = 50;
-	private final int MAX_SLS_COST_REPETITION = 1000;
+	private final int MAX_SLS_COST_REPETITION = 50;
 
 	private Topology topology;
 	private TaskDistribution distribution;
@@ -136,21 +135,22 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		SolutionState oldState;
 
 		double p = SLS_PROBABILITY;
-		int maxLoop = MAX_SLS_LOOPS;
-		int maxStateRepetition = MAX_SLS_STATE_REPETITION;
 		int currentLoop = 0;
 		int stateRepetition = 0;
 		int costRepetition = 0;
 		bestState = computeInitState(vehicles, tasks);
 		double bestCost = bestState.getCost();
+		double newCost;
+		
+		if(p == 0.0) {
+			bestCost = 0;
+		}
 
 		// If there are tasks to deliver
 		if (bestCost > 0) {
 
-			while (stateRepetition < maxStateRepetition && currentLoop < maxLoop
-					&& costRepetition < MAX_SLS_COST_REPETITION) {
+			while (currentLoop < MAX_SLS_LOOPS && costRepetition < MAX_SLS_COST_REPETITION) {
 				currentLoop++;
-				System.out.println(currentLoop + ", cost : " + bestState.getCost());
 				oldState = bestState;
 
 				Random random = new Random();
@@ -159,27 +159,22 @@ public class CentralizedTemplate implements CentralizedBehavior {
 				if (r < p * 100) {
 					neighbours = chooseNeighbours(bestState, vehicles);
 					if (neighbours == null) {
-						currentLoop = maxLoop;
+						currentLoop = MAX_SLS_LOOPS;
 						System.out.println("No more promissing neighbours");
 					}
-					bestState = localChoice(oldState, neighbours);
+					bestState = localChoice(neighbours);
+					newCost = bestState.getCost();
+					if (bestCost == newCost) {
+						costRepetition++;
+					} else {
+						costRepetition = 0;
+					}
+					bestCost = newCost;
 				}
 
-				if (bestState.equals(oldState)) {
-					stateRepetition++;
-				} else {
-					stateRepetition = 0;
-				}
-
-				double newCost = bestState.getCost();
-				if (bestCost == newCost) {
-					costRepetition++;
-				} else {
-					costRepetition = 0;
-				}
-				bestCost = newCost;
 
 			}
+			
 		}
 
 		System.out.println(" ======================================================== ");
@@ -306,7 +301,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 					}
 					if (dMov.getTask().id != pMov.getTask().id) {
 						System.out
-								.println("Deliver not found for task " + pMov.getTask().id + " in changingTaskOrder.");
+						.println("Deliver not found for task " + pMov.getTask().id + " in changingTaskOrder.");
 						dMov = null;
 					}
 
@@ -338,15 +333,15 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	 * @param probability
 	 * @return
 	 */
-	private SolutionState localChoice(SolutionState old, ArrayList<SolutionState> neighbours) {
+	private SolutionState localChoice(ArrayList<SolutionState> neighbours) {
 		SolutionState bestSolution;
 
 		if (neighbours == null || neighbours.size() == 0) {
 			System.err.println("Neighbours should not be null !");
-			return old;
+			return null;
 		}
 
-		double bestCost = old.getCost();
+		double bestCost = Double.MAX_VALUE;
 		ArrayList<SolutionState> bestSolutions = new ArrayList<SolutionState>();
 
 		double cost;
@@ -362,10 +357,6 @@ public class CentralizedTemplate implements CentralizedBehavior {
 				}
 				bestSolutions.add(neighbour);
 			}
-		}
-
-		if (bestSolutions.size() == 0) {
-			return old;
 		}
 
 		if (bestSolutions.size() > 1) {
