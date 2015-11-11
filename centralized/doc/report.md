@@ -94,7 +94,17 @@ An optimal plan is not necessarily fair as it can be observed from Figure \ref{f
 
 The most expensive step of the algorithm in terms of running time is the function ```chooseNeighbours()``` which is $O(N_V + \left( \frac{N_t}{N_V}\right) ^3)$ if the tasks are well spread over the vehicles but at worst $O(N_V + N_t^3)$. The dependence of the number of tasks for the algorithm's complexity is then much more significative than the number of vehicles in the worst case and the increase of the number of vehicles is more likely to reduce the running time. It is illustrated in Figure \ref{fig:complexity}.
 
-We also can note that this *SLS* algorithm has some bad sides. Indeed, if we have vehicles with really different *costPerKM* values, it seems normal that vehicles with lower cost per km will deliver more tasks. Nevertheless, it strongly depends on the initial state because, if the tasks are equally distributed, we will quickly fall in a local minimum\footnote{We also observed that moving the task from one vehicle to another is often worst than simply rearrange tasks order in a vehicle, so tasks does not move a lot between vehicles. That explains the importance of the initial solution.} without having any possibility to get out of it. The possible solution to this problem is to not select the best neighbour in ```localChoice()```, but to select each neighbour with a certain probability (maybe based on the cost of each solution). The algorithm will find a better solution but it needs more time to find it. The other solution, as we did, is to distribute initially the tasks depending on the *costPerKM* of each vehicle\footnote{It can also lead to worst performances because the \textit{chooseNeighbours()} method will have a lot of neighbours to compute for nodes that have more tasks to manage.}.
+In Figure \ref{fig:costs}, we observe that we do not obtain always the best cost and that we can reach a local minimum. Nevertheless, we are always not so far from an optimal solution. We also see that 2 and 3 vehicles for these executions are better than 4. Figure \ref{fig:tasks} confirms this impression.
+
+We also can note that this *SLS* algorithm has some bad sides. Indeed, if we have vehicles with really different *costPerKM* values, it seems normal that vehicles with lower cost per km will deliver more tasks. Nevertheless, it strongly depends on the initial state because, if the tasks are equally distributed, we will quickly fall in a local minimum without having any possibility to get out of it. The possible solution to this problem is to not select the best neighbour in ```localChoice()```, but to select each neighbour with a certain probability (maybe based on the cost of each solution). The algorithm will find a better solution but it needs more time to find it. The other solution, as we did, is to distribute initially the tasks depending on the *costPerKM* of each vehicle\footnote{It can also lead to worst performances because the \textit{chooseNeighbours()} method will have a lot of neighbours to compute for vehicles that have more tasks to manage.}.
+
+## Conclusion
+
+We can observe that this algorithm is better than having deliberative agents even if in some cases we can be stucked in a local minimum that can be far away from the optimal solution. We know that to have a good solution we need to run this algorithm several times and have several vehicles.
+
+## Graphs
+
+All of these graphs were done with a seed equal to 12345, for England map with vehicle 1 starting from Newcastle, vehicle 2 from Cardiff, vehicle 3 from Plymouth and vehicle 4 from Norwich. Each vehicle has a capacity of 30 kg and a cost per km of 5. Each task has a weight of 3 kg. Probability *p* is 0.4.
 
 \begin{figure} [!h]
 \minipage{0.49\textwidth}
@@ -103,29 +113,42 @@ We also can note that this *SLS* algorithm has some bad sides. Indeed, if we hav
     \hline
     \textbf{Total nb of Tasks} & \bf10 & \bf20 & \bf30\\
     \hline
-    \textbf{Vehicle 1} & 3 & 9 & 7\\
+    \textbf{Vehicle 1} & 6, 7, 0 & 0, 4, 5 & 23, 0, 0\\
     \hline
-    \textbf{Vehicle 2} & 7 & 7 & 17\\
+    \textbf{Vehicle 2} & 0, 3, 5 & 11, 0, 0 & 0, 25, 13\\
     \hline
-    \textbf{Vehicle 3} & 0 & 4 & 6\\
+    \textbf{Vehicle 3} & 0, 0, 0 & 4, 4, 15  & 0, 0, 0\\
     \hline
-    \textbf{Vehicle 4} & 0 & 0 & 0\\
+    \textbf{Vehicle 4} & 4, 0, 5 & 5, 12, 0 & 7, 5, 17\\
     \hline
     \end{tabular}
   \end{center}
   \label{table}
-  \caption{\it Number of tasks carried by each vehicle.}
+  \caption{\it Number of tasks carried by each vehicle for 3 executions.}
   \label{fig:tasks}
 \endminipage\hfill
 \minipage{0.49\textwidth}
-  \centering \includegraphics[scale=0.45]{img/complexity.png}
-  \caption{\it Running time of the simulation}
+  \centering \includegraphics[scale=0.2]{img/complexity.png}
+  \caption{\it Running time of the simulation for 1 execution. These values can change a lot depending on random factors from the algorithm. 300s is the maximum time of execution.}
   \label{fig:complexity}
 \endminipage
-\caption{\it Simulations with p=0.4 and equal capacity and speed for each vehicles}
 \end{figure}
 
-## Conclusion
-
-We can observe that this algorithm is better than having deliberative agents even if in some cases we can be stucked in a local minimum that can be far away from the optimal solution. We know that to have a good solution we need to run this algorithm several times.
+\begin{figure}[h!]
+  \begin{center}
+    \begin{tabular}{|l|c|c|c|}
+      \hline
+      \textbf{Costs} & \textbf{Minimal Cost} & \textbf{Maximal Cost} & \bf Average \\
+      \hline
+      \textbf{2 vehicles} & 13'661.5 & 17'420.5 & 14'836\\
+      \hline
+      \textbf{3 vehicles} & 11'732.5 & 16'932.5& 13'679\\
+      \hline
+      \textbf{4 vehicles} & 14223.5 & 20'548 & 17'500 \\
+      \hline
+    \end{tabular}
+    \caption{\it Minimal, maximal and average costs on 5 executions for 2, 3 and 4 vehicles and 30 tasks. The minimal cost is a suboptimal solution. The maximal one, is clearly not the worst possible plan, but a suboptimal solution, too.}
+    \label{fig:costs}
+  \end{center}
+\end{figure}
 
