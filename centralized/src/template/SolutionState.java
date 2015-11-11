@@ -8,7 +8,7 @@ import logist.simulation.Vehicle;
 import logist.topology.Topology.City;
 
 /**
- * This class represent a solution state composed by All actions to do and the
+ * This class represent a solution state composed by all actions to do and the
  * action after and a relation for each vehicle and their first action
  *
  */
@@ -28,6 +28,9 @@ public class SolutionState {
 		cost = -1;
 	}
 
+	/**
+	 * Compute the cost of this solution
+	 */
 	private void computeCost() {
 		double totalCost = 0;
 		Set<Vehicle> vehicles = plans.keySet();
@@ -43,12 +46,27 @@ public class SolutionState {
 		this.cost = totalCost;
 	}
 
+	/**
+	 * Compute the distance from the starting position of a vehicle and its
+	 * first task to perform
+	 * 
+	 * @param v
+	 * @param a
+	 * @return
+	 */
 	private double computeVehicleDistance(Vehicle v, Movement a) {
 		City start = v.getCurrentCity();
 		City destination = a.getTask().pickupCity;
 		return start.distanceTo(destination);
 	}
 
+	/**
+	 * Compute the distance between two movements
+	 * 
+	 * @param a
+	 * @param b
+	 * @return
+	 */
 	private double computeMovementsDistance(Movement a, Movement b) {
 		City cityTaskA;
 		City cityTaskB;
@@ -94,6 +112,12 @@ public class SolutionState {
 		return plans;
 	}
 
+	/**
+	 * Compute a HashMap of time for each action
+	 * 
+	 * @param plans
+	 * @return
+	 */
 	private HashMap<Movement, Integer> computeTime(HashMap<Vehicle, LinkedList<Movement>> plans) {
 		Set<Vehicle> vehicles = plans.keySet();
 		HashMap<Movement, Integer> timedMovements = new HashMap<Movement, Integer>();
@@ -118,9 +142,9 @@ public class SolutionState {
 			s += "\nVehicle " + v.id() + ": Nb of tasks processed : ";
 			for (Movement m : plans.get(v)) {
 				plan += m.toString() + ", ";
-				i+=1;
+				i += 1;
 			}
-			s += i/2;
+			s += i / 2;
 			s = s + ", plan : " + plan;
 		}
 		return s;

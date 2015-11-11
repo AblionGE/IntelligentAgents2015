@@ -144,26 +144,28 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		double bestCost = bestState.getCost();
 		double newCost;
 
+		// if p is 0, we will keep the initial state
 		if (p == 0.0) {
 			bestCost = 0;
 		}
 
-		// If there are tasks to deliver
 		if (bestCost > 0) {
-
 			while (currentLoop < MAX_SLS_LOOPS && costRepetition < MAX_SLS_COST_REPETITION
 					&& (timeout_setup - 5000) > System.currentTimeMillis() - time_start) {
+
 				currentLoop++;
 				oldState = bestState;
 
 				Random random = new Random();
 				int r = random.nextInt(100);
 				ArrayList<SolutionState> neighbours = null;
+				// Decide if we keep the old state or not
+				// If not, compute neighbours and choose one
 				if (r < p * 100) {
 					neighbours = chooseNeighbours(bestState, vehicles);
 					if (neighbours == null) {
 						currentLoop = MAX_SLS_LOOPS;
-						System.out.println("No more promissing neighbours");
+						System.out.println("No neighbours"); // should never happen
 					}
 					bestState = localChoice(neighbours);
 					if (bestState == null) {
@@ -258,6 +260,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			distributedTasks.put(v, (ArrayList<Task>) oldTasksList.clone());
 		}
 
+		// We construct nextMovements and nextMovementsVehicle
 		HashMap<Movement, Movement> nextMovements = new HashMap<Movement, Movement>();
 		HashMap<Vehicle, Movement> nextMovementsVehicle = new HashMap<Vehicle, Movement>();
 		for (Vehicle v : vehicles) {
@@ -290,7 +293,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		return solution;
 	}
 
-	// algo from paper
+	// We create neighbours of a state following the idea of the paper
 	private ArrayList<SolutionState> chooseNeighbours(SolutionState oldState, List<Vehicle> vehicles) {
 		ArrayList<SolutionState> neighbours = new ArrayList<SolutionState>();
 		HashMap<Vehicle, Movement> nextMovementsVehicle = oldState.getNextMovementsVehicle();
@@ -304,6 +307,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 			x = ran.nextInt(vehicles.size());
 			vehicle = vehicles.get(x);
 		}
+
 		// apply changing vehicle operator:
 		Movement m;
 		for (Vehicle v : vehicles) {
@@ -334,9 +338,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		Movement pMov, dMov;
 		LinkedList<Movement> plan = oldState.getPlans().get(vehicle);
 		int size = plan.size();
-		if (size > 2)
-
-		{
+		if (size > 2) {
 			for (int k = 0; k < size - 1; k++) {
 				// select a pickup movement
 				pMov = plan.get(k);
@@ -475,6 +477,18 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		return new SolutionState(nextMovements, nextMovementsVehicle);
 	}
 
+	/**
+	 * In oldState, for vehicle, move pickup action at position pikcupIdx to position pickupNextIdx
+	 * and deliver action at position deliverIdx to position deliverNextIdx
+	 * 
+	 * @param oldState
+	 * @param vehicle
+	 * @param pickupIdx
+	 * @param deliverIdx
+	 * @param pickupNextIdx
+	 * @param deliverNextIdx
+	 * @return the computed SolutionState
+	 */
 	@SuppressWarnings("unchecked")
 	private SolutionState changingTaskOrder(SolutionState oldState, Vehicle vehicle, int pickupIdx, int deliverIdx,
 			int pickupNextIdx, int deliverNextIdx) {
@@ -513,5 +527,4 @@ public class CentralizedTemplate implements CentralizedBehavior {
 
 		return solution;
 	}
-
 }

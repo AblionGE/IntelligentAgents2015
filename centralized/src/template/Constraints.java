@@ -52,17 +52,26 @@ public final class Constraints {
 				timeCounter++;
 			}
 			errors += verificationMovementConsistency(consistencyVerification);
-			if (currentLoad != 0){
+			if (currentLoad != 0) {
 				errors += 1;
 			}
 		}
-		
+
 		errors += checkMovementDoneOnce(state);
 		errors += checkFirstTaskIsPickedUp(state);
 
 		return errors;
 	}
 
+	/**
+	 * Check if for a movement, a Vehicle and the current load in this vehicle,
+	 * we can execute the movement
+	 * 
+	 * @param m
+	 * @param v
+	 * @param currentLoad
+	 * @return
+	 */
 	private static int checkLoad(Movement m, Vehicle v, int currentLoad) {
 		if (m.getAction() == Action.PICKUP) {
 			currentLoad += m.getTask().weight;
@@ -78,6 +87,14 @@ public final class Constraints {
 		return currentLoad;
 	}
 
+	/**
+	 * For a SolutionState and a vehicule, check if the capacitz of the vehicle
+	 * is respected in the plan.
+	 * 
+	 * @param state
+	 * @param v
+	 * @return
+	 */
 	public static int checkVehicleLoad(SolutionState state, Vehicle v) {
 		int currentLoad = 0;
 		LinkedList<Movement> movements = state.getPlans().get(v);

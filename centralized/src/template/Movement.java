@@ -3,16 +3,16 @@ package template;
 import logist.task.Task;
 
 /**
- * This class represents an movement that can be to pickup or deliver a task.
- * It also contains the time when the movement must be done and it has a task.
+ * This class represents a movement that can be to pickup or deliver a task. It
+ * also contains the time when the movement must be done and it has a task.
  *
  */
 public class Movement {
 
 	private Task task;
 	private Action action;
-	
-	Movement (Action action, Task task) {
+
+	Movement(Action action, Task task) {
 		this.task = task;
 		this.action = action;
 	}
@@ -24,7 +24,6 @@ public class Movement {
 	protected Task getTask() {
 		return task;
 	}
-
 
 	@Override
 	public String toString() {
@@ -58,5 +57,5 @@ public class Movement {
 			return false;
 		return true;
 	}
-	
+
 }
