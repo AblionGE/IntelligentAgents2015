@@ -35,7 +35,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 
 	private final double SLS_PROBABILITY = 0.4;
 	private final int MAX_SLS_LOOPS = 3000;
-	private final int MAX_SLS_COST_REPETITION = 50;
+	private final int MAX_SLS_COST_REPETITION = 100;
 
 	private Topology topology;
 	private TaskDistribution distribution;
