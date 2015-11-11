@@ -89,9 +89,38 @@ We can observe that the simulation does not always result in an optimal plan. Th
 
 By running several times the simulation, we observe that the total cost for the company depends on the number of tasks because, in general, with more tasks, more distance has to be travelled and the cost increases. The cost does not always depend on the number of vehicles: depending on the repartition of the tasks and the original location of the vehicles, an optimal plan can require that one or more vehicles carry no task, resulting in that case in a constant cost if there is an augmentation of the number of vehicles.
 
-An optimal plan is not necessarly fair as it can be observed from Figure **2**.
+An optimal plan is not necessarly fair as it can be observed from Figure \ref{fig:tasks}.
 
-The most expensive step of the algorithm in terms of running time is the function ```chooseNeighbours()``` which is at best $O(N_V + \left( \frac{N_t}{N_V}\right) ^3)$ and at worst $O(N_V + N_t^3)$. The dependence of the number of tasks for the algorithm's complexity is then much more significative than the number of vehicles. It is illustrated in Figure **1**. 
+The most expensive step of the algorithm in terms of running time is the function ```chooseNeighbours()``` which is at best $O(N_V + \left( \frac{N_t}{N_V}\right) ^3)$ and at worst $O(N_V + N_t^3)$. The dependence of the number of tasks for the algorithm's complexity is then much more significative than the number of vehicles in the worst case and the increase of the number of vehicles is more likely to reduce the running time. It is illustrated in Figure \ref{fig:complexity}.
+
+\begin{figure} [!h]
+\minipage{0.49\textwidth}
+  \begin{center}
+    \begin{tabular}{|l|c|c|c|}
+    \hline
+    \textbf{Total nb of Tasks} & \bf10 & \bf20 & \bf30\\
+    \hline
+    \textbf{Vehicle 1} & 3 & 9 & 7\\
+    \hline
+    \textbf{Vehicle 2} & 7 & 7 & 17\\
+    \hline
+    \textbf{Vehicle 3} & 0 & 4 & 6\\
+    \hline
+    \textbf{Vehicle 4} & 0 & 0 & 0\\
+    \hline
+    \end{tabular}
+  \end{center}
+  \label{table}
+  \caption{\it Number of tasks carried by each vehicle.}
+  \label{fig:tasks}
+\endminipage\hfill
+\minipage{0.49\textwidth}
+  \centering \includegraphics[scale=0.8]{img/complexity.png}
+  \caption{\it Running time of the simulation}
+  \label{fig:complexity}
+\endminipage
+\caption{\it Simulations with p=0.4 and equal capacity and speed for each vehicles}
+\end{figure}
 
 ## Conclusion
 

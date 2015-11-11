@@ -111,11 +111,15 @@ public class SolutionState {
 	@Override
 	public String toString() {
 		String s = "State: ";
+		int i = 0;
 		for (Vehicle v : plans.keySet()) {
+			i = 0;
 			s += "\nVehicle " + v.id() + ": ";
 			for (Movement m : plans.get(v)) {
-				s += m.toString() + ", ";
+				//s += m.toString() + ", ";
+				i+=1;
 			}
+			s += i/2;
 		}
 		return s;
 	}
