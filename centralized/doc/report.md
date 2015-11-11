@@ -91,7 +91,7 @@ By running several times the simulation, we observe that the total cost for the 
 
 An optimal plan is not necessarly fair as it can be observed from Figure \ref{fig:tasks}.
 
-The most expensive step of the algorithm in terms of running time is the function ```chooseNeighbours()``` which is at best $O(N_V + \left( \frac{N_t}{N_V}\right) ^3)$ and at worst $O(N_V + N_t^3)$. The dependence of the number of tasks for the algorithm's complexity is then much more significative than the number of vehicles in the worst case and the increase of the number of vehicles is more likely to reduce the running time. It is illustrated in Figure \ref{fig:complexity}.
+The most expensive step of the algorithm in terms of running time is the function ```chooseNeighbours()``` which is $O(N_V + \left( \frac{N_t}{N_V}\right) ^3)$ if the tasks are well spread over the vehicles but at worst $O(N_V + N_t^3)$. The dependence of the number of tasks for the algorithm's complexity is then much more significative than the number of vehicles in the worst case and the increase of the number of vehicles is more likely to reduce the running time. It is illustrated in Figure \ref{fig:complexity}.
 
 \begin{figure} [!h]
 \minipage{0.49\textwidth}
