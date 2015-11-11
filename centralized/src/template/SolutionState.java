@@ -32,13 +32,13 @@ public class SolutionState {
 		double totalCost = 0;
 		Set<Vehicle> vehicles = plans.keySet();
 		for (Vehicle v : vehicles) {
-			totalCost += computeVehicleDistance(v, nextMovementsVehicle.get(v));
+			double totalVehicleDistance = computeVehicleDistance(v, nextMovementsVehicle.get(v));
 			LinkedList<Movement> currentPath = plans.get(v);
 			for (int i = 0; i < currentPath.size() - 1; i++) {
 				Movement currentMovement = currentPath.get(i);
-				totalCost += computeMovementsDistance(currentMovement, currentPath.get(i + 1));
+				totalVehicleDistance += computeMovementsDistance(currentMovement, currentPath.get(i + 1));
 			}
-			totalCost = totalCost * v.costPerKm();
+			totalCost += (totalVehicleDistance * v.costPerKm());
 		}
 		this.cost = totalCost;
 	}
@@ -114,12 +114,14 @@ public class SolutionState {
 		int i = 0;
 		for (Vehicle v : plans.keySet()) {
 			i = 0;
-			s += "\nVehicle " + v.id() + ": ";
+			String plan = "";
+			s += "\nVehicle " + v.id() + ": Nb of tasks processed : ";
 			for (Movement m : plans.get(v)) {
-				//s += m.toString() + ", ";
+				plan += m.toString() + ", ";
 				i+=1;
 			}
 			s += i/2;
+			s = s + ", plan : " + plan;
 		}
 		return s;
 	}

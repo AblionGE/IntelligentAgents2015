@@ -34,7 +34,7 @@ import logist.topology.Topology.City;
 public class CentralizedTemplate implements CentralizedBehavior {
 
 	private final double SLS_PROBABILITY = 0.4;
-	private final int MAX_SLS_LOOPS = 3000;
+	private final int MAX_SLS_LOOPS = 5000;
 	private final int MAX_SLS_COST_REPETITION = 100;
 
 	private Topology topology;
@@ -134,6 +134,8 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		SolutionState bestState;
 		SolutionState oldState;
 
+		long time_start = System.currentTimeMillis();
+
 		double p = SLS_PROBABILITY;
 		int currentLoop = 0;
 		int stateRepetition = 0;
@@ -141,15 +143,16 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		bestState = computeInitState(vehicles, tasks);
 		double bestCost = bestState.getCost();
 		double newCost;
-		
-		if(p == 0.0) {
+
+		if (p == 0.0) {
 			bestCost = 0;
 		}
 
 		// If there are tasks to deliver
 		if (bestCost > 0) {
 
-			while (currentLoop < MAX_SLS_LOOPS && costRepetition < MAX_SLS_COST_REPETITION) {
+			while (currentLoop < MAX_SLS_LOOPS && costRepetition < MAX_SLS_COST_REPETITION
+					&& (timeout_setup - 5000) > System.currentTimeMillis() - time_start) {
 				currentLoop++;
 				oldState = bestState;
 
@@ -163,6 +166,9 @@ public class CentralizedTemplate implements CentralizedBehavior {
 						System.out.println("No more promissing neighbours");
 					}
 					bestState = localChoice(neighbours);
+					if (bestState == null) {
+						bestState = oldState;
+					}
 					newCost = bestState.getCost();
 					if (bestCost == newCost) {
 						costRepetition++;
@@ -171,10 +177,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 					}
 					bestCost = newCost;
 				}
-
-
 			}
-			
 		}
 
 		System.out.println(" ======================================================== ");
@@ -198,10 +201,40 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		ArrayList<Vehicle> arrayOfVehicles = new ArrayList<Vehicle>(vehicles);
 		ArrayList<Task> arrayOfTasks = new ArrayList<Task>(tasks);
 
+		double[] vv = new double[vehicles.size()];
+
+		// We search the maximum costPerKM between all vehicles
+		int maxCostPerKM = 0;
+		for (Vehicle v : vehicles) {
+			if (v.costPerKm() > maxCostPerKM) {
+				maxCostPerKM = v.costPerKm();
+			}
+		}
+		int totalCostPerKM = 0;
+		// We give to each vehicle a value depending on their costPerKM s.t.
+		// vehicles with less cost will have more tasks at the beginning of the
+		// algorithm
+		for (Vehicle v : vehicles) {
+			totalCostPerKM += maxCostPerKM / v.costPerKm();
+			vv[v.id()] = totalCostPerKM;
+		}
+
+		Random ran = new Random();
+
 		// Each task is assigned to one (different) vehicle (if it is possible)
 		// And there will be only one task in a vehicle at a given time.
 		for (int i = 0; i < arrayOfTasks.size(); i++) {
-			Vehicle v = arrayOfVehicles.get(i % arrayOfVehicles.size());
+
+			Vehicle v = null;
+			int x = ran.nextInt(totalCostPerKM);
+			// We select a vehicle with a probability depending on the costPerKM
+			for (int k = 0; k < vehicles.size(); k++) {
+				if (x < vv[k]) {
+					v = vehicles.get(k);
+					k = vehicles.size();
+				}
+			}
+
 			ArrayList<Task> oldTasksList = distributedTasks.get(v);
 			if (oldTasksList == null) {
 				oldTasksList = new ArrayList<Task>();
@@ -279,6 +312,20 @@ public class CentralizedTemplate implements CentralizedBehavior {
 				if (m.getTask().weight < v.capacity()) {
 					ss = changingVehicle(oldState, vehicle, v);
 					neighbours.add(ss);
+
+					// All possible positions for the moved task in its new
+					// vehicle
+					SolutionState ss2;
+					LinkedList<Movement> plan = ss.getPlans().get(v);
+					int size = plan.size();
+					for (int i = 2; i < size - 1; i++) {
+						for (int j = i + 1; j < size; j++) {
+							ss2 = changingTaskOrder(ss, v, 0, 1, i, j);
+							if (ss2 != null) {
+								neighbours.add(ss2);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -287,7 +334,9 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		Movement pMov, dMov;
 		LinkedList<Movement> plan = oldState.getPlans().get(vehicle);
 		int size = plan.size();
-		if (size > 2) {
+		if (size > 2)
+
+		{
 			for (int k = 0; k < size - 1; k++) {
 				// select a pickup movement
 				pMov = plan.get(k);
@@ -301,7 +350,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 					}
 					if (dMov.getTask().id != pMov.getTask().id) {
 						System.out
-						.println("Deliver not found for task " + pMov.getTask().id + " in changingTaskOrder.");
+								.println("Deliver not found for task " + pMov.getTask().id + " in changingTaskOrder.");
 						dMov = null;
 					}
 
@@ -323,6 +372,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		}
 
 		return neighbours;
+
 	}
 
 	/**
@@ -334,7 +384,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	 * @return
 	 */
 	private SolutionState localChoice(ArrayList<SolutionState> neighbours) {
-		SolutionState bestSolution;
+		SolutionState bestSolution = null;
 
 		if (neighbours == null || neighbours.size() == 0) {
 			System.err.println("Neighbours should not be null !");

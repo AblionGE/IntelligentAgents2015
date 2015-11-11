@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- the default configuration for centralized agents -->
-<configuration name="ex3" mode="centralized">
+<configuration name="ex4" mode="centralized">
 
 	<!-- global settings -->
 	<settings import="config/settings_default.xml" />
@@ -13,7 +13,7 @@
 	<agents import="config/agents.xml" />
 	
 	<!-- define task distribution -->
-	<tasks number="20" rngSeed="1234567">
+	<tasks number="30" rngSeed="12345">
 		<!--
 			the probabilities, rewards and weight of tasks
 		-->

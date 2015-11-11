@@ -51,7 +51,7 @@ where $m_{i,k}$ is the *k*-iest movement in the linked list $plan.get(v_i)$. Whe
 
 ## Implementation
 
-**Initial Solution:** For the initial solution, the set of tasks is spread over the set of vehicles: $task_i$ goes to $vehicle_{j}$ where $j = i \ mod \ N_{V}$ and the movements are such that a task is directly delivered after being picked up. So, in the initial solution, a vehicle carries only one task at a time. If the case where a task is heavier than the vehicle's capacity happens, we choose another vehicle for this task. If no vehicle is able to carry this task, a message is displayed and the normal execution continues resulting in a failure. 
+**Initial Solution:** For the initial solution, we give each task to one vehicle with a certain probability depending on its *costPerKM*. A vehicle with a lower cost will receive more tasks to deliver. Indeed, as described below, the initial state helps a lot the algorithm to have a better solution quickly. We can also note that a vehicle carries only one task at a time. If the case where a task is heavier than the vehicle's capacity happens, we choose another vehicle for this task. If no vehicle is able to carry this task, a message is displayed and the normal execution continues resulting in a failure. 
 
 **Action:** Is represented as an enumeration being either *Pickup* or *Deliver*.
 
@@ -75,12 +75,13 @@ It also contains some useful functions : ```computeTime()``` to compute the time
 **Algorithm:** The *SLS* algorithm is implemented as in the algorithm 1 in the document "*Finding the Optimal Delivery Plan : Model as a Constraint Satisfaction Problem*" with some modifications. Nevertheless, it stays stochastic and local:
 
 * *SelectInitialSolution()* is implemented as explained in the above section.
-* *ChooseNeighbours()* creates the neighbours candidates as follows: 1) moves the first task of one vehicle and gives it to another vehicle. The task is placed in the new vehicle's plan such that *Pickup* and *Deliver* of that task are the first two movements in the vehicle's plan. 2) change the positions of the movements related to a task in the plan of the vehicle carrying it. More specifically, it creates $O(n^2)$ neighbours by considering any possible combinations by moving the *Pickup* movement, or the *Deliver* movement, or both of a task, keeping the consistency such that *Pickup* happens before *Deliver*.
+* *ChooseNeighbours()* creates the neighbours candidates as follows: 1) moves the first task of one vehicle and gives it to another vehicle. The task is placed in the new vehicle's plan such that *Pickup* is before *Deliver*\footnote{We consider all possible positions for both actions.}.  2) change the positions of the movements related to a task in the plan of the vehicle carrying it. More specifically, it creates $O(n^2)$ neighbours for each task by considering any possible combinations by moving the *Pickup* movement, or the *Deliver* movement, or both of a task, keeping the consistency such that *Pickup* happens before *Deliver*.
 * *LocalChoice()* implemented as explained in the document excepted that we check if the constraints are satisfied before returning the choosen state and that we choose between the old solution and the new one outside of the function for performance purposes.
 
 **Termination:** We have 2 termination conditions :
 
-* the maximum number of loops is reached (3000 in our code but should be adapted depending on the number of tasks to deliver).
+* the maximum number of loops is reached (5000 in our code but should be adapted depending on the number of tasks to deliver);
+* the maximum time of execution is reached;
 * the number of loops where the best cost doesn't change is reached (100), to avoid looping too much when only some local changes happen on a vehicle where tasks are simply swaped without changing the cost. This count is incremented only when the algorithm computes a new neighbouring state.
 
 ## Evaluation
@@ -89,9 +90,11 @@ We can observe that the simulation does not always result in an optimal plan. Th
 
 By running several times the simulation, we observe that the total cost for the company depends on the number of tasks because, in general, with more tasks, more distance has to be travelled and the cost increases. The cost does not always depend on the number of vehicles: depending on the repartition of the tasks and the original location of the vehicles, an optimal plan can require that one or more vehicles carry no task, resulting in that case in a constant cost if there is an augmentation of the number of vehicles.
 
-An optimal plan is not necessarly fair as it can be observed from Figure \ref{fig:tasks}.
+An optimal plan is not necessarily fair as it can be observed from Figure \ref{fig:tasks}. As there are random factors in the algorithm, these values can be different for any execution, especially, vehicle 4 can carry tasks.
 
 The most expensive step of the algorithm in terms of running time is the function ```chooseNeighbours()``` which is $O(N_V + \left( \frac{N_t}{N_V}\right) ^3)$ if the tasks are well spread over the vehicles but at worst $O(N_V + N_t^3)$. The dependence of the number of tasks for the algorithm's complexity is then much more significative than the number of vehicles in the worst case and the increase of the number of vehicles is more likely to reduce the running time. It is illustrated in Figure \ref{fig:complexity}.
+
+We also can note that this *SLS* algorithm has some bad sides. Indeed, if we have vehicles with really different *costPerKM* values, it seems normal that vehicles with lower cost per km will deliver more tasks. Nevertheless, it strongly depends on the initial state because, if the tasks are equally distributed, we will quickly fall in a local minimum\footnote{We also observed that moving the task from one vehicle to another is often worst than simply rearrange tasks order in a vehicle, so tasks does not move a lot between vehicles. That explains the importance of the initial solution.} without having any possibility to get out of it. The possible solution to this problem is to not select the best neighbour in ```localChoice()```, but to select each neighbour with a certain probability (maybe based on the cost of each solution). The algorithm will find a better solution but it needs more time to find it. The other solution, as we did, is to distribute initially the tasks depending on the *costPerKM* of each vehicle\footnote{It can also lead to worst performances because the \textit{chooseNeighbours()} method will have a lot of neighbours to compute for nodes that have more tasks to manage.}.
 
 \begin{figure} [!h]
 \minipage{0.49\textwidth}
