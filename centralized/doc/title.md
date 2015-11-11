@@ -9,7 +9,7 @@ header-includes:
   - \chead{Intelligent Agents}
   - \rhead{\today}
   - \fancyhfoffset{0pt}
-  - \usepackage[top=2cm,bottom=2cm,right=2.5cm,left=2.5cm]{geometry}
+  - \usepackage[top=2cm,bottom=2cm,right=2cm,left=2cm]{geometry}
   - \usepackage[utf8]{inputenc}
   - \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 ---

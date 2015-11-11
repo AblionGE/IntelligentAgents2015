@@ -115,7 +115,7 @@ The most expensive step of the algorithm in terms of running time is the functio
   \label{fig:tasks}
 \endminipage\hfill
 \minipage{0.49\textwidth}
-  \centering \includegraphics[scale=0.8]{img/complexity.png}
+  \centering \includegraphics[scale=0.45]{img/complexity.png}
   \caption{\it Running time of the simulation}
   \label{fig:complexity}
 \endminipage
