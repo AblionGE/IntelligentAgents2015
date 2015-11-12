@@ -27,7 +27,10 @@ import logist.topology.Topology;
 import logist.topology.Topology.City;
 
 /**
+ * This class implements the SLS algorithm to compute a plan for a company with
+ * several vehicle in a centralized manner.
  * 
+ * @author Cynthia Oeschger and Marc Schaer
  *
  */
 @SuppressWarnings("unused")
@@ -150,9 +153,10 @@ public class CentralizedTemplate implements CentralizedBehavior {
 		}
 
 		if (bestCost > 0) {
+			double maxIterationTime = 3000;
 			while (currentLoop < MAX_SLS_LOOPS && costRepetition < MAX_SLS_COST_REPETITION
-					&& (timeout_setup - 5000) > System.currentTimeMillis() - time_start) {
-
+					&& (timeout_setup - maxIterationTime) > System.currentTimeMillis() - time_start) {
+				double start_iteration = System.currentTimeMillis();
 				currentLoop++;
 				oldState = bestState;
 
@@ -165,7 +169,8 @@ public class CentralizedTemplate implements CentralizedBehavior {
 					neighbours = chooseNeighbours(bestState, vehicles);
 					if (neighbours == null) {
 						currentLoop = MAX_SLS_LOOPS;
-						System.out.println("No neighbours"); // should never happen
+						System.out.println("No neighbours"); // should never
+																// happen
 					}
 					bestState = localChoice(neighbours);
 					if (bestState == null) {
@@ -178,6 +183,10 @@ public class CentralizedTemplate implements CentralizedBehavior {
 						costRepetition = 0;
 					}
 					bestCost = newCost;
+				}
+				double end_iteration = System.currentTimeMillis();
+				if (end_iteration - start_iteration > maxIterationTime) {
+					maxIterationTime = end_iteration - start_iteration + 1000;
 				}
 			}
 		}
@@ -478,8 +487,9 @@ public class CentralizedTemplate implements CentralizedBehavior {
 	}
 
 	/**
-	 * In oldState, for vehicle, move pickup action at position pikcupIdx to position pickupNextIdx
-	 * and deliver action at position deliverIdx to position deliverNextIdx
+	 * In oldState, for vehicle, move pickup action at position pikcupIdx to
+	 * position pickupNextIdx and deliver action at position deliverIdx to
+	 * position deliverNextIdx
 	 * 
 	 * @param oldState
 	 * @param vehicle

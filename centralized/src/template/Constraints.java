@@ -11,7 +11,8 @@ import logist.task.Task;
 
 /**
  * This class is used to have functions verifying constraints
- *
+ * 
+ * @author Cynthia Oeschger and Marc Schaer
  */
 public final class Constraints {
 

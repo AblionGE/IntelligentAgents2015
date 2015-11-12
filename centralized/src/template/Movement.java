@@ -5,7 +5,8 @@ import logist.task.Task;
 /**
  * This class represents a movement that can be to pickup or deliver a task. It
  * also contains the time when the movement must be done and it has a task.
- *
+ * 
+ * @author Cynthia Oeschger and Marc Schaer
  */
 public class Movement {
 

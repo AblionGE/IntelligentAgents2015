@@ -10,7 +10,8 @@ import logist.topology.Topology.City;
 /**
  * This class represent a solution state composed by all actions to do and the
  * action after and a relation for each vehicle and their first action
- *
+ * 
+ * @author Cynthia Oeschger and Marc Schaer
  */
 public class SolutionState {
 
