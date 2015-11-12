@@ -78,7 +78,7 @@ It also contains some useful functions : ```computeTime()``` to compute the time
 * *ChooseNeighbours()* creates the neighbours candidates as follows: 1) moves the first task of one vehicle and gives it to another vehicle. The task is placed in the new vehicle's plan such that *Pickup* is before *Deliver*\footnote{We consider all possible positions for both actions.}.  2) change the positions of the movements related to a task in the plan of the vehicle carrying it. More specifically, it creates $O(n^2)$ neighbours for each task by considering any possible combinations by moving the *Pickup* movement, or the *Deliver* movement, or both of a task, keeping the consistency such that *Pickup* happens before *Deliver*.
 * *LocalChoice()* implemented as explained in the document excepted that we check if the constraints are satisfied before returning the choosen state and that we choose between the old solution and the new one outside of the function for performance purposes.
 
-**Termination:** We have 2 termination conditions :
+**Termination:** We have 3 termination conditions :
 
 * the maximum number of loops is reached (5000 in our code but should be adapted depending on the number of tasks to deliver);
 * the maximum time of execution is reached;
@@ -144,7 +144,7 @@ All of these graphs were done with a seed equal to 12345, for England map with v
       \hline
       \textbf{3 vehicles} & 11'732.5 & 16'932.5& 13'679\\
       \hline
-      \textbf{4 vehicles} & 14223.5 & 20'548 & 17'500 \\
+      \textbf{4 vehicles} & 14'223.5 & 20'548 & 17'500 \\
       \hline
     \end{tabular}
     \caption{\it Minimal, maximal and average costs on 5 executions for 2, 3 and 4 vehicles and 30 tasks. The minimal cost is a suboptimal solution. The maximal one, is clearly not the worst possible plan, but a suboptimal solution, too.}
