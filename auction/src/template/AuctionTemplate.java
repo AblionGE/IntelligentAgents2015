@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
+import epfl.lia.logist.task.TasksetDescriptor;
 import logist.LogistPlatform;
 import logist.LogistSettings;
 import logist.Measures;
@@ -32,8 +33,9 @@ public class AuctionTemplate implements AuctionBehavior {
 	private TaskDistribution distribution;
 	private Agent agent;
 	private Random random;
-	private Vehicle vehicle;
+	private List<Vehicle> vehicles = new ArrayList<Vehicle>();
 	private City currentCity;
+	private List<Task> tasksList = new ArrayList<Task>();
 
 	private long timeout_setup;
 	private long timeout_plan;
@@ -48,8 +50,7 @@ public class AuctionTemplate implements AuctionBehavior {
 		this.topology = topology;
 		this.distribution = distribution;
 		this.agent = agent;
-		this.vehicle = agent.vehicles().get(0);
-		this.currentCity = vehicle.homeCity();
+		this.vehicles = agent.vehicles();
 
 		long seed = -9019554669489983951L * currentCity.hashCode() * agent.id();
 		this.random = new Random(seed);
@@ -81,7 +82,10 @@ public class AuctionTemplate implements AuctionBehavior {
 	public void auctionResult(Task previous, int winner, Long[] bids) {
 		if (winner == agent.id()) {
 			currentCity = previous.deliveryCity;
+			tasksList.add(previous);
+			computeSLS(vehicles, tasksList);
 		}
+
 	}
 
 	/**
@@ -91,32 +95,45 @@ public class AuctionTemplate implements AuctionBehavior {
 	@Override
 	public Long askPrice(Task task) {
 
-		if (vehicle.capacity() < task.weight)
-			return null;
+		boolean carryTask = false;
+		for (Vehicle vehicle : vehicles) {
+			if (vehicle.capacity() >= task.weight) {
+				carryTask = true;
+			}
+				if (!carryTask)
+					return null;
+		}
+		
+		return (long) 0;
 
-		long distanceTask = task.pickupCity.distanceUnitsTo(task.deliveryCity);
+		// Here we can do some predictions on the future tasks (weight,
+		// distances, way)
+
+		//////////////////////////////////////////////////////////////
+		// Simple agent
+		/*long distanceTask = task.pickupCity.distanceUnitsTo(task.deliveryCity);
 		long distanceSum = distanceTask + currentCity.distanceUnitsTo(task.pickupCity);
 		double marginalCost = Measures.unitsToKM(distanceSum * vehicle.costPerKm());
 
 		double ratio = 1.0 + (random.nextDouble() * 0.05 * task.id);
 		double bid = ratio * marginalCost;
 
-		return (long) Math.round(bid);
+		return (long) Math.round(bid);*/
+		//////////////////////////////////////////////////////////////
 	}
 
-	
 	////////////////////////////////////////////////////////////////////////////
 	// Everything below is taken from centralized agent
 	////////////////////////////////////////////////////////////////////////////
-	
-	
+
 	@Override
 	public List<Plan> plan(List<Vehicle> vehicles, TaskSet tasks) {
 		long time_start = System.currentTimeMillis();
 		List<Plan> plans = new ArrayList<Plan>();
+		tasksList = new ArrayList<Task>(tasks);
 
 		// Compute the centralized plan
-		HashMap<Vehicle, LinkedList<Movement>> vehiclePlans = computeSLS(vehicles, tasks);
+		HashMap<Vehicle, LinkedList<Movement>> vehiclePlans = computeSLS(vehicles, tasksList);
 
 		for (Vehicle vehicle : vehicles) {
 			LinkedList<Movement> movements = vehiclePlans.get(vehicle);
@@ -176,7 +193,7 @@ public class AuctionTemplate implements AuctionBehavior {
 	 * @param vehicles
 	 * @param tasks
 	 */
-	private HashMap<Vehicle, LinkedList<Movement>> computeSLS(List<Vehicle> vehicles, TaskSet tasks) {
+	private HashMap<Vehicle, LinkedList<Movement>> computeSLS(List<Vehicle> vehicles, List<Task> tasks) {
 		SolutionState bestState;
 		SolutionState oldState;
 
@@ -250,7 +267,7 @@ public class AuctionTemplate implements AuctionBehavior {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	private SolutionState computeInitState(List<Vehicle> vehicles, TaskSet tasks) {
+	private SolutionState computeInitState(List<Vehicle> vehicles, List<Task> tasks) {
 		HashMap<Vehicle, ArrayList<Task>> distributedTasks = new HashMap<Vehicle, ArrayList<Task>>();
 		ArrayList<Vehicle> arrayOfVehicles = new ArrayList<Vehicle>(vehicles);
 		ArrayList<Task> arrayOfTasks = new ArrayList<Task>(tasks);
