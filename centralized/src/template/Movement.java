@@ -12,10 +12,16 @@ public class Movement {
 
 	private Task task;
 	private Action action;
+	private int id;
 
 	Movement(Action action, Task task) {
 		this.task = task;
 		this.action = action;
+		if (action == Action.PICKUP) {
+			this.id = task.id * 2;
+		} else {
+			this.id = task.id * 2 + 1;
+		}
 	}
 
 	protected Action getAction() {
@@ -31,11 +37,16 @@ public class Movement {
 		return "Movement [task=" + task + ", action=" + action + "]";
 	}
 
+	protected int getId() {
+		return id;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((action == null) ? 0 : action.hashCode());
+		result = prime * result + id;
 		result = prime * result + ((task == null) ? 0 : task.hashCode());
 		return result;
 	}
@@ -51,6 +62,8 @@ public class Movement {
 		Movement other = (Movement) obj;
 		if (action != other.action)
 			return false;
+		if (id != other.id)
+			return false;
 		if (task == null) {
 			if (other.task != null)
 				return false;
@@ -58,5 +71,4 @@ public class Movement {
 			return false;
 		return true;
 	}
-
 }
