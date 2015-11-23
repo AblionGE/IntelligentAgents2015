@@ -38,9 +38,9 @@ public class AuctionTemplate implements AuctionBehavior {
 	private long timeout_setup;
 	private long timeout_plan;
 
-	private final double SLS_PROBABILITY = 0.4;
-	private final int MAX_SLS_LOOPS = 5000;
-	private final int MAX_SLS_COST_REPETITION = 100;
+	private final double SLS_PROBABILITY = 0.5;
+	private final int MAX_SLS_LOOPS = 10000;
+	private final int MAX_SLS_COST_REPETITION = 350;
 	public static int nbTasks;
 	public static int nbVehicles;
 	public static List<Vehicle> vehicles;
@@ -111,7 +111,6 @@ public class AuctionTemplate implements AuctionBehavior {
 	////////////////////////////////////////////////////////////////////////////
 	// Everything below is taken from centralized agent
 	////////////////////////////////////////////////////////////////////////////
-	
 	
 	@Override
 	public List<Plan> plan(List<Vehicle> allVehicles, TaskSet tasks) {
@@ -203,8 +202,8 @@ public class AuctionTemplate implements AuctionBehavior {
 			bestCost = 0;
 		}
 
+		double maxIterationTime = 3000;
 		if (bestCost > 0) {
-			double maxIterationTime = 3000;
 			while (currentLoop < MAX_SLS_LOOPS && costRepetition < MAX_SLS_COST_REPETITION
 					&& (timeout_setup - maxIterationTime) > System.currentTimeMillis() - time_start) {
 				double start_iteration = System.currentTimeMillis();
@@ -223,7 +222,7 @@ public class AuctionTemplate implements AuctionBehavior {
 						System.out.println("No neighbours"); // should never
 																// happen
 					}
-					bestState = localChoice(neighbours);
+					bestState = localChoice(neighbours, bestState.getCost());
 					if (bestState == null) {
 						bestState = oldState;
 					}
@@ -276,10 +275,16 @@ public class AuctionTemplate implements AuctionBehavior {
 			}
 		}
 		int totalCostPerKM = 0;
+		int minCostPerKm = Integer.MAX_VALUE;
+		Vehicle bestVehicle = null;
 		// We give to each vehicle a value depending on their costPerKM s.t.
 		// vehicles with less cost will have more tasks at the beginning of the
 		// algorithm
 		for (Vehicle v : vehicles) {
+			if (v.costPerKm() < minCostPerKm) {
+				minCostPerKm = v.costPerKm();
+				bestVehicle = v;
+			}
 			totalCostPerKM += maxCostPerKM / v.costPerKm();
 			vv[v.id()] = totalCostPerKM;
 		}
@@ -290,13 +295,29 @@ public class AuctionTemplate implements AuctionBehavior {
 		// And there will be only one task in a vehicle at a given time.
 		for (int i = 0; i < arrayOfTasks.length; i++) {
 
-			Vehicle v = null;
-			int x = ran.nextInt(totalCostPerKM);
+			Vehicle v = null;//bestVehicle;
+			/*int x = ran.nextInt(totalCostPerKM);
 			// We select a vehicle with a probability depending on the costPerKM
 			for (int k = 0; k < vehicles.size(); k++) {
 				if (x < vv[k]) {
 					v = vehicles.get(k);
 					k = vehicles.size();
+				}
+			}*/
+			
+			for (int k = 0; k < vehicles.size(); k++) {
+				if (arrayOfTasks[i].pickupCity.equals(vehicles.get(k).homeCity())) {
+					v = vehicles.get(k);
+				}
+			}
+			
+			if (v == null) {
+				double shortestDistance = Double.MAX_VALUE;
+				for (int k = 0; k < vehicles.size(); k++) {
+					if (arrayOfTasks[i].pickupCity.distanceTo(vehicles.get(k).homeCity()) < shortestDistance) {
+						shortestDistance = arrayOfTasks[i].pickupCity.distanceTo(vehicles.get(k).homeCity());
+						v = vehicles.get(k);
+					}
 				}
 			}
 
@@ -439,10 +460,8 @@ public class AuctionTemplate implements AuctionBehavior {
 				}
 			}
 		}
-		
 
 		return neighbours;
-
 	}
 
 	/**
@@ -453,7 +472,7 @@ public class AuctionTemplate implements AuctionBehavior {
 	 * @param probability
 	 * @return
 	 */
-	private SolutionState localChoice(ArrayList<SolutionState> neighbours) {
+	private SolutionState localChoice(ArrayList<SolutionState> neighbours, double oldBestCost) {
 		SolutionState bestSolution = null;
 
 		if (neighbours == null || neighbours.isEmpty()) {
@@ -598,3 +617,4 @@ public class AuctionTemplate implements AuctionBehavior {
 		return solution;
 	}
 }
+
