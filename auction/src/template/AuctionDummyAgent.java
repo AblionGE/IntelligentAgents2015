@@ -40,9 +40,10 @@ public class AuctionDummyAgent implements AuctionBehavior {
 	private long timeout_setup;
 	private long timeout_plan;
 
-	private final double SLS_PROBABILITY = 0.5;
+	// This dummy agent will keep the initial solution
+	private final double SLS_PROBABILITY = 0;
 	private final int MAX_SLS_LOOPS = 10000;
-	private final int MAX_SLS_COST_REPETITION = 350;
+	private final int MAX_SLS_COST_REPETITION = 750;
 	private ArrayList<LinkedList<Movement>> vehiclePlans = new ArrayList<LinkedList<Movement>>();
 	private int nbTasks;
 	private int nbVehicles;

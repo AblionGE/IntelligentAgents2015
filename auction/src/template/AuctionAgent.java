@@ -41,7 +41,7 @@ public class AuctionAgent implements AuctionBehavior {
 
 	private final double SLS_PROBABILITY = 0.5;
 	private final int MAX_SLS_LOOPS = 10000;
-	private final int MAX_SLS_COST_REPETITION = 350;
+	private final int MAX_SLS_COST_REPETITION = 750;
 	private ArrayList<LinkedList<Movement>> vehiclePlans = new ArrayList<LinkedList<Movement>>();
 	private int nbTasks;
 	private int nbVehicles;
@@ -223,7 +223,7 @@ public class AuctionAgent implements AuctionBehavior {
 		}
 
 		double maxIterationTime = 3000;
-		if (p > 0.0) {
+		if (p > 0.0 && tasks.size() > 1) {
 			while (currentLoop < MAX_SLS_LOOPS && costRepetition < MAX_SLS_COST_REPETITION
 					&& (timeout_setup - maxIterationTime) > System.currentTimeMillis() - time_start) {
 				double start_iteration = System.currentTimeMillis();
