@@ -1,12 +1,12 @@
 package template;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
-import logist.simulation.Vehicle;
 import logist.task.Task;
 
 /**
@@ -29,22 +29,22 @@ public final class Constraints {
 			return 1;
 		}
 
-		HashMap<Vehicle, LinkedList<Movement>> plans = state.getPlans();
-		Set<Vehicle> vehicles = plans.keySet();
-		for (Vehicle v : vehicles) {
+		ArrayList<LinkedList<Movement>> plans = state.getPlans();
+		for (int vehicle = 0; vehicle < CentralizedTemplate.nbVehicles; vehicle++) {
 
 			int timeCounter = 1;
 			int currentLoad = 0;
 			HashMap<Task, Integer> consistencyVerification = new HashMap<Task, Integer>();
 
-			errors += checkVehicleLoad(state, v);
-			errors += checkFirstMovementTime(state, v);
+			errors += checkVehicleLoad(state, vehicle);
+			errors += checkFirstMovementTime(state, vehicle);
 
-			LinkedList<Movement> movements = plans.get(v);
+			LinkedList<Movement> movements = plans.get(vehicle);
 			for (int i = 0; i < movements.size(); i++) {
 				consistencyVerification = computeMovementConsistency(movements.get(i), consistencyVerification);
+				
 				errors += checkTime(state, timeCounter, movements.get(i));
-				int loadResult = checkLoad(movements.get(i), v, currentLoad);
+				int loadResult = checkLoad(movements.get(i), vehicle, currentLoad);
 				if (loadResult < 0) {
 					errors += 1;
 					return errors;
@@ -73,10 +73,10 @@ public final class Constraints {
 	 * @param currentLoad
 	 * @return
 	 */
-	private static int checkLoad(Movement m, Vehicle v, int currentLoad) {
+	private static int checkLoad(Movement m, int v, int currentLoad) {
 		if (m.getAction() == Action.PICKUP) {
 			currentLoad += m.getTask().weight;
-			if (currentLoad > v.capacity()) {
+			if (currentLoad > CentralizedTemplate.vehicles.get(v).capacity()) {
 				return -1;
 			}
 		} else {
@@ -96,14 +96,14 @@ public final class Constraints {
 	 * @param v
 	 * @return
 	 */
-	public static int checkVehicleLoad(SolutionState state, Vehicle v) {
+	public static int checkVehicleLoad(SolutionState state, int v) {
 		int currentLoad = 0;
 		LinkedList<Movement> movements = state.getPlans().get(v);
 		for (int i = 0; i < movements.size(); i++) {
 			Movement m = movements.get(i);
 			if (m.getAction() == Action.PICKUP) {
 				currentLoad += m.getTask().weight;
-				if (currentLoad > v.capacity()) {
+				if (currentLoad > CentralizedTemplate.vehicles.get(v).capacity()) {
 					return 1;
 				}
 			} else {
@@ -126,11 +126,10 @@ public final class Constraints {
 	 * @return
 	 */
 	private static int checkMovementDoneOnce(SolutionState state) {
-		HashMap<Vehicle, LinkedList<Movement>> plans = state.getPlans();
+		ArrayList<LinkedList<Movement>> plans = state.getPlans();
 
-		Collection<LinkedList<Movement>> m = plans.values();
-
-		for (LinkedList<Movement> movements : m) {
+		for (int i = 0; i < plans.size(); i++) {
+			LinkedList<Movement> movements = plans.get(i);
 			int sizeOfMovements = movements.size();
 			Set<Movement> set = new HashSet<Movement>(movements);
 			if (set.size() != sizeOfMovements) {
@@ -146,9 +145,12 @@ public final class Constraints {
 	 * @param state
 	 * @return
 	 */
-	private static int checkFirstMovementTime(SolutionState state, Vehicle v) {
-		HashMap<Vehicle, Movement> nextMove = state.getNextMovementsVehicle();
-		if (state.getTimedMovements().get(nextMove.get(v)) != 1) {
+	private static int checkFirstMovementTime(SolutionState state, int v) {
+		Movement[] nextMove = state.getNextMovementsVehicle();
+		if (nextMove[v] == null) {
+			return 0;
+		}
+		if (state.getTimedMovements()[nextMove[v].getId()] != 1) {
 			return 1;
 		}
 		return 0;
@@ -161,7 +163,7 @@ public final class Constraints {
 	 * @return
 	 */
 	private static int checkTime(SolutionState state, int timeCounter, Movement m) {
-		if (state.getTimedMovements().get(m) != timeCounter) {
+		if (state.getTimedMovements()[m.getId()] != timeCounter) {
 			return 1;
 		}
 		return 0;
@@ -206,10 +208,12 @@ public final class Constraints {
 	 * @return
 	 */
 	private static int checkFirstTaskIsPickedUp(SolutionState state) {
-		HashMap<Vehicle, Movement> nextActionVehicle = state.getNextMovementsVehicle();
-		Collection<Movement> movements = nextActionVehicle.values();
-		for (Movement m : movements) {
-			if (m.getAction() != Action.PICKUP) {
+		Movement[] nextActionVehicle = state.getNextMovementsVehicle();
+		for (int i = 0; i < nextActionVehicle.length; i++) {
+			if (nextActionVehicle[i] == null) {
+				return 0;
+			}
+			if (nextActionVehicle[i].getAction() != Action.PICKUP) {
 				return 1;
 			}
 

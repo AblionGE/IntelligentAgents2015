@@ -1,8 +1,9 @@
 package template;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.Set;
+import java.util.List;
 
 import logist.simulation.Vehicle;
 import logist.topology.Topology.City;
@@ -15,15 +16,21 @@ import logist.topology.Topology.City;
  */
 public class SolutionState {
 
-	private HashMap<Movement, Movement> nextMovements = new HashMap<Movement, Movement>();
-	private HashMap<Vehicle, Movement> nextMovementsVehicle = new HashMap<Vehicle, Movement>();
-	private HashMap<Movement, Integer> timedMovements = new HashMap<Movement, Integer>();
-	private HashMap<Vehicle, LinkedList<Movement>> plans;
+	private Movement[] nextMovements;
+	private Movement[] nextMovementsVehicle;
+	private int[] timedMovements;
+	private ArrayList<LinkedList<Movement>> plans;
 	private double cost;
+	private int nbVehicles;
+	private List<Vehicle> vehicles;
+	private int nbTasks;
 
-	SolutionState(HashMap<Movement, Movement> nextMovements, HashMap<Vehicle, Movement> nextMovementsVehicle) {
-		this.nextMovements = nextMovements;
-		this.nextMovementsVehicle = nextMovementsVehicle;
+	SolutionState(Movement[] nextMovements, Movement[] nextMovementsVehicle, int nbVehicles, List<Vehicle> vehicles, int nbTasks) {
+		this.nextMovements = nextMovements.clone();
+		this.nextMovementsVehicle = nextMovementsVehicle.clone();
+		this.nbVehicles = nbVehicles;
+		this.vehicles = vehicles;
+		this.nbTasks = nbTasks;
 		this.plans = computeVehiclePlans(this);
 		this.timedMovements = computeTime(this.plans);
 		cost = -1;
@@ -34,15 +41,15 @@ public class SolutionState {
 	 */
 	private void computeCost() {
 		double totalCost = 0;
-		Set<Vehicle> vehicles = plans.keySet();
-		for (Vehicle v : vehicles) {
-			double totalVehicleDistance = computeVehicleDistance(v, nextMovementsVehicle.get(v));
-			LinkedList<Movement> currentPath = plans.get(v);
+		for (int vehicle = 0; vehicle < nbVehicles; vehicle++) {
+			double totalVehicleDistance = computeVehicleDistance(vehicles.get(vehicle),
+					nextMovementsVehicle[vehicle]);
+			LinkedList<Movement> currentPath = plans.get(vehicle);
 			for (int i = 0; i < currentPath.size() - 1; i++) {
 				Movement currentMovement = currentPath.get(i);
 				totalVehicleDistance += computeMovementsDistance(currentMovement, currentPath.get(i + 1));
 			}
-			totalCost += (totalVehicleDistance * v.costPerKm());
+			totalCost += (totalVehicleDistance * vehicles.get(vehicle).costPerKm());
 		}
 		this.cost = totalCost;
 	}
@@ -56,6 +63,9 @@ public class SolutionState {
 	 * @return
 	 */
 	private double computeVehicleDistance(Vehicle v, Movement a) {
+		if (a == null) {
+			return 0;
+		}
 		City start = v.getCurrentCity();
 		City destination = a.getTask().pickupCity;
 		return start.distanceTo(destination);
@@ -94,21 +104,22 @@ public class SolutionState {
 	 * @param solutionState
 	 * @return
 	 */
-	private HashMap<Vehicle, LinkedList<Movement>> computeVehiclePlans(SolutionState solutionState) {
-		HashMap<Vehicle, LinkedList<Movement>> plans = new HashMap<Vehicle, LinkedList<Movement>>();
+	private ArrayList<LinkedList<Movement>> computeVehiclePlans(SolutionState solutionState) {
+		ArrayList<LinkedList<Movement>> plans = new ArrayList<LinkedList<Movement>>();
 
-		HashMap<Vehicle, Movement> vehicleMovement = solutionState.getNextMovementsVehicle();
-		HashMap<Movement, Movement> movements = solutionState.getNextMovements();
+		Movement[] vehicleMovement = solutionState.getNextMovementsVehicle();
+		Movement[] movements = solutionState.getNextMovements();
 
-		for (Vehicle v : vehicleMovement.keySet()) {
+		for (int vehicle = 0; vehicle < nbVehicles; vehicle++) {
 			LinkedList<Movement> orderedMovements = new LinkedList<Movement>();
 
-			Movement next = vehicleMovement.get(v);
+			Movement next = vehicleMovement[vehicle];
 			while (next != null) {
 				orderedMovements.add(next);
-				next = movements.get(next);
+				next = movements[next.getId()];
 			}
-			plans.put(v, orderedMovements);
+			plans.add(orderedMovements);
+			
 		}
 		return plans;
 	}
@@ -119,14 +130,13 @@ public class SolutionState {
 	 * @param plans
 	 * @return
 	 */
-	private HashMap<Movement, Integer> computeTime(HashMap<Vehicle, LinkedList<Movement>> plans) {
-		Set<Vehicle> vehicles = plans.keySet();
-		HashMap<Movement, Integer> timedMovements = new HashMap<Movement, Integer>();
-		for (Vehicle v : vehicles) {
-			LinkedList<Movement> movements = plans.get(v);
+	private int[] computeTime(ArrayList<LinkedList<Movement>> plans) {
+		int[] timedMovements = new int[nbTasks * 2];
+		for (int vehicle = 0; vehicle < nbVehicles; vehicle++) {
+			LinkedList<Movement> movements = plans.get(vehicle);
 			int time = 1;
 			for (Movement m : movements) {
-				timedMovements.put(m, time);
+				timedMovements[m.getId()] = time;
 				time++;
 			}
 		}
@@ -135,20 +145,9 @@ public class SolutionState {
 
 	@Override
 	public String toString() {
-		String s = "State: ";
-		int i = 0;
-		for (Vehicle v : plans.keySet()) {
-			i = 0;
-			String plan = "";
-			s += "\nVehicle " + v.id() + ": Nb of tasks processed : ";
-			for (Movement m : plans.get(v)) {
-				plan += m.toString() + ", ";
-				i += 1;
-			}
-			s += i / 2;
-			s = s + ", plan : " + plan;
-		}
-		return s;
+		return "SolutionState [nextMovements=" + Arrays.toString(nextMovements) + ", nextMovementsVehicle="
+				+ Arrays.toString(nextMovementsVehicle) + ", timedMovements=" + Arrays.toString(timedMovements)
+				+ ", plans=" + plans + ", cost=" + cost + "]";
 	}
 
 	@Override
@@ -158,10 +157,10 @@ public class SolutionState {
 		long temp;
 		temp = Double.doubleToLongBits(cost);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result + ((nextMovements == null) ? 0 : nextMovements.hashCode());
-		result = prime * result + ((nextMovementsVehicle == null) ? 0 : nextMovementsVehicle.hashCode());
+		result = prime * result + Arrays.hashCode(nextMovements);
+		result = prime * result + Arrays.hashCode(nextMovementsVehicle);
 		result = prime * result + ((plans == null) ? 0 : plans.hashCode());
-		result = prime * result + ((timedMovements == null) ? 0 : timedMovements.hashCode());
+		result = prime * result + Arrays.hashCode(timedMovements);
 		return result;
 	}
 
@@ -176,42 +175,30 @@ public class SolutionState {
 		SolutionState other = (SolutionState) obj;
 		if (Double.doubleToLongBits(cost) != Double.doubleToLongBits(other.cost))
 			return false;
-		if (nextMovements == null) {
-			if (other.nextMovements != null)
-				return false;
-		} else if (!nextMovements.equals(other.nextMovements))
+		if (!Arrays.equals(nextMovements, other.nextMovements))
 			return false;
-		if (nextMovementsVehicle == null) {
-			if (other.nextMovementsVehicle != null)
-				return false;
-		} else if (!nextMovementsVehicle.equals(other.nextMovementsVehicle))
+		if (!Arrays.equals(nextMovementsVehicle, other.nextMovementsVehicle))
 			return false;
 		if (plans == null) {
 			if (other.plans != null)
 				return false;
 		} else if (!plans.equals(other.plans))
 			return false;
-		if (timedMovements == null) {
-			if (other.timedMovements != null)
-				return false;
-		} else if (!timedMovements.equals(other.timedMovements))
+		if (!Arrays.equals(timedMovements, other.timedMovements))
 			return false;
 		return true;
 	}
 
-	@SuppressWarnings("unchecked")
-	protected HashMap<Movement, Movement> getNextMovements() {
-		return (HashMap<Movement, Movement>) nextMovements.clone();
+	protected Movement[] getNextMovements() {
+		return nextMovements.clone();
 	}
 
-	@SuppressWarnings("unchecked")
-	protected HashMap<Vehicle, Movement> getNextMovementsVehicle() {
-		return (HashMap<Vehicle, Movement>) nextMovementsVehicle.clone();
+	protected Movement[] getNextMovementsVehicle() {
+		return nextMovementsVehicle.clone();
 	}
 
-	@SuppressWarnings("unchecked")
-	protected HashMap<Movement, Integer> getTimedMovements() {
-		return (HashMap<Movement, Integer>) timedMovements.clone();
+	protected int[] getTimedMovements() {
+		return timedMovements.clone();
 	}
 
 	protected double getCost() {
@@ -221,7 +208,7 @@ public class SolutionState {
 		return cost;
 	}
 
-	protected HashMap<Vehicle, LinkedList<Movement>> getPlans() {
+	protected ArrayList<LinkedList<Movement>> getPlans() {
 		return plans;
 	}
 }

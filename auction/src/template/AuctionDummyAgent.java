@@ -27,22 +27,26 @@ import logist.topology.Topology.City;
  * 
  */
 @SuppressWarnings("unused")
-public class AuctionTemplate implements AuctionBehavior {
+public class AuctionDummyAgent implements AuctionBehavior {
 
 	private Topology topology;
 	private TaskDistribution distribution;
 	private Agent agent;
 	private Random random;
-	private List<Vehicle> vehicles = new ArrayList<Vehicle>();
 	private City currentCity;
 	private List<Task> tasksList = new ArrayList<Task>();
+	private Vehicle vehicle;
 
 	private long timeout_setup;
 	private long timeout_plan;
 
-	private final double SLS_PROBABILITY = 0.4;
-	private final int MAX_SLS_LOOPS = 5000;
-	private final int MAX_SLS_COST_REPETITION = 100;
+	private final double SLS_PROBABILITY = 0.5;
+	private final int MAX_SLS_LOOPS = 10000;
+	private final int MAX_SLS_COST_REPETITION = 350;
+	private ArrayList<LinkedList<Movement>> vehiclePlans = new ArrayList<LinkedList<Movement>>();
+	private int nbTasks;
+	private int nbVehicles;
+	private List<Vehicle> vehicles = new ArrayList<Vehicle>();
 
 	@Override
 	public void setup(Topology topology, TaskDistribution distribution, Agent agent) {
@@ -50,9 +54,12 @@ public class AuctionTemplate implements AuctionBehavior {
 		this.topology = topology;
 		this.distribution = distribution;
 		this.agent = agent;
-		this.vehicles = agent.vehicles();
+		vehicles = agent.vehicles();
+		nbVehicles = agent.vehicles().size();
+		this.vehicle = agent.vehicles().get(0);
+		this.currentCity = vehicle.homeCity();
 
-		long seed = -9019554669489983951L * currentCity.hashCode() * agent.id();
+		long seed = -9019554669489983951L * agent.id();
 		this.random = new Random(seed);
 
 		// this code is used to get the timeouts
@@ -83,7 +90,8 @@ public class AuctionTemplate implements AuctionBehavior {
 		if (winner == agent.id()) {
 			currentCity = previous.deliveryCity;
 			tasksList.add(previous);
-			computeSLS(vehicles, tasksList);
+			nbTasks++;
+			vehiclePlans = computeSLS(vehicles, tasksList);
 		}
 
 	}
@@ -91,34 +99,21 @@ public class AuctionTemplate implements AuctionBehavior {
 	/**
 	 * This function is called when we must bid for a task
 	 */
-	// TODO
 	@Override
 	public Long askPrice(Task task) {
 
-		boolean carryTask = false;
-		for (Vehicle vehicle : vehicles) {
-			if (vehicle.capacity() >= task.weight) {
-				carryTask = true;
-			}
-				if (!carryTask)
-					return null;
-		}
-		
-		return (long) 0;
-
-		// Here we can do some predictions on the future tasks (weight,
-		// distances, way)
-
 		//////////////////////////////////////////////////////////////
 		// Simple agent
-		/*long distanceTask = task.pickupCity.distanceUnitsTo(task.deliveryCity);
+
+		long distanceTask = task.pickupCity.distanceUnitsTo(task.deliveryCity);
 		long distanceSum = distanceTask + currentCity.distanceUnitsTo(task.pickupCity);
 		double marginalCost = Measures.unitsToKM(distanceSum * vehicle.costPerKm());
 
 		double ratio = 1.0 + (random.nextDouble() * 0.05 * task.id);
 		double bid = ratio * marginalCost;
 
-		return (long) Math.round(bid);*/
+		return (long) Math.round(bid);
+
 		//////////////////////////////////////////////////////////////
 	}
 
@@ -127,18 +122,30 @@ public class AuctionTemplate implements AuctionBehavior {
 	////////////////////////////////////////////////////////////////////////////
 
 	@Override
-	public List<Plan> plan(List<Vehicle> vehicles, TaskSet tasks) {
+	public List<Plan> plan(List<Vehicle> allVehicles, TaskSet tasks) {
 		long time_start = System.currentTimeMillis();
 		List<Plan> plans = new ArrayList<Plan>();
 		tasksList = new ArrayList<Task>(tasks);
 
-		// Compute the centralized plan
-		HashMap<Vehicle, LinkedList<Movement>> vehiclePlans = computeSLS(vehicles, tasksList);
+		nbTasks = tasks.size();
+		nbVehicles = allVehicles.size();
+		vehicles = allVehicles;
 
-		for (Vehicle vehicle : vehicles) {
-			LinkedList<Movement> movements = vehiclePlans.get(vehicle);
-			Plan plan = individualVehiclePlan(vehicle, movements);
-			plans.add(plan);
+		// Compute the centralized plan
+		// ArrayList<LinkedList<Movement>> vehiclePlans =
+		// computeSLS(allVehicles, new ArrayList<Task>(tasks));
+
+		if (!vehiclePlans.isEmpty()) {
+			for (Vehicle vehicle : allVehicles) {
+				// LinkedList<Movement> movements = vehiclePlans.get(vehicle);
+				LinkedList<Movement> movements = vehiclePlans.get(vehicle.id());
+				Plan plan = individualVehiclePlan(vehicle, movements);
+				plans.add(plan);
+			}
+		} else {
+			for (Vehicle vehicle : allVehicles) {
+				plans.add(Plan.EMPTY);
+			}
 		}
 
 		long time_end = System.currentTimeMillis();
@@ -193,7 +200,7 @@ public class AuctionTemplate implements AuctionBehavior {
 	 * @param vehicles
 	 * @param tasks
 	 */
-	private HashMap<Vehicle, LinkedList<Movement>> computeSLS(List<Vehicle> vehicles, List<Task> tasks) {
+	private ArrayList<LinkedList<Movement>> computeSLS(List<Vehicle> vehicles, List<Task> tasks) {
 		SolutionState bestState;
 		SolutionState oldState;
 
@@ -203,7 +210,7 @@ public class AuctionTemplate implements AuctionBehavior {
 		int currentLoop = 0;
 		int stateRepetition = 0;
 		int costRepetition = 0;
-		bestState = computeInitState(vehicles, tasks);
+		bestState = computeInitState(vehicles, new ArrayList<Task>(tasks));
 		double bestCost = bestState.getCost();
 		double newCost;
 
@@ -212,8 +219,8 @@ public class AuctionTemplate implements AuctionBehavior {
 			bestCost = 0;
 		}
 
-		if (bestCost > 0) {
-			double maxIterationTime = 3000;
+		double maxIterationTime = 3000;
+		if (p > 0.0) {
 			while (currentLoop < MAX_SLS_LOOPS && costRepetition < MAX_SLS_COST_REPETITION
 					&& (timeout_setup - maxIterationTime) > System.currentTimeMillis() - time_start) {
 				double start_iteration = System.currentTimeMillis();
@@ -227,12 +234,12 @@ public class AuctionTemplate implements AuctionBehavior {
 				// If not, compute neighbours and choose one
 				if (r < p * 100) {
 					neighbours = chooseNeighbours(bestState, vehicles);
-					if (neighbours == null) {
+					if (neighbours == null || neighbours.isEmpty()) {
 						currentLoop = MAX_SLS_LOOPS;
 						System.out.println("No neighbours"); // should never
 																// happen
 					}
-					bestState = localChoice(neighbours);
+					bestState = localChoice(neighbours, bestState.getCost());
 					if (bestState == null) {
 						bestState = oldState;
 					}
@@ -252,6 +259,7 @@ public class AuctionTemplate implements AuctionBehavior {
 		}
 
 		System.out.println(" ======================================================== ");
+		System.out.println("DUMMY AGENT");
 		System.out.println("Number of loops in SLS: " + currentLoop);
 		System.out.println("Expected cost: " + bestState.getCost());
 		System.out.println("Best " + bestState.toString());
@@ -269,40 +277,35 @@ public class AuctionTemplate implements AuctionBehavior {
 	@SuppressWarnings("unchecked")
 	private SolutionState computeInitState(List<Vehicle> vehicles, List<Task> tasks) {
 		HashMap<Vehicle, ArrayList<Task>> distributedTasks = new HashMap<Vehicle, ArrayList<Task>>();
-		ArrayList<Vehicle> arrayOfVehicles = new ArrayList<Vehicle>(vehicles);
-		ArrayList<Task> arrayOfTasks = new ArrayList<Task>(tasks);
+		Vehicle[] arrayOfVehicles = new Vehicle[vehicles.size()];
+		vehicles.toArray(arrayOfVehicles);
 
-		double[] vv = new double[vehicles.size()];
+		Task[] arrayOfTasks = new Task[tasks.size()];
+		tasks.toArray(arrayOfTasks);
 
-		// We search the maximum costPerKM between all vehicles
-		int maxCostPerKM = 0;
-		for (Vehicle v : vehicles) {
-			if (v.costPerKm() > maxCostPerKM) {
-				maxCostPerKM = v.costPerKm();
-			}
-		}
-		int totalCostPerKM = 0;
-		// We give to each vehicle a value depending on their costPerKM s.t.
-		// vehicles with less cost will have more tasks at the beginning of the
-		// algorithm
-		for (Vehicle v : vehicles) {
-			totalCostPerKM += maxCostPerKM / v.costPerKm();
-			vv[v.id()] = totalCostPerKM;
-		}
+		Vehicle bestVehicle = null;
 
 		Random ran = new Random();
 
 		// Each task is assigned to one (different) vehicle (if it is possible)
 		// And there will be only one task in a vehicle at a given time.
-		for (int i = 0; i < arrayOfTasks.size(); i++) {
+		for (int i = 0; i < arrayOfTasks.length; i++) {
 
 			Vehicle v = null;
-			int x = ran.nextInt(totalCostPerKM);
-			// We select a vehicle with a probability depending on the costPerKM
+
 			for (int k = 0; k < vehicles.size(); k++) {
-				if (x < vv[k]) {
+				if (arrayOfTasks[i].pickupCity.equals(vehicles.get(k).homeCity())) {
 					v = vehicles.get(k);
-					k = vehicles.size();
+				}
+			}
+
+			if (v == null) {
+				double shortestDistance = Double.MAX_VALUE;
+				for (int k = 0; k < vehicles.size(); k++) {
+					if (arrayOfTasks[i].pickupCity.distanceTo(vehicles.get(k).homeCity()) < shortestDistance) {
+						shortestDistance = arrayOfTasks[i].pickupCity.distanceTo(vehicles.get(k).homeCity());
+						v = vehicles.get(k);
+					}
 				}
 			}
 
@@ -312,49 +315,51 @@ public class AuctionTemplate implements AuctionBehavior {
 			}
 			// If the task is too big for the vehicle
 			boolean found = false;
-			if (v.capacity() < arrayOfTasks.get(i).weight) {
+			if (v.capacity() < arrayOfTasks[i].weight) {
 				// we need to check if it fits into another vehicle
-				for (int j = 0; j < arrayOfVehicles.size(); j++) {
-					if (arrayOfTasks.get(i).weight <= arrayOfVehicles.get(j).capacity()) {
-						v = arrayOfVehicles.get(j);
-						j = arrayOfVehicles.size();
+				for (int j = 0; j < arrayOfVehicles.length; j++) {
+					if (arrayOfTasks[i].weight <= arrayOfVehicles[j].capacity()) {
+						v = arrayOfVehicles[j];
+						j = arrayOfVehicles.length;
 						found = true;
 					}
 				}
 				if (!found) {
-					System.err.println("No vehicle can carry task " + arrayOfTasks.get(i).toString());
+					System.err.println("No vehicle can carry task " + arrayOfTasks[i].toString());
 				}
 			}
-			oldTasksList.add(arrayOfTasks.get(i));
+			oldTasksList.add(arrayOfTasks[i]);
 			distributedTasks.put(v, (ArrayList<Task>) oldTasksList.clone());
 		}
 
 		// We construct nextMovements and nextMovementsVehicle
-		HashMap<Movement, Movement> nextMovements = new HashMap<Movement, Movement>();
-		HashMap<Vehicle, Movement> nextMovementsVehicle = new HashMap<Vehicle, Movement>();
+		Movement[] nextMovements = new Movement[tasks.size() * 2];
+		Movement[] nextMovementsVehicle = new Movement[vehicles.size()];
 		for (Vehicle v : vehicles) {
 			ArrayList<Task> vTasks = distributedTasks.get(v);
 			if (vTasks != null) {
 				Movement firstMovement = new Movement(Action.PICKUP, vTasks.get(0));
 				Movement previousMovement = firstMovement;
-				nextMovementsVehicle.put(v, firstMovement);
+				nextMovementsVehicle[v.id()] = firstMovement;
 				for (int i = 1; i < vTasks.size(); i++) {
 					Movement nextDeliverMovement = new Movement(Action.DELIVER, vTasks.get(i - 1));
-					nextMovements.put(previousMovement, nextDeliverMovement);
+					nextMovements[previousMovement.getId()] = nextDeliverMovement;
 					Movement nextPickupMovement = new Movement(Action.PICKUP, vTasks.get(i));
-					nextMovements.put(nextDeliverMovement, nextPickupMovement);
+					nextMovements[nextDeliverMovement.getId()] = nextPickupMovement;
 					previousMovement = nextPickupMovement;
 
 				}
 				Movement finalMovement = new Movement(Action.DELIVER, vTasks.get(vTasks.size() - 1));
-				nextMovements.put(previousMovement, finalMovement);
+				nextMovements[previousMovement.getId()] = finalMovement;
+			} else {
+				nextMovementsVehicle[v.id()] = null;
 			}
 		}
-		SolutionState solution = new SolutionState(nextMovements, nextMovementsVehicle);
+		SolutionState solution = new SolutionState(nextMovements, nextMovementsVehicle, nbVehicles, vehicles, nbTasks);
 
 		// Compute the cost of this plan a save it into the SolutionState object
 		solution.getCost();
-		int contraintsErrors = Constraints.checkSolutionState(solution);
+		int contraintsErrors = Constraints.checkSolutionState(solution, nbVehicles, vehicles);
 		if (contraintsErrors != 0) {
 			System.err.println("The initial solution does not respect " + contraintsErrors + " errors.");
 		}
@@ -365,14 +370,14 @@ public class AuctionTemplate implements AuctionBehavior {
 	// We create neighbours of a state following the idea of the paper
 	private ArrayList<SolutionState> chooseNeighbours(SolutionState oldState, List<Vehicle> vehicles) {
 		ArrayList<SolutionState> neighbours = new ArrayList<SolutionState>();
-		HashMap<Vehicle, Movement> nextMovementsVehicle = oldState.getNextMovementsVehicle();
+		Movement[] nextMovementsVehicle = oldState.getNextMovementsVehicle();
 		SolutionState ss;
 
 		// pick a random vehicle
 		Random ran = new Random();
 		int x = ran.nextInt(vehicles.size());
 		Vehicle vehicle = vehicles.get(x);
-		while (nextMovementsVehicle.get(vehicle) == null) {
+		while (nextMovementsVehicle[vehicle.id()] == null) {
 			x = ran.nextInt(vehicles.size());
 			vehicle = vehicles.get(x);
 		}
@@ -381,21 +386,23 @@ public class AuctionTemplate implements AuctionBehavior {
 		Movement m;
 		for (Vehicle v : vehicles) {
 			if (!v.equals(vehicle)) {
-				m = nextMovementsVehicle.get(vehicle);
-				if (m.getTask().weight < v.capacity()) {
-					ss = changingVehicle(oldState, vehicle, v);
-					neighbours.add(ss);
+				m = nextMovementsVehicle[vehicle.id()];
+				if (m != null) {
+					if (m.getTask().weight < v.capacity()) {
+						ss = changingVehicle(oldState, vehicle, v);
+						neighbours.add(ss);
 
-					// All possible positions for the moved task in its new
-					// vehicle
-					SolutionState ss2;
-					LinkedList<Movement> plan = ss.getPlans().get(v);
-					int size = plan.size();
-					for (int i = 2; i < size - 1; i++) {
-						for (int j = i + 1; j < size; j++) {
-							ss2 = changingTaskOrder(ss, v, 0, 1, i, j);
-							if (ss2 != null) {
-								neighbours.add(ss2);
+						// All possible positions for the moved task in its new
+						// vehicle
+						SolutionState ss2;
+						LinkedList<Movement> plan = ss.getPlans().get(v.id());
+						int size = plan.size();
+						for (int i = 2; i < size - 1; i++) {
+							for (int j = i + 1; j < size; j++) {
+								ss2 = changingTaskOrder(ss, v, 0, 1, i, j);
+								if (ss2 != null) {
+									neighbours.add(ss2);
+								}
 							}
 						}
 					}
@@ -405,7 +412,7 @@ public class AuctionTemplate implements AuctionBehavior {
 
 		// apply changing task order operator:
 		Movement pMov, dMov;
-		LinkedList<Movement> plan = oldState.getPlans().get(vehicle);
+		LinkedList<Movement> plan = oldState.getPlans().get(vehicle.id());
 		int size = plan.size();
 		if (size > 2) {
 			for (int k = 0; k < size - 1; k++) {
@@ -443,7 +450,6 @@ public class AuctionTemplate implements AuctionBehavior {
 		}
 
 		return neighbours;
-
 	}
 
 	/**
@@ -454,10 +460,10 @@ public class AuctionTemplate implements AuctionBehavior {
 	 * @param probability
 	 * @return
 	 */
-	private SolutionState localChoice(ArrayList<SolutionState> neighbours) {
+	private SolutionState localChoice(ArrayList<SolutionState> neighbours, double oldBestCost) {
 		SolutionState bestSolution = null;
 
-		if (neighbours == null || neighbours.size() == 0) {
+		if (neighbours == null || neighbours.isEmpty()) {
 			System.err.println("Neighbours should not be null !");
 			return null;
 		}
@@ -469,7 +475,7 @@ public class AuctionTemplate implements AuctionBehavior {
 		for (SolutionState neighbour : neighbours) {
 			cost = neighbour.getCost();
 			if (cost <= bestCost) {
-				if (Constraints.checkSolutionState(neighbour) != 0) {
+				if (Constraints.checkSolutionState(neighbour, nbVehicles, vehicles) != 0) {
 					continue;
 				}
 				if (cost < bestCost) {
@@ -502,30 +508,30 @@ public class AuctionTemplate implements AuctionBehavior {
 	 * @return state following from this exchange
 	 */
 	private SolutionState changingVehicle(SolutionState oldState, Vehicle v1, Vehicle v2) {
-		HashMap<Vehicle, Movement> nextMovementsVehicle = oldState.getNextMovementsVehicle();
-		HashMap<Movement, Movement> nextMovements = oldState.getNextMovements();
+		Movement[] nextMovementsVehicle = oldState.getNextMovementsVehicle();
+		Movement[] nextMovements = oldState.getNextMovements();
 
-		Movement m1 = nextMovementsVehicle.get(v1);
+		Movement m1 = nextMovementsVehicle[v1.id()];
 		Movement m1Deliver = null;
-		Movement m2 = nextMovementsVehicle.get(v2);
+		Movement m2 = nextMovementsVehicle[v2.id()];
 
-		Movement m1Next = nextMovements.get(m1);
+		Movement m1Next = nextMovements[m1.getId()];
 		if (m1Next.getAction() == Action.DELIVER) {
 			// deliver m1 right after having it picked up
 			m1Deliver = m1Next;
-			m1Next = nextMovements.get(m1Next);
+			m1Next = nextMovements[m1Next.getId()];
 		} else {
 			// deliver m1 after pickup other tasks
 			Movement prev = m1Next;
-			Movement current = nextMovements.get(m1Next);
+			Movement current = nextMovements[m1Next.getId()];
 			while (current != null && !current.getTask().equals(m1.getTask())) {
 				prev = current;
-				current = nextMovements.get(current);
+				current = nextMovements[current.getId()];
 			}
 			if (current != null) {
 				// remove delivery of m1 from v1's plan
-				Movement next = nextMovements.get(current);
-				nextMovements.put(prev, next);
+				Movement next = nextMovements[current.getId()];
+				nextMovements[prev.getId()] = next;
 				m1Deliver = current;
 			} else {
 				System.out.println("Deliver not found for task " + m1.getTask().id + " in changingVehicle().");
@@ -535,15 +541,15 @@ public class AuctionTemplate implements AuctionBehavior {
 		// remove m1 from the plan for vehicle v1
 		// append m1 to the beginning of the plan for vehicle v2
 		if (m1Next != null) {
-			nextMovementsVehicle.put(v1, m1Next);
+			nextMovementsVehicle[v1.id()] = m1Next;
 		} else {
-			nextMovementsVehicle.remove(v1);
+			nextMovementsVehicle[v1.id()] = null;
 		}
-		nextMovements.put(m1, m1Deliver);
-		nextMovements.put(m1Deliver, m2);
-		nextMovementsVehicle.put(v2, m1);
+		nextMovements[m1.getId()] = m1Deliver;
+		nextMovements[m1Deliver.getId()] = m2;
+		nextMovementsVehicle[v2.id()] = m1;
 
-		return new SolutionState(nextMovements, nextMovementsVehicle);
+		return new SolutionState(nextMovements, nextMovementsVehicle, nbVehicles, vehicles, nbTasks);
 	}
 
 	/**
@@ -562,9 +568,9 @@ public class AuctionTemplate implements AuctionBehavior {
 	@SuppressWarnings("unchecked")
 	private SolutionState changingTaskOrder(SolutionState oldState, Vehicle vehicle, int pickupIdx, int deliverIdx,
 			int pickupNextIdx, int deliverNextIdx) {
-		HashMap<Vehicle, Movement> nextVehicleMovement = oldState.getNextMovementsVehicle();
-		HashMap<Movement, Movement> nextMovement = oldState.getNextMovements();
-		LinkedList<Movement> plan = (LinkedList<Movement>) oldState.getPlans().get(vehicle).clone();
+		Movement[] nextVehicleMovement = oldState.getNextMovementsVehicle();
+		Movement[] nextMovement = oldState.getNextMovements();
+		LinkedList<Movement> plan = (LinkedList<Movement>) oldState.getPlans().get(vehicle.id()).clone();
 
 		Movement deliverChanging = plan.get(deliverIdx);
 		Movement pickupChanging = plan.get(pickupIdx);
@@ -583,15 +589,16 @@ public class AuctionTemplate implements AuctionBehavior {
 		}
 
 		// creates a new state given the new plan
-		nextVehicleMovement.put(vehicle, plan.getFirst());
+		nextVehicleMovement[vehicle.id()] = plan.getFirst();
 		for (int i = 0; i < plan.size() - 1; i++) {
-			nextMovement.put(plan.get(i), plan.get(i + 1));
+			Movement mov = plan.get(i);
+			nextMovement[mov.getId()] = plan.get(i + 1);
 		}
-		nextMovement.put(plan.getLast(), null);
+		nextMovement[plan.getLast().getId()] = null;
 
-		SolutionState solution = new SolutionState(nextMovement, nextVehicleMovement);
+		SolutionState solution = new SolutionState(nextMovement, nextVehicleMovement, nbVehicles, vehicles, nbTasks);
 
-		if (Constraints.checkVehicleLoad(solution, vehicle) != 0) {
+		if (Constraints.checkVehicleLoad(solution, vehicle.id(), vehicles) != 0) {
 			return null;
 		}
 
