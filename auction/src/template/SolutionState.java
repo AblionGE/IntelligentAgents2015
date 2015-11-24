@@ -3,6 +3,7 @@ package template;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
 
 import logist.simulation.Vehicle;
 import logist.topology.Topology.City;
@@ -20,10 +21,16 @@ public class SolutionState {
 	private int[] timedMovements;
 	private ArrayList<LinkedList<Movement>> plans;
 	private double cost;
+	private int nbVehicles;
+	private List<Vehicle> vehicles;
+	private int nbTasks;
 
-	SolutionState(Movement[] nextMovements, Movement[] nextMovementsVehicle) {
+	SolutionState(Movement[] nextMovements, Movement[] nextMovementsVehicle, int nbVehicles, List<Vehicle> vehicles, int nbTasks) {
 		this.nextMovements = nextMovements.clone();
 		this.nextMovementsVehicle = nextMovementsVehicle.clone();
+		this.nbVehicles = nbVehicles;
+		this.vehicles = vehicles;
+		this.nbTasks = nbTasks;
 		this.plans = computeVehiclePlans(this);
 		this.timedMovements = computeTime(this.plans);
 		cost = -1;
@@ -34,15 +41,15 @@ public class SolutionState {
 	 */
 	private void computeCost() {
 		double totalCost = 0;
-		for (int vehicle = 0; vehicle < AuctionTemplate.nbVehicles; vehicle++) {
-			double totalVehicleDistance = computeVehicleDistance(AuctionTemplate.vehicles.get(vehicle),
+		for (int vehicle = 0; vehicle < nbVehicles; vehicle++) {
+			double totalVehicleDistance = computeVehicleDistance(vehicles.get(vehicle),
 					nextMovementsVehicle[vehicle]);
 			LinkedList<Movement> currentPath = plans.get(vehicle);
 			for (int i = 0; i < currentPath.size() - 1; i++) {
 				Movement currentMovement = currentPath.get(i);
 				totalVehicleDistance += computeMovementsDistance(currentMovement, currentPath.get(i + 1));
 			}
-			totalCost += (totalVehicleDistance * AuctionTemplate.vehicles.get(vehicle).costPerKm());
+			totalCost += (totalVehicleDistance * vehicles.get(vehicle).costPerKm());
 		}
 		this.cost = totalCost;
 	}
@@ -103,7 +110,7 @@ public class SolutionState {
 		Movement[] vehicleMovement = solutionState.getNextMovementsVehicle();
 		Movement[] movements = solutionState.getNextMovements();
 
-		for (int vehicle = 0; vehicle < AuctionTemplate.nbVehicles; vehicle++) {
+		for (int vehicle = 0; vehicle < nbVehicles; vehicle++) {
 			LinkedList<Movement> orderedMovements = new LinkedList<Movement>();
 
 			Movement next = vehicleMovement[vehicle];
@@ -124,8 +131,8 @@ public class SolutionState {
 	 * @return
 	 */
 	private int[] computeTime(ArrayList<LinkedList<Movement>> plans) {
-		int[] timedMovements = new int[AuctionTemplate.nbTasks * 2];
-		for (int vehicle = 0; vehicle < AuctionTemplate.nbVehicles; vehicle++) {
+		int[] timedMovements = new int[nbTasks * 2];
+		for (int vehicle = 0; vehicle < nbVehicles; vehicle++) {
 			LinkedList<Movement> movements = plans.get(vehicle);
 			int time = 1;
 			for (Movement m : movements) {

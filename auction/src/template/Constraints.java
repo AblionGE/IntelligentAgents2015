@@ -5,8 +5,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
+import logist.simulation.Vehicle;
 import logist.task.Task;
 
 /**
@@ -22,7 +24,7 @@ public final class Constraints {
 	 * @param state
 	 * @return the number of errors.
 	 */
-	public static int checkSolutionState(SolutionState state) {
+	public static int checkSolutionState(SolutionState state, int nbVehicles, List<Vehicle> vehicles) {
 		int errors = 0;
 
 		if (state == null) {
@@ -30,13 +32,13 @@ public final class Constraints {
 		}
 
 		ArrayList<LinkedList<Movement>> plans = state.getPlans();
-		for (int vehicle = 0; vehicle < AuctionTemplate.nbVehicles; vehicle++) {
+		for (int vehicle = 0; vehicle < nbVehicles; vehicle++) {
 
 			int timeCounter = 1;
 			int currentLoad = 0;
 			HashMap<Task, Integer> consistencyVerification = new HashMap<Task, Integer>();
 
-			errors += checkVehicleLoad(state, vehicle);
+			errors += checkVehicleLoad(state, vehicle, vehicles);
 			errors += checkFirstMovementTime(state, vehicle);
 
 			LinkedList<Movement> movements = plans.get(vehicle);
@@ -44,7 +46,7 @@ public final class Constraints {
 				consistencyVerification = computeMovementConsistency(movements.get(i), consistencyVerification);
 				
 				errors += checkTime(state, timeCounter, movements.get(i));
-				int loadResult = checkLoad(movements.get(i), vehicle, currentLoad);
+				int loadResult = checkLoad(movements.get(i), vehicle, currentLoad, vehicles);
 				if (loadResult < 0) {
 					errors += 1;
 					return errors;
@@ -73,10 +75,10 @@ public final class Constraints {
 	 * @param currentLoad
 	 * @return
 	 */
-	private static int checkLoad(Movement m, int v, int currentLoad) {
+	private static int checkLoad(Movement m, int v, int currentLoad, List<Vehicle> vehicles) {
 		if (m.getAction() == Action.PICKUP) {
 			currentLoad += m.getTask().weight;
-			if (currentLoad > AuctionTemplate.vehicles.get(v).capacity()) {
+			if (currentLoad > vehicles.get(v).capacity()) {
 				return -1;
 			}
 		} else {
@@ -96,14 +98,14 @@ public final class Constraints {
 	 * @param v
 	 * @return
 	 */
-	public static int checkVehicleLoad(SolutionState state, int v) {
+	public static int checkVehicleLoad(SolutionState state, int v, List<Vehicle> vehicles) {
 		int currentLoad = 0;
 		LinkedList<Movement> movements = state.getPlans().get(v);
 		for (int i = 0; i < movements.size(); i++) {
 			Movement m = movements.get(i);
 			if (m.getAction() == Action.PICKUP) {
 				currentLoad += m.getTask().weight;
-				if (currentLoad > AuctionTemplate.vehicles.get(v).capacity()) {
+				if (currentLoad > vehicles.get(v).capacity()) {
 					return 1;
 				}
 			} else {

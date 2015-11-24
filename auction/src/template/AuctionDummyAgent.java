@@ -27,7 +27,7 @@ import logist.topology.Topology.City;
  * 
  */
 @SuppressWarnings("unused")
-public class AuctionTemplate implements AuctionBehavior {
+public class AuctionDummyAgent implements AuctionBehavior {
 
 	private Topology topology;
 	private TaskDistribution distribution;
@@ -35,6 +35,7 @@ public class AuctionTemplate implements AuctionBehavior {
 	private Random random;
 	private City currentCity;
 	private List<Task> tasksList = new ArrayList<Task>();
+	private Vehicle vehicle;
 
 	private long timeout_setup;
 	private long timeout_plan;
@@ -43,9 +44,9 @@ public class AuctionTemplate implements AuctionBehavior {
 	private final int MAX_SLS_LOOPS = 10000;
 	private final int MAX_SLS_COST_REPETITION = 350;
 	private ArrayList<LinkedList<Movement>> vehiclePlans = new ArrayList<LinkedList<Movement>>();
-	public static int nbTasks;
-	public static int nbVehicles;
-	public static List<Vehicle> vehicles = new ArrayList<Vehicle>();
+	private int nbTasks;
+	private int nbVehicles;
+	private List<Vehicle> vehicles = new ArrayList<Vehicle>();
 
 	@Override
 	public void setup(Topology topology, TaskDistribution distribution, Agent agent) {
@@ -55,6 +56,8 @@ public class AuctionTemplate implements AuctionBehavior {
 		this.agent = agent;
 		vehicles = agent.vehicles();
 		nbVehicles = agent.vehicles().size();
+		this.vehicle = agent.vehicles().get(0);
+		this.currentCity = vehicle.homeCity();
 
 		long seed = -9019554669489983951L * agent.id();
 		this.random = new Random(seed);
@@ -96,41 +99,21 @@ public class AuctionTemplate implements AuctionBehavior {
 	/**
 	 * This function is called when we must bid for a task
 	 */
-	// TODO
 	@Override
 	public Long askPrice(Task task) {
 
-		boolean carryTask = false;
-		for (Vehicle vehicle : vehicles) {
-			if (vehicle.capacity() >= task.weight) {
-				carryTask = true;
-			}
-			if (!carryTask)
-				return null;
-		}
-
-		if (agent.id() == 0) {
-			return (long) 1;
-		} else {
-			return (long) 2;
-		}
-
-		// Here we can do some predictions on the future tasks (weight,
-		// distances, way)
-
 		//////////////////////////////////////////////////////////////
 		// Simple agent
-		/*
-		 * long distanceTask =
-		 * task.pickupCity.distanceUnitsTo(task.deliveryCity); long distanceSum
-		 * = distanceTask + currentCity.distanceUnitsTo(task.pickupCity); double
-		 * marginalCost = Measures.unitsToKM(distanceSum * vehicle.costPerKm());
-		 * 
-		 * double ratio = 1.0 + (random.nextDouble() * 0.05 * task.id); double
-		 * bid = ratio * marginalCost;
-		 * 
-		 * return (long) Math.round(bid);
-		 */
+
+		long distanceTask = task.pickupCity.distanceUnitsTo(task.deliveryCity);
+		long distanceSum = distanceTask + currentCity.distanceUnitsTo(task.pickupCity);
+		double marginalCost = Measures.unitsToKM(distanceSum * vehicle.costPerKm());
+
+		double ratio = 1.0 + (random.nextDouble() * 0.05 * task.id);
+		double bid = ratio * marginalCost;
+
+		return (long) Math.round(bid);
+
 		//////////////////////////////////////////////////////////////
 	}
 
@@ -276,6 +259,7 @@ public class AuctionTemplate implements AuctionBehavior {
 		}
 
 		System.out.println(" ======================================================== ");
+		System.out.println("DUMMY AGENT");
 		System.out.println("Number of loops in SLS: " + currentLoop);
 		System.out.println("Expected cost: " + bestState.getCost());
 		System.out.println("Best " + bestState.toString());
@@ -371,11 +355,11 @@ public class AuctionTemplate implements AuctionBehavior {
 				nextMovementsVehicle[v.id()] = null;
 			}
 		}
-		SolutionState solution = new SolutionState(nextMovements, nextMovementsVehicle);
+		SolutionState solution = new SolutionState(nextMovements, nextMovementsVehicle, nbVehicles, vehicles, nbTasks);
 
 		// Compute the cost of this plan a save it into the SolutionState object
 		solution.getCost();
-		int contraintsErrors = Constraints.checkSolutionState(solution);
+		int contraintsErrors = Constraints.checkSolutionState(solution, nbVehicles, vehicles);
 		if (contraintsErrors != 0) {
 			System.err.println("The initial solution does not respect " + contraintsErrors + " errors.");
 		}
@@ -491,7 +475,7 @@ public class AuctionTemplate implements AuctionBehavior {
 		for (SolutionState neighbour : neighbours) {
 			cost = neighbour.getCost();
 			if (cost <= bestCost) {
-				if (Constraints.checkSolutionState(neighbour) != 0) {
+				if (Constraints.checkSolutionState(neighbour, nbVehicles, vehicles) != 0) {
 					continue;
 				}
 				if (cost < bestCost) {
@@ -565,7 +549,7 @@ public class AuctionTemplate implements AuctionBehavior {
 		nextMovements[m1Deliver.getId()] = m2;
 		nextMovementsVehicle[v2.id()] = m1;
 
-		return new SolutionState(nextMovements, nextMovementsVehicle);
+		return new SolutionState(nextMovements, nextMovementsVehicle, nbVehicles, vehicles, nbTasks);
 	}
 
 	/**
@@ -612,9 +596,9 @@ public class AuctionTemplate implements AuctionBehavior {
 		}
 		nextMovement[plan.getLast().getId()] = null;
 
-		SolutionState solution = new SolutionState(nextMovement, nextVehicleMovement);
+		SolutionState solution = new SolutionState(nextMovement, nextVehicleMovement, nbVehicles, vehicles, nbTasks);
 
-		if (Constraints.checkVehicleLoad(solution, vehicle.id()) != 0) {
+		if (Constraints.checkVehicleLoad(solution, vehicle.id(), vehicles) != 0) {
 			return null;
 		}
 
