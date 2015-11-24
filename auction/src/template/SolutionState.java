@@ -34,15 +34,15 @@ public class SolutionState {
 	 */
 	private void computeCost() {
 		double totalCost = 0;
-		for (int vehicle = 0; vehicle < CentralizedTemplate.nbVehicles; vehicle++) {
-			double totalVehicleDistance = computeVehicleDistance(CentralizedTemplate.vehicles.get(vehicle),
+		for (int vehicle = 0; vehicle < AuctionTemplate.nbVehicles; vehicle++) {
+			double totalVehicleDistance = computeVehicleDistance(AuctionTemplate.vehicles.get(vehicle),
 					nextMovementsVehicle[vehicle]);
 			LinkedList<Movement> currentPath = plans.get(vehicle);
 			for (int i = 0; i < currentPath.size() - 1; i++) {
 				Movement currentMovement = currentPath.get(i);
 				totalVehicleDistance += computeMovementsDistance(currentMovement, currentPath.get(i + 1));
 			}
-			totalCost += (totalVehicleDistance * CentralizedTemplate.vehicles.get(vehicle).costPerKm());
+			totalCost += (totalVehicleDistance * AuctionTemplate.vehicles.get(vehicle).costPerKm());
 		}
 		this.cost = totalCost;
 	}
@@ -103,7 +103,7 @@ public class SolutionState {
 		Movement[] vehicleMovement = solutionState.getNextMovementsVehicle();
 		Movement[] movements = solutionState.getNextMovements();
 
-		for (int vehicle = 0; vehicle < CentralizedTemplate.nbVehicles; vehicle++) {
+		for (int vehicle = 0; vehicle < AuctionTemplate.nbVehicles; vehicle++) {
 			LinkedList<Movement> orderedMovements = new LinkedList<Movement>();
 
 			Movement next = vehicleMovement[vehicle];
@@ -124,8 +124,8 @@ public class SolutionState {
 	 * @return
 	 */
 	private int[] computeTime(ArrayList<LinkedList<Movement>> plans) {
-		int[] timedMovements = new int[CentralizedTemplate.nbTasks * 2];
-		for (int vehicle = 0; vehicle < CentralizedTemplate.nbVehicles; vehicle++) {
+		int[] timedMovements = new int[AuctionTemplate.nbTasks * 2];
+		for (int vehicle = 0; vehicle < AuctionTemplate.nbVehicles; vehicle++) {
 			LinkedList<Movement> movements = plans.get(vehicle);
 			int time = 1;
 			for (Movement m : movements) {

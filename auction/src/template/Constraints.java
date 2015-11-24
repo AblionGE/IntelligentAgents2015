@@ -30,7 +30,7 @@ public final class Constraints {
 		}
 
 		ArrayList<LinkedList<Movement>> plans = state.getPlans();
-		for (int vehicle = 0; vehicle < CentralizedTemplate.nbVehicles; vehicle++) {
+		for (int vehicle = 0; vehicle < AuctionTemplate.nbVehicles; vehicle++) {
 
 			int timeCounter = 1;
 			int currentLoad = 0;
@@ -76,7 +76,7 @@ public final class Constraints {
 	private static int checkLoad(Movement m, int v, int currentLoad) {
 		if (m.getAction() == Action.PICKUP) {
 			currentLoad += m.getTask().weight;
-			if (currentLoad > CentralizedTemplate.vehicles.get(v).capacity()) {
+			if (currentLoad > AuctionTemplate.vehicles.get(v).capacity()) {
 				return -1;
 			}
 		} else {
@@ -103,7 +103,7 @@ public final class Constraints {
 			Movement m = movements.get(i);
 			if (m.getAction() == Action.PICKUP) {
 				currentLoad += m.getTask().weight;
-				if (currentLoad > CentralizedTemplate.vehicles.get(v).capacity()) {
+				if (currentLoad > AuctionTemplate.vehicles.get(v).capacity()) {
 					return 1;
 				}
 			} else {
