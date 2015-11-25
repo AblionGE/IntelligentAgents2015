@@ -39,12 +39,13 @@ public class AuctionDummyAgent implements AuctionBehavior {
 
 	private long timeout_setup;
 	private long timeout_plan;
+	private long timeout_bid;
 
 	// This dummy agent will keep the initial solution
 	private final double SLS_PROBABILITY = 0;
 	private final int MAX_SLS_LOOPS = 10000;
 	private final int MAX_SLS_COST_REPETITION = 750;
-	private ArrayList<LinkedList<Movement>> vehiclePlans = new ArrayList<LinkedList<Movement>>();
+	private SolutionState currentBestState;
 	private int nbTasks;
 	private int nbVehicles;
 	private List<Vehicle> vehicles = new ArrayList<Vehicle>();
@@ -75,6 +76,7 @@ public class AuctionDummyAgent implements AuctionBehavior {
 		timeout_setup = ls.get(LogistSettings.TimeoutKey.SETUP);
 		// the plan method cannot execute more than timeout_plan milliseconds
 		timeout_plan = ls.get(LogistSettings.TimeoutKey.PLAN);
+		timeout_bid = ls.get(LogistSettings.TimeoutKey.BID);
 
 		this.topology = topology;
 		this.distribution = distribution;
@@ -92,7 +94,7 @@ public class AuctionDummyAgent implements AuctionBehavior {
 			currentCity = previous.deliveryCity;
 			tasksList.add(previous);
 			nbTasks++;
-			vehiclePlans = computeSLS(vehicles, tasksList);
+			currentBestState = computeSLS(vehicles, tasksList, timeout_bid);
 		}
 
 	}
@@ -128,17 +130,26 @@ public class AuctionDummyAgent implements AuctionBehavior {
 		List<Plan> plans = new ArrayList<Plan>();
 		tasksList = new ArrayList<Task>(tasks);
 
+		ArrayList<LinkedList<Movement>> vehiclePlans;
+
 		nbTasks = tasks.size();
 		nbVehicles = allVehicles.size();
 		vehicles = allVehicles;
 
 		// Compute the centralized plan
-		// ArrayList<LinkedList<Movement>> vehiclePlans =
-		// computeSLS(allVehicles, new ArrayList<Task>(tasks));
+		// ArrayList<LinkedList<Movement>> vehiclePlans
+		SolutionState vehicleState = computeSLS(allVehicles, new ArrayList<Task>(tasks), timeout_plan);
+
+		if (vehicleState.getCost() < currentBestState.getCost()) {
+			currentBestState = vehicleState;
+		}
+
+		vehiclePlans = currentBestState.getPlans();
 
 		if (!vehiclePlans.isEmpty()) {
 			for (Vehicle vehicle : allVehicles) {
-				// LinkedList<Movement> movements = vehiclePlans.get(vehicle);
+				// LinkedList<Movement> movements =
+				// currentBestState.get(vehicle);
 				LinkedList<Movement> movements = vehiclePlans.get(vehicle.id());
 				Plan plan = individualVehiclePlan(vehicle, movements);
 				plans.add(plan);
@@ -201,9 +212,10 @@ public class AuctionDummyAgent implements AuctionBehavior {
 	 * @param vehicles
 	 * @param tasks
 	 */
-	private ArrayList<LinkedList<Movement>> computeSLS(List<Vehicle> vehicles, List<Task> tasks, long timeout) {
+	private SolutionState computeSLS(List<Vehicle> vehicles, List<Task> tasks, long timeout) {
 		SolutionState bestState;
 		SolutionState oldState;
+		SolutionState overallBestState;
 
 		long time_start = System.currentTimeMillis();
 
@@ -212,8 +224,10 @@ public class AuctionDummyAgent implements AuctionBehavior {
 		int stateRepetition = 0;
 		int costRepetition = 0;
 		bestState = computeInitState(vehicles, new ArrayList<Task>(tasks));
+		overallBestState = bestState;
 		double bestCost = bestState.getCost();
 		double newCost;
+		double overallBestCost = bestState.getCost();
 
 		// if p is 0, we will keep the initial state
 		if (p == 0.0) {
@@ -241,6 +255,10 @@ public class AuctionDummyAgent implements AuctionBehavior {
 																// happen
 					}
 					bestState = localChoice(neighbours, bestState.getCost());
+					if (bestState.getCost() < overallBestCost) {
+						overallBestCost = bestState.getCost();
+						overallBestState = bestState;
+					}
 					if (bestState == null) {
 						bestState = oldState;
 					}
@@ -262,9 +280,9 @@ public class AuctionDummyAgent implements AuctionBehavior {
 		System.out.println(" ======================================================== ");
 		System.out.println("INTELLIGENT AGENT");
 		System.out.println("Number of loops in SLS: " + currentLoop);
-		System.out.println("Expected cost: " + bestState.getCost());
-		System.out.println("Best " + bestState.toString());
-		return bestState.getPlans();
+		System.out.println("Expected cost: " + overallBestState.getCost());
+		System.out.println("Best " + overallBestState.toString());
+		return overallBestState;
 	}
 
 	/**
