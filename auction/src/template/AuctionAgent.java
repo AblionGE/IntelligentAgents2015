@@ -44,9 +44,10 @@ public class AuctionAgent implements AuctionBehavior {
 	private SolutionState newState;
 	private int nbTasks;
 	private int nbVehicles;
-	private List<Vehicle> vehicles = new ArrayList<Vehicle>();
-	private int totalNbOfTasks = 0;
+	private List<Vehicle> vehicles;
+	private int totalNbOfTasks;
 	private double[][] nextTaskProbabilities;
+	private double probabilitiesTaskFromToTotal;
 
 	@Override
 	public void setup(Topology topology, TaskDistribution distribution, Agent agent) {
@@ -56,6 +57,11 @@ public class AuctionAgent implements AuctionBehavior {
 		this.agent = agent;
 		vehicles = agent.vehicles();
 		nbVehicles = agent.vehicles().size();
+		currentBestState = null;
+		newState = null;
+		nbTasks = 0;
+		totalNbOfTasks = 0;
+		probabilitiesTaskFromToTotal = 0;
 
 		nextTaskProbabilities = new double[topology.cities().size()][topology.cities().size()];
 
@@ -90,7 +96,7 @@ public class AuctionAgent implements AuctionBehavior {
 		if (winner == agent.id()) {
 			currentBestState = newState;
 		} else {
-			tasksList.remove(previous);
+			tasksList.remove(tasksList.size() - 1);
 			nbTasks--;
 		}
 
@@ -117,9 +123,15 @@ public class AuctionAgent implements AuctionBehavior {
 
 		newState = computeSLS(vehicles, tasksList, timeout_bid, SLS_PROBABILITY);
 
-		double marginalCost = currentBestState.getCost() - newState.getCost();
+		double marginalCost;
+		if (currentBestState == null) {
+			marginalCost = newState.getCost();
+		} else {
+			marginalCost = newState.getCost() - currentBestState.getCost();
+		}
 		
 		double futureTasksProba = nextTaskProbabilities[task.pickupCity.id][task.deliveryCity.id];
+		
 		double futurePickupTasksProba = 0;
 		double futureDeliveryTasksProba = 0;
 		for (City c : topology.cities()) {
@@ -127,7 +139,7 @@ public class AuctionAgent implements AuctionBehavior {
 			futurePickupTasksProba += nextTaskProbabilities[task.pickupCity.id][c.id];
 		}
 		
-		double probaFuture = 1 - (futureTasksProba + futurePickupTasksProba + futureDeliveryTasksProba);
+		double probaFuture = (futureTasksProba + futurePickupTasksProba + futureDeliveryTasksProba) / probabilitiesTaskFromToTotal;
 
 		// TODO : define bid following others
 
@@ -139,9 +151,11 @@ public class AuctionAgent implements AuctionBehavior {
 	 * Compute the probability to have task from one city to another
 	 */
 	private void computeNextTaskProbabilities() {
+		
 		for (City c1 : topology.cities()) {
 			for (City c2 : topology.cities()) {
 				nextTaskProbabilities[c1.id][c2.id] = distribution.probability(c1, c2);
+				probabilitiesTaskFromToTotal += distribution.probability(c1, c2);
 			}
 		}
 	}
@@ -154,28 +168,37 @@ public class AuctionAgent implements AuctionBehavior {
 	public List<Plan> plan(List<Vehicle> allVehicles, TaskSet tasks) {
 		long time_start = System.currentTimeMillis();
 		List<Plan> plans = new ArrayList<Plan>();
-		tasksList = new ArrayList<Task>(tasks);
 
 		ArrayList<LinkedList<Movement>> vehiclePlans;
-
-		nbTasks = tasks.size();
-		nbVehicles = allVehicles.size();
-		vehicles = allVehicles;
+		
+		List<Task> tasksList = new ArrayList<Task>(tasks);
+		
 
 		// Compute the centralized plan
 		// ArrayList<LinkedList<Movement>> vehiclePlans
-		SolutionState vehicleState = computeSLS(allVehicles, new ArrayList<Task>(tasks), timeout_plan, SLS_PROBABILITY);
+		SolutionState vehicleState = computeSLS(allVehicles, tasksList, timeout_plan, SLS_PROBABILITY);
 
 		if (currentBestState == null || vehicleState.getCost() < currentBestState.getCost()) {
 			currentBestState = vehicleState;
+			vehiclePlans = currentBestState.getPlans();
+		} else {
+			vehiclePlans = currentBestState.getPlans();
+			for (LinkedList<Movement> moves : vehiclePlans) {
+				for (Movement m : moves) {
+					int id = m.getId();
+					for (int i = 0; i < tasksList.size(); i++) {
+						if (tasksList.get(i).id == m.getTask().id) {
+							m.setTask(tasksList.get(i));
+							i = tasksList.size();
+						}
+					}
+					
+				}
+			}
 		}
-
-		vehiclePlans = currentBestState.getPlans();
 
 		if (!vehiclePlans.isEmpty()) {
 			for (Vehicle vehicle : allVehicles) {
-				// LinkedList<Movement> movements =
-				// currentBestState.get(vehicle);
 				LinkedList<Movement> movements = vehiclePlans.get(vehicle.id());
 				Plan plan = individualVehiclePlan(vehicle, movements);
 				plans.add(plan);
@@ -305,10 +328,6 @@ public class AuctionAgent implements AuctionBehavior {
 		System.out.println(" ======================================================== ");
 		System.out.println("INTELLIGENT AGENT");
 		System.out.println("Expected cost: " + overallBestState.getCost());
-		
-		if (currentBestState == null) {
-			currentBestState = overallBestState;
-		}
 		
 		return overallBestState;
 	}

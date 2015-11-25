@@ -32,7 +32,6 @@ public class AuctionRandomGreedyAgent implements AuctionBehavior {
 	private TaskDistribution distribution;
 	private Agent agent;
 	private Random random;
-	private City currentCity;
 	private List<Task> tasksList = new ArrayList<Task>();
 	private Vehicle vehicle;
 
@@ -60,7 +59,10 @@ public class AuctionRandomGreedyAgent implements AuctionBehavior {
 		vehicles = agent.vehicles();
 		nbVehicles = agent.vehicles().size();
 		this.vehicle = agent.vehicles().get(0);
-		this.currentCity = vehicle.homeCity();
+		currentBestState = null;
+		newState = null;
+		nbTasks = 0;
+		totalNbOfTasks = 0;
 
 		long seed = -9019554669489983951L * agent.id();
 		this.random = new Random(seed);
@@ -94,7 +96,7 @@ public class AuctionRandomGreedyAgent implements AuctionBehavior {
 		if (winner == agent.id()) {
 			currentBestState = newState;
 		} else {
-			tasksList.remove(previous);
+			tasksList.remove(tasksList.size() - 1);
 			nbTasks--;
 		}
 
@@ -123,7 +125,12 @@ public class AuctionRandomGreedyAgent implements AuctionBehavior {
 
 		newState = computeSLS(vehicles, tasksList, timeout_bid, SLS_PROBABILITY); 
 		
-		double marginalCost = currentBestState.getCost() - newState.getCost();
+		double marginalCost;
+		if (currentBestState == null) {
+			marginalCost = newState.getCost();
+		} else {
+			marginalCost = newState.getCost() - currentBestState.getCost();
+		}
 
 		double proba = random.nextDouble();
 		
@@ -140,20 +147,32 @@ public class AuctionRandomGreedyAgent implements AuctionBehavior {
 	public List<Plan> plan(List<Vehicle> allVehicles, TaskSet tasks) {
 		long time_start = System.currentTimeMillis();
 		List<Plan> plans = new ArrayList<Plan>();
-		tasksList = new ArrayList<Task>(tasks);
 
 		ArrayList<LinkedList<Movement>> vehiclePlans;
-
-		nbTasks = tasks.size();
-		nbVehicles = allVehicles.size();
-		vehicles = allVehicles;
+		
+		List<Task> tasksList = new ArrayList<Task>(tasks);
 
 		// Compute the centralized plan
 		// ArrayList<LinkedList<Movement>> vehiclePlans
-		SolutionState vehicleState = computeSLS(allVehicles, new ArrayList<Task>(tasks), timeout_plan, 0);
+		SolutionState vehicleState = computeSLS(allVehicles, tasksList, timeout_plan, 0);
 
 		if (currentBestState == null || vehicleState.getCost() < currentBestState.getCost()) {
 			currentBestState = vehicleState;
+			vehiclePlans = currentBestState.getPlans();
+		} else {
+			vehiclePlans = currentBestState.getPlans();
+			for (LinkedList<Movement> moves : vehiclePlans) {
+				for (Movement m : moves) {
+					int id = m.getId();
+					for (int i = 0; i < tasksList.size(); i++) {
+						if (tasksList.get(i).id == m.getTask().id) {
+							m.setTask(tasksList.get(i));
+							i = tasksList.size();
+						}
+					}
+					
+				}
+			}
 		}
 
 		vehiclePlans = currentBestState.getPlans();
@@ -286,10 +305,6 @@ public class AuctionRandomGreedyAgent implements AuctionBehavior {
 		System.out.println(" ======================================================== ");
 		System.out.println("RANDOM GREEDY AGENT");
 		System.out.println("Expected cost: " + overallBestState.getCost());
-		
-		if (currentBestState == null) {
-			currentBestState = overallBestState;
-		}
 		
 		return overallBestState;
 	}

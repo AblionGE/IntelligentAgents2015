@@ -28,6 +28,10 @@ public class Movement {
 		return action;
 	}
 
+	protected void setTask(Task task) {
+		this.task = task;
+	}
+
 	protected Task getTask() {
 		return task;
 	}
