@@ -7,7 +7,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-import epfl.lia.logist.task.TasksetDescriptor;
 import logist.LogistPlatform;
 import logist.LogistSettings;
 import logist.Measures;
@@ -49,6 +48,7 @@ public class AuctionDummyAgent implements AuctionBehavior {
 	private int nbTasks;
 	private int nbVehicles;
 	private List<Vehicle> vehicles = new ArrayList<Vehicle>();
+	private int totalNbOfTasks = 0;
 
 	@Override
 	public void setup(Topology topology, TaskDistribution distribution, Agent agent) {
@@ -104,7 +104,7 @@ public class AuctionDummyAgent implements AuctionBehavior {
 	 */
 	@Override
 	public Long askPrice(Task task) {
-
+		totalNbOfTasks++;
 		//////////////////////////////////////////////////////////////
 		// Simple agent
 
@@ -140,7 +140,7 @@ public class AuctionDummyAgent implements AuctionBehavior {
 		// ArrayList<LinkedList<Movement>> vehiclePlans
 		SolutionState vehicleState = computeSLS(allVehicles, new ArrayList<Task>(tasks), timeout_plan);
 
-		if (vehicleState.getCost() < currentBestState.getCost()) {
+		if (currentBestState == null || vehicleState.getCost() < currentBestState.getCost()) {
 			currentBestState = vehicleState;
 		}
 
@@ -316,11 +316,7 @@ public class AuctionDummyAgent implements AuctionBehavior {
 			for (int k = 0; k < vehicles.size(); k++) {
 				ArrayList<Task> tasksOfV = distributedTasks.get(vehicles.get(k));
 				if (tasksOfV == null || tasksOfV.isEmpty()) {
-					if (arrayOfTasks[i].pickupCity.equals(tasksOfV.get(tasksOfV.size() - 1).deliveryCity)) {
-						v = vehicles.get(k);
-						shortestDistance = 0;
-						continue;
-					} else if (arrayOfTasks[i].pickupCity.distanceTo(vehicles.get(k).homeCity()) < shortestDistance) {
+					if (arrayOfTasks[i].pickupCity.distanceTo(vehicles.get(k).homeCity()) < shortestDistance) {
 						shortestDistance = arrayOfTasks[i].pickupCity.distanceTo(vehicles.get(k).homeCity());
 						v = vehicles.get(k);
 
@@ -359,7 +355,7 @@ public class AuctionDummyAgent implements AuctionBehavior {
 		}
 
 		// We construct nextMovements and nextMovementsVehicle
-		Movement[] nextMovements = new Movement[tasks.size() * 2];
+		Movement[] nextMovements = new Movement[totalNbOfTasks * 2];
 		Movement[] nextMovementsVehicle = new Movement[vehicles.size()];
 		for (Vehicle v : vehicles) {
 			ArrayList<Task> vTasks = distributedTasks.get(v);
@@ -381,7 +377,7 @@ public class AuctionDummyAgent implements AuctionBehavior {
 				nextMovementsVehicle[v.id()] = null;
 			}
 		}
-		SolutionState solution = new SolutionState(nextMovements, nextMovementsVehicle, nbVehicles, vehicles, nbTasks);
+		SolutionState solution = new SolutionState(nextMovements, nextMovementsVehicle, nbVehicles, vehicles, totalNbOfTasks);
 
 		// Compute the cost of this plan a save it into the SolutionState object
 		solution.getCost();
@@ -575,7 +571,7 @@ public class AuctionDummyAgent implements AuctionBehavior {
 		nextMovements[m1Deliver.getId()] = m2;
 		nextMovementsVehicle[v2.id()] = m1;
 
-		return new SolutionState(nextMovements, nextMovementsVehicle, nbVehicles, vehicles, nbTasks);
+		return new SolutionState(nextMovements, nextMovementsVehicle, nbVehicles, vehicles, totalNbOfTasks);
 	}
 
 	/**
@@ -622,7 +618,7 @@ public class AuctionDummyAgent implements AuctionBehavior {
 		}
 		nextMovement[plan.getLast().getId()] = null;
 
-		SolutionState solution = new SolutionState(nextMovement, nextVehicleMovement, nbVehicles, vehicles, nbTasks);
+		SolutionState solution = new SolutionState(nextMovement, nextVehicleMovement, nbVehicles, vehicles, totalNbOfTasks);
 
 		if (Constraints.checkVehicleLoad(solution, vehicle.id(), vehicles) != 0) {
 			return null;
