@@ -47,6 +47,8 @@ public class AuctionAgent implements AuctionBehavior {
 	private int nbTasks;
 	private int nbVehicles;
 	private List<Vehicle> vehicles = new ArrayList<Vehicle>();
+	
+	private double[][] nextTaskProbabilities;
 
 	@Override
 	public void setup(Topology topology, TaskDistribution distribution, Agent agent) {
@@ -56,6 +58,10 @@ public class AuctionAgent implements AuctionBehavior {
 		this.agent = agent;
 		vehicles = agent.vehicles();
 		nbVehicles = agent.vehicles().size();
+		
+		nextTaskProbabilities = new double[topology.cities().size()][topology.cities().size()];
+		
+		computeNextTaskProbabilities();
 
 		long seed = -9019554669489983951L * agent.id();
 		this.random = new Random(seed);
@@ -74,9 +80,6 @@ public class AuctionAgent implements AuctionBehavior {
 		timeout_plan = ls.get(LogistSettings.TimeoutKey.PLAN);
 		timeout_bid = ls.get(LogistSettings.TimeoutKey.BID);
 
-		this.topology = topology;
-		this.distribution = distribution;
-		this.agent = agent;
 	}
 
 	/**
@@ -107,9 +110,13 @@ public class AuctionAgent implements AuctionBehavior {
 			if (vehicle.capacity() >= task.weight) {
 				carryTask = true;
 			}
-			if (!carryTask)
-				return null;
 		}
+		if (!carryTask)
+			return null;
+		
+		double futureTasksProba = nextTaskProbabilities[task.pickupCity.id][task.deliveryCity.id];
+		
+		// TODO : compute a probability related to distance of pickup/delivery of vehicles
 
 		if (agent.id() == 0) {
 			return (long) 1;
@@ -117,6 +124,17 @@ public class AuctionAgent implements AuctionBehavior {
 			return (long) 2;
 		}
 
+	}
+	
+	/**
+	 * Compute the probability to have task from one city to another
+	 */
+	private void computeNextTaskProbabilities() {
+		for (City c1 : topology.cities()) {
+			for (City c2 : topology.cities()) {
+				nextTaskProbabilities[c1.id][c2.id] = distribution.probability(c1, c2);
+			}
+		}
 	}
 
 	////////////////////////////////////////////////////////////////////////////
@@ -315,11 +333,7 @@ public class AuctionAgent implements AuctionBehavior {
 			for (int k = 0; k < vehicles.size(); k++) {
 				ArrayList<Task> tasksOfV = distributedTasks.get(vehicles.get(k));
 				if (tasksOfV == null || tasksOfV.isEmpty()) {
-					if (arrayOfTasks[i].pickupCity.equals(tasksOfV.get(tasksOfV.size() - 1).deliveryCity)) {
-						v = vehicles.get(k);
-						shortestDistance = 0;
-						continue;
-					} else if (arrayOfTasks[i].pickupCity.distanceTo(vehicles.get(k).homeCity()) < shortestDistance) {
+					if (arrayOfTasks[i].pickupCity.distanceTo(vehicles.get(k).homeCity()) < shortestDistance) {
 						shortestDistance = arrayOfTasks[i].pickupCity.distanceTo(vehicles.get(k).homeCity());
 						v = vehicles.get(k);
 
