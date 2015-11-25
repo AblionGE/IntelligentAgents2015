@@ -201,7 +201,7 @@ public class AuctionDummyAgent implements AuctionBehavior {
 	 * @param vehicles
 	 * @param tasks
 	 */
-	private ArrayList<LinkedList<Movement>> computeSLS(List<Vehicle> vehicles, List<Task> tasks) {
+	private ArrayList<LinkedList<Movement>> computeSLS(List<Vehicle> vehicles, List<Task> tasks, long timeout) {
 		SolutionState bestState;
 		SolutionState oldState;
 
@@ -221,9 +221,9 @@ public class AuctionDummyAgent implements AuctionBehavior {
 		}
 
 		double maxIterationTime = 3000;
-		if (p > 0.0) {
+		if (p > 0.0 && tasks.size() > 1) {
 			while (currentLoop < MAX_SLS_LOOPS && costRepetition < MAX_SLS_COST_REPETITION
-					&& (timeout_setup - maxIterationTime) > System.currentTimeMillis() - time_start) {
+					&& (timeout - maxIterationTime) > System.currentTimeMillis() - time_start) {
 				double start_iteration = System.currentTimeMillis();
 				currentLoop++;
 				oldState = bestState;
@@ -260,7 +260,7 @@ public class AuctionDummyAgent implements AuctionBehavior {
 		}
 
 		System.out.println(" ======================================================== ");
-		System.out.println("DUMMY AGENT");
+		System.out.println("INTELLIGENT AGENT");
 		System.out.println("Number of loops in SLS: " + currentLoop);
 		System.out.println("Expected cost: " + bestState.getCost());
 		System.out.println("Best " + bestState.toString());
@@ -288,23 +288,30 @@ public class AuctionDummyAgent implements AuctionBehavior {
 
 		Random ran = new Random();
 
-		// Each task is assigned to one (different) vehicle (if it is possible)
+		// Each task is assigned to one (possibly different) vehicle
 		// And there will be only one task in a vehicle at a given time.
 		for (int i = 0; i < arrayOfTasks.length; i++) {
 
 			Vehicle v = null;
 
+			double shortestDistance = Double.MAX_VALUE;
 			for (int k = 0; k < vehicles.size(); k++) {
-				if (arrayOfTasks[i].pickupCity.equals(vehicles.get(k).homeCity())) {
-					v = vehicles.get(k);
-				}
-			}
-
-			if (v == null) {
-				double shortestDistance = Double.MAX_VALUE;
-				for (int k = 0; k < vehicles.size(); k++) {
-					if (arrayOfTasks[i].pickupCity.distanceTo(vehicles.get(k).homeCity()) < shortestDistance) {
+				ArrayList<Task> tasksOfV = distributedTasks.get(vehicles.get(k));
+				if (tasksOfV == null || tasksOfV.isEmpty()) {
+					if (arrayOfTasks[i].pickupCity.equals(tasksOfV.get(tasksOfV.size() - 1).deliveryCity)) {
+						v = vehicles.get(k);
+						shortestDistance = 0;
+						continue;
+					} else if (arrayOfTasks[i].pickupCity.distanceTo(vehicles.get(k).homeCity()) < shortestDistance) {
 						shortestDistance = arrayOfTasks[i].pickupCity.distanceTo(vehicles.get(k).homeCity());
+						v = vehicles.get(k);
+
+					}
+				} else {
+					if (arrayOfTasks[i].pickupCity
+							.distanceTo(tasksOfV.get(tasksOfV.size() - 1).deliveryCity) < shortestDistance) {
+						shortestDistance = arrayOfTasks[i].pickupCity
+								.distanceTo(tasksOfV.get(tasksOfV.size() - 1).deliveryCity);
 						v = vehicles.get(k);
 					}
 				}
