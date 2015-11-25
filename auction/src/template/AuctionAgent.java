@@ -38,6 +38,7 @@ public class AuctionAgent implements AuctionBehavior {
 
 	private long timeout_setup;
 	private long timeout_plan;
+	private long timeout_bid;
 
 	private final double SLS_PROBABILITY = 0.5;
 	private final int MAX_SLS_LOOPS = 10000;
@@ -71,6 +72,7 @@ public class AuctionAgent implements AuctionBehavior {
 		timeout_setup = ls.get(LogistSettings.TimeoutKey.SETUP);
 		// the plan method cannot execute more than timeout_plan milliseconds
 		timeout_plan = ls.get(LogistSettings.TimeoutKey.PLAN);
+		timeout_bid = ls.get(LogistSettings.TimeoutKey.BID);
 
 		this.topology = topology;
 		this.distribution = distribution;
@@ -88,7 +90,7 @@ public class AuctionAgent implements AuctionBehavior {
 			currentCity = previous.deliveryCity;
 			tasksList.add(previous);
 			nbTasks++;
-			vehiclePlans = computeSLS(vehicles, tasksList);
+			vehiclePlans = computeSLS(vehicles, tasksList, timeout_bid);
 		}
 
 	}
@@ -203,7 +205,7 @@ public class AuctionAgent implements AuctionBehavior {
 	 * @param vehicles
 	 * @param tasks
 	 */
-	private ArrayList<LinkedList<Movement>> computeSLS(List<Vehicle> vehicles, List<Task> tasks) {
+	private ArrayList<LinkedList<Movement>> computeSLS(List<Vehicle> vehicles, List<Task> tasks, long timeout) {
 		SolutionState bestState;
 		SolutionState oldState;
 
@@ -225,7 +227,7 @@ public class AuctionAgent implements AuctionBehavior {
 		double maxIterationTime = 3000;
 		if (p > 0.0 && tasks.size() > 1) {
 			while (currentLoop < MAX_SLS_LOOPS && costRepetition < MAX_SLS_COST_REPETITION
-					&& (timeout_setup - maxIterationTime) > System.currentTimeMillis() - time_start) {
+					&& (timeout - maxIterationTime) > System.currentTimeMillis() - time_start) {
 				double start_iteration = System.currentTimeMillis();
 				currentLoop++;
 				oldState = bestState;
