@@ -8,9 +8,13 @@
 		<set class-path="bin/"/>
 		<set class-name="template.AuctionAgent"/>
 	</agent>
-	<agent name="auction-random">
+	<agent name="auction-greedy">
 		<set class-path="bin/"/>
-		<set class-name="template.AuctionDummyAgent"/>
+		<set class-name="template.AuctionGreedyAgent"/>
+	</agent>
+	<agent name="auction-randomgreedy">
+		<set class-path="bin/"/>
+		<set class-name="template.AuctionRandomGreedyAgent"/>
 	</agent>
 	
 </agents>

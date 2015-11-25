@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+
 import logist.LogistPlatform;
 import logist.LogistSettings;
 import logist.Measures;
@@ -25,19 +26,22 @@ import logist.topology.Topology.City;
  * 
  */
 @SuppressWarnings("unused")
-public class AuctionAgent implements AuctionBehavior {
+public class AuctionRandomGreedyAgent implements AuctionBehavior {
 
 	private Topology topology;
 	private TaskDistribution distribution;
 	private Agent agent;
 	private Random random;
+	private City currentCity;
 	private List<Task> tasksList = new ArrayList<Task>();
+	private Vehicle vehicle;
 
 	private long timeout_setup;
 	private long timeout_plan;
 	private long timeout_bid;
 
-	private final double SLS_PROBABILITY = 0.5;
+	// This dummy agent will keep the initial solution
+	private final double SLS_PROBABILITY = 0;
 	private final int MAX_SLS_LOOPS = 10000;
 	private final int MAX_SLS_COST_REPETITION = 750;
 	private SolutionState currentBestState;
@@ -46,7 +50,6 @@ public class AuctionAgent implements AuctionBehavior {
 	private int nbVehicles;
 	private List<Vehicle> vehicles = new ArrayList<Vehicle>();
 	private int totalNbOfTasks = 0;
-	private double[][] nextTaskProbabilities;
 
 	@Override
 	public void setup(Topology topology, TaskDistribution distribution, Agent agent) {
@@ -56,10 +59,8 @@ public class AuctionAgent implements AuctionBehavior {
 		this.agent = agent;
 		vehicles = agent.vehicles();
 		nbVehicles = agent.vehicles().size();
-
-		nextTaskProbabilities = new double[topology.cities().size()][topology.cities().size()];
-
-		computeNextTaskProbabilities();
+		this.vehicle = agent.vehicles().get(0);
+		this.currentCity = vehicle.homeCity();
 
 		long seed = -9019554669489983951L * agent.id();
 		this.random = new Random(seed);
@@ -78,6 +79,9 @@ public class AuctionAgent implements AuctionBehavior {
 		timeout_plan = ls.get(LogistSettings.TimeoutKey.PLAN);
 		timeout_bid = ls.get(LogistSettings.TimeoutKey.BID);
 
+		this.topology = topology;
+		this.distribution = distribution;
+		this.agent = agent;
 	}
 
 	/**
@@ -99,9 +103,11 @@ public class AuctionAgent implements AuctionBehavior {
 	/**
 	 * This function is called when we must bid for a task
 	 */
-	// TODO
 	@Override
 	public Long askPrice(Task task) {
+		//////////////////////////////////////////////////////////////
+		// Greedy agent
+
 		totalNbOfTasks++;
 		tasksList.add(task);
 		nbTasks++;
@@ -115,35 +121,15 @@ public class AuctionAgent implements AuctionBehavior {
 		if (!carryTask)
 			return null;
 
-		newState = computeSLS(vehicles, tasksList, timeout_bid, SLS_PROBABILITY);
-
+		newState = computeSLS(vehicles, tasksList, timeout_bid, SLS_PROBABILITY); 
+		
 		double marginalCost = currentBestState.getCost() - newState.getCost();
+
+		double proba = random.nextDouble();
 		
-		double futureTasksProba = nextTaskProbabilities[task.pickupCity.id][task.deliveryCity.id];
-		double futurePickupTasksProba = 0;
-		double futureDeliveryTasksProba = 0;
-		for (City c : topology.cities()) {
-			futureDeliveryTasksProba += nextTaskProbabilities[c.id][task.deliveryCity.id];
-			futurePickupTasksProba += nextTaskProbabilities[task.pickupCity.id][c.id];
-		}
-		
-		double probaFuture = 1 - (futureTasksProba + futurePickupTasksProba + futureDeliveryTasksProba);
+		return (long) (marginalCost + Math.abs(marginalCost) * proba);
 
-		// TODO : define bid following others
-
-		return (long) (marginalCost + Math.abs(marginalCost) * probaFuture);
-
-	}
-
-	/**
-	 * Compute the probability to have task from one city to another
-	 */
-	private void computeNextTaskProbabilities() {
-		for (City c1 : topology.cities()) {
-			for (City c2 : topology.cities()) {
-				nextTaskProbabilities[c1.id][c2.id] = distribution.probability(c1, c2);
-			}
-		}
+		//////////////////////////////////////////////////////////////
 	}
 
 	////////////////////////////////////////////////////////////////////////////
@@ -164,7 +150,7 @@ public class AuctionAgent implements AuctionBehavior {
 
 		// Compute the centralized plan
 		// ArrayList<LinkedList<Movement>> vehiclePlans
-		SolutionState vehicleState = computeSLS(allVehicles, new ArrayList<Task>(tasks), timeout_plan, SLS_PROBABILITY);
+		SolutionState vehicleState = computeSLS(allVehicles, new ArrayList<Task>(tasks), timeout_plan, 0);
 
 		if (currentBestState == null || vehicleState.getCost() < currentBestState.getCost()) {
 			currentBestState = vehicleState;
@@ -254,11 +240,6 @@ public class AuctionAgent implements AuctionBehavior {
 		double newCost;
 		double overallBestCost = bestState.getCost();
 
-		// if p is 0, we will keep the initial state
-		if (p == 0.0) {
-			bestCost = 0;
-		}
-
 		double maxIterationTime = 3000;
 		if (p > 0.0 && tasks.size() > 1) {
 			while (currentLoop < MAX_SLS_LOOPS && costRepetition < MAX_SLS_COST_REPETITION
@@ -303,7 +284,7 @@ public class AuctionAgent implements AuctionBehavior {
 		}
 
 		System.out.println(" ======================================================== ");
-		System.out.println("INTELLIGENT AGENT");
+		System.out.println("RANDOM GREEDY AGENT");
 		System.out.println("Expected cost: " + overallBestState.getCost());
 		
 		if (currentBestState == null) {
@@ -405,8 +386,7 @@ public class AuctionAgent implements AuctionBehavior {
 				nextMovementsVehicle[v.id()] = null;
 			}
 		}
-		SolutionState solution = new SolutionState(nextMovements, nextMovementsVehicle, nbVehicles, vehicles,
-				totalNbOfTasks);
+		SolutionState solution = new SolutionState(nextMovements, nextMovementsVehicle, nbVehicles, vehicles, totalNbOfTasks);
 
 		// Compute the cost of this plan a save it into the SolutionState object
 		solution.getCost();
@@ -647,8 +627,7 @@ public class AuctionAgent implements AuctionBehavior {
 		}
 		nextMovement[plan.getLast().getId()] = null;
 
-		SolutionState solution = new SolutionState(nextMovement, nextVehicleMovement, nbVehicles, vehicles,
-				totalNbOfTasks);
+		SolutionState solution = new SolutionState(nextMovement, nextVehicleMovement, nbVehicles, vehicles, totalNbOfTasks);
 
 		if (Constraints.checkVehicleLoad(solution, vehicle.id(), vehicles) != 0) {
 			return null;

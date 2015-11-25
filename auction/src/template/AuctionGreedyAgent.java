@@ -26,7 +26,7 @@ import logist.topology.Topology.City;
  * 
  */
 @SuppressWarnings("unused")
-public class AuctionDummyAgent implements AuctionBehavior {
+public class AuctionGreedyAgent implements AuctionBehavior {
 
 	private Topology topology;
 	private TaskDistribution distribution;
@@ -45,6 +45,7 @@ public class AuctionDummyAgent implements AuctionBehavior {
 	private final int MAX_SLS_LOOPS = 10000;
 	private final int MAX_SLS_COST_REPETITION = 750;
 	private SolutionState currentBestState;
+	private SolutionState newState;
 	private int nbTasks;
 	private int nbVehicles;
 	private List<Vehicle> vehicles = new ArrayList<Vehicle>();
@@ -91,10 +92,10 @@ public class AuctionDummyAgent implements AuctionBehavior {
 	@Override
 	public void auctionResult(Task previous, int winner, Long[] bids) {
 		if (winner == agent.id()) {
-			currentCity = previous.deliveryCity;
-			tasksList.add(previous);
-			nbTasks++;
-			currentBestState = computeSLS(vehicles, tasksList, timeout_bid);
+			currentBestState = newState;
+		} else {
+			tasksList.remove(previous);
+			nbTasks--;
 		}
 
 	}
@@ -104,18 +105,27 @@ public class AuctionDummyAgent implements AuctionBehavior {
 	 */
 	@Override
 	public Long askPrice(Task task) {
-		totalNbOfTasks++;
 		//////////////////////////////////////////////////////////////
-		// Simple agent
+		// Greedy agent
 
-		long distanceTask = task.pickupCity.distanceUnitsTo(task.deliveryCity);
-		long distanceSum = distanceTask + currentCity.distanceUnitsTo(task.pickupCity);
-		double marginalCost = Measures.unitsToKM(distanceSum * vehicle.costPerKm());
+		totalNbOfTasks++;
+		tasksList.add(task);
+		nbTasks++;
 
-		double ratio = 1.0 + (random.nextDouble() * 0.05 * task.id);
-		double bid = ratio * marginalCost;
+		boolean carryTask = false;
+		for (Vehicle vehicle : vehicles) {
+			if (vehicle.capacity() >= task.weight) {
+				carryTask = true;
+			}
+		}
+		if (!carryTask)
+			return null;
 
-		return (long) Math.round(bid);
+		newState = computeSLS(vehicles, tasksList, timeout_bid, SLS_PROBABILITY);
+		
+		double marginalCost = currentBestState.getCost() - newState.getCost();
+
+		return (long) (marginalCost);
 
 		//////////////////////////////////////////////////////////////
 	}
@@ -138,7 +148,7 @@ public class AuctionDummyAgent implements AuctionBehavior {
 
 		// Compute the centralized plan
 		// ArrayList<LinkedList<Movement>> vehiclePlans
-		SolutionState vehicleState = computeSLS(allVehicles, new ArrayList<Task>(tasks), timeout_plan);
+		SolutionState vehicleState = computeSLS(allVehicles, new ArrayList<Task>(tasks), timeout_plan, 0);
 
 		if (currentBestState == null || vehicleState.getCost() < currentBestState.getCost()) {
 			currentBestState = vehicleState;
@@ -212,14 +222,13 @@ public class AuctionDummyAgent implements AuctionBehavior {
 	 * @param vehicles
 	 * @param tasks
 	 */
-	private SolutionState computeSLS(List<Vehicle> vehicles, List<Task> tasks, long timeout) {
+	private SolutionState computeSLS(List<Vehicle> vehicles, List<Task> tasks, long timeout, double p) {
 		SolutionState bestState;
 		SolutionState oldState;
 		SolutionState overallBestState;
 
 		long time_start = System.currentTimeMillis();
 
-		double p = SLS_PROBABILITY;
 		int currentLoop = 0;
 		int stateRepetition = 0;
 		int costRepetition = 0;
@@ -278,10 +287,13 @@ public class AuctionDummyAgent implements AuctionBehavior {
 		}
 
 		System.out.println(" ======================================================== ");
-		System.out.println("INTELLIGENT AGENT");
-		System.out.println("Number of loops in SLS: " + currentLoop);
+		System.out.println("GREEDY AGENT");
 		System.out.println("Expected cost: " + overallBestState.getCost());
-		System.out.println("Best " + overallBestState.toString());
+		
+		if (currentBestState == null) {
+			currentBestState = overallBestState;
+		}
+		
 		return overallBestState;
 	}
 
