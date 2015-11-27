@@ -40,7 +40,7 @@ public class AuctionRandomGreedyAgent implements AuctionBehavior {
 	private long timeout_bid;
 
 	// This dummy agent will keep the initial solution
-	private final double SLS_PROBABILITY = 0;
+	private final double SLS_PROBABILITY = 1;
 	private final int MAX_SLS_LOOPS = 10000;
 	private final int MAX_SLS_COST_REPETITION = 750;
 	private SolutionState currentBestState;
