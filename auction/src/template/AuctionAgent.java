@@ -166,9 +166,9 @@ public class AuctionAgent implements AuctionBehavior {
 			double variance = bidVariance[task.pickupCity.id][task.deliveryCity.id];
 			double minBid = expectation - 3*Math.sqrt(variance);
 			double maxBid = expectation + 3*Math.sqrt(variance);
-			return (long) (marginalCost + minBid + (maxBid-minBid)*probaFuture);
+			return (long) Math.max(marginalCost, minBid + (maxBid-minBid)*(1-probaFuture));
 		} else {
-			return (long) (marginalCost + Math.abs(marginalCost) * probaFuture);
+			return (long) Math.max(0,marginalCost);// + Math.abs(marginalCost) * (1-probaFuture));
 		}
 
 	}
