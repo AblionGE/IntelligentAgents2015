@@ -48,6 +48,9 @@ public class AuctionAgent implements AuctionBehavior {
 	private int totalNbOfTasks;
 	private double[][] nextTaskProbabilities;
 	private double probabilitiesTaskFromToTotal;
+	private Long[][] bidExpectations;
+	private Double[][] bidVariance;
+	private int[][] taskOccurences;
 
 	@Override
 	public void setup(Topology topology, TaskDistribution distribution, Agent agent) {
@@ -64,6 +67,9 @@ public class AuctionAgent implements AuctionBehavior {
 		probabilitiesTaskFromToTotal = 0;
 
 		nextTaskProbabilities = new double[topology.cities().size()][topology.cities().size()];
+		bidExpectations = new Long[topology.cities().size()][topology.cities().size()];
+		bidVariance = new Double[topology.cities().size()][topology.cities().size()];
+		taskOccurences = new int[topology.cities().size()][topology.cities().size()];
 
 		computeNextTaskProbabilities();
 
@@ -99,7 +105,21 @@ public class AuctionAgent implements AuctionBehavior {
 			tasksList.remove(tasksList.size() - 1);
 			nbTasks--;
 		}
+		int pick = previous.pickupCity.id;
+		int del = previous.deliveryCity.id;
+		Long winBid = bids[winner];
 
+		Long expectation = bidExpectations[pick][del];
+		if(expectation != null) {
+			int occurence = taskOccurences[pick][del];
+			bidExpectations[pick][del] = (expectation*occurence + winBid) / (occurence+1);
+			double variance = bidVariance[pick][del];
+			bidVariance[pick][del] = (occurence-1)*variance/occurence + Math.pow(winBid-expectation,2)/(occurence+1);
+		} else {
+			bidExpectations[pick][del] = winBid;
+			bidVariance[pick][del] = 0.0;
+		}
+		taskOccurences[pick][del] += 1;
 	}
 
 	/**
@@ -129,21 +149,27 @@ public class AuctionAgent implements AuctionBehavior {
 		} else {
 			marginalCost = newState.getCost() - currentBestState.getCost();
 		}
-		
+
 		double futureTasksProba = nextTaskProbabilities[task.pickupCity.id][task.deliveryCity.id];
-		
+
 		double futurePickupTasksProba = 0;
 		double futureDeliveryTasksProba = 0;
 		for (City c : topology.cities()) {
 			futureDeliveryTasksProba += nextTaskProbabilities[c.id][task.deliveryCity.id];
 			futurePickupTasksProba += nextTaskProbabilities[task.pickupCity.id][c.id];
 		}
-		
+
 		double probaFuture = (futureTasksProba + futurePickupTasksProba + futureDeliveryTasksProba) / probabilitiesTaskFromToTotal;
 
-		// TODO : define bid following others
-
-		return (long) (marginalCost + Math.abs(marginalCost) * probaFuture);
+		Long expectation = bidExpectations[task.pickupCity.id][task.deliveryCity.id];
+		if(expectation != null) {
+			double variance = bidVariance[task.pickupCity.id][task.deliveryCity.id];
+			double minBid = expectation - 3*Math.sqrt(variance);
+			double maxBid = expectation + 3*Math.sqrt(variance);
+			return (long) (marginalCost + minBid + (maxBid-minBid)*probaFuture);
+		} else {
+			return (long) (marginalCost + Math.abs(marginalCost) * probaFuture);
+		}
 
 	}
 
@@ -151,7 +177,7 @@ public class AuctionAgent implements AuctionBehavior {
 	 * Compute the probability to have task from one city to another
 	 */
 	private void computeNextTaskProbabilities() {
-		
+
 		for (City c1 : topology.cities()) {
 			for (City c2 : topology.cities()) {
 				nextTaskProbabilities[c1.id][c2.id] = distribution.probability(c1, c2);
@@ -159,6 +185,7 @@ public class AuctionAgent implements AuctionBehavior {
 			}
 		}
 	}
+
 
 	////////////////////////////////////////////////////////////////////////////
 	// Everything below is taken from centralized agent
@@ -170,9 +197,9 @@ public class AuctionAgent implements AuctionBehavior {
 		List<Plan> plans = new ArrayList<Plan>();
 
 		ArrayList<LinkedList<Movement>> vehiclePlans;
-		
+
 		List<Task> tasksList = new ArrayList<Task>(tasks);
-		
+
 
 		// Compute the centralized plan
 		// ArrayList<LinkedList<Movement>> vehiclePlans
@@ -192,7 +219,7 @@ public class AuctionAgent implements AuctionBehavior {
 							i = tasksList.size();
 						}
 					}
-					
+
 				}
 			}
 		}
@@ -300,7 +327,7 @@ public class AuctionAgent implements AuctionBehavior {
 					if (neighbours == null || neighbours.isEmpty()) {
 						currentLoop = MAX_SLS_LOOPS;
 						System.out.println("No neighbours"); // should never
-																// happen
+						// happen
 					}
 					bestState = localChoice(neighbours, bestState.getCost());
 					if (bestState.getCost() < overallBestCost) {
@@ -328,7 +355,7 @@ public class AuctionAgent implements AuctionBehavior {
 		System.out.println(" ======================================================== ");
 		System.out.println("INTELLIGENT AGENT");
 		System.out.println("Expected cost: " + overallBestState.getCost());
-		
+
 		return overallBestState;
 	}
 
@@ -498,7 +525,7 @@ public class AuctionAgent implements AuctionBehavior {
 					}
 					if (dMov.getTask().id != pMov.getTask().id) {
 						System.out
-								.println("Deliver not found for task " + pMov.getTask().id + " in changingTaskOrder.");
+						.println("Deliver not found for task " + pMov.getTask().id + " in changingTaskOrder.");
 						dMov = null;
 					}
 
