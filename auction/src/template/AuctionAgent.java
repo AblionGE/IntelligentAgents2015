@@ -2,6 +2,7 @@ package template;
 
 //the list of imports
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,6 +47,8 @@ public class AuctionAgent implements AuctionBehavior {
 	private int nbVehicles;
 	private List<Vehicle> vehicles;
 	private int totalNbOfTasks;
+	private long totalBidExpectation;
+	private double totalBidVariance;
 	private double[][] nextTaskProbabilities;
 	private double probabilitiesTaskFromToTotal;
 	private Long[][] bidExpectations;
@@ -64,6 +67,8 @@ public class AuctionAgent implements AuctionBehavior {
 		newState = null;
 		nbTasks = 0;
 		totalNbOfTasks = 0;
+		totalBidExpectation = -1;
+		totalBidVariance = 0;
 		probabilitiesTaskFromToTotal = 0;
 
 		nextTaskProbabilities = new double[topology.cities().size()][topology.cities().size()];
@@ -115,9 +120,14 @@ public class AuctionAgent implements AuctionBehavior {
 			bidExpectations[pick][del] = (expectation*occurence + winBid) / (occurence+1);
 			double variance = bidVariance[pick][del];
 			bidVariance[pick][del] = (occurence-1)*variance/occurence + Math.pow(winBid-expectation,2)/(occurence+1);
+			
+			totalBidExpectation = (totalBidExpectation*(totalNbOfTasks-1) + winBid) / totalNbOfTasks;
+			totalBidVariance = (totalNbOfTasks-2)*totalBidVariance/(totalNbOfTasks-1) + Math.pow(winBid-totalBidExpectation,2)/totalNbOfTasks;
 		} else {
 			bidExpectations[pick][del] = winBid;
 			bidVariance[pick][del] = 0.0;
+			totalBidExpectation = winBid;
+			totalBidVariance = 0.0;
 		}
 		taskOccurences[pick][del] += 1;
 	}
@@ -168,7 +178,10 @@ public class AuctionAgent implements AuctionBehavior {
 			double maxBid = expectation + 3*Math.sqrt(variance);
 			return (long) Math.max(marginalCost, minBid + (maxBid-minBid)*(1-probaFuture));
 		} else {
-			return (long) Math.max(0,marginalCost);// + Math.abs(marginalCost) * (1-probaFuture));
+			double minBid = totalBidExpectation - 3*Math.sqrt(totalBidVariance);
+			double maxBid = totalBidExpectation + 3*Math.sqrt(totalBidVariance);
+			//return (long) Math.max(0,marginalCost);// + Math.abs(marginalCost) * (1-probaFuture));
+			return (long) Math.max(marginalCost, minBid + (maxBid-minBid)*(1-probaFuture));
 		}
 
 	}
