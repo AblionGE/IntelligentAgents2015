@@ -16,5 +16,9 @@
 		<set class-path="bin/"/>
 		<set class-name="template.AuctionRandomGreedyAgent"/>
 	</agent>
+	<agent name="auction-intelligentgreedy">
+		<set class-path="bin/"/>
+		<set class-name="template.AuctionIntelligentGreedyAgent"/>
+	</agent>
 	
 </agents>
