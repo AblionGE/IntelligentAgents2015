@@ -24,6 +24,8 @@ import logist.topology.Topology.City;
  * A very simple auction agent that assigns all tasks to its first vehicle and
  * handles them sequentially.
  * 
+ * @author Cynthia Oeschger and Marc Schaer
+ * 
  */
 @SuppressWarnings("unused")
 public class AuctionAgent implements AuctionBehavior {
@@ -101,7 +103,6 @@ public class AuctionAgent implements AuctionBehavior {
 	 * This function is called when an auction is finished We can observe the
 	 * bid from others and adapt our strategy
 	 */
-	// TODO
 	@Override
 	public void auctionResult(Task previous, int winner, Long[] bids) {
 		if (winner == agent.id()) {
@@ -115,14 +116,16 @@ public class AuctionAgent implements AuctionBehavior {
 		Long winBid = bids[winner];
 
 		Long expectation = bidExpectations[pick][del];
-		if(expectation != null) {
+		if (expectation != null) {
 			int occurence = taskOccurences[pick][del];
-			bidExpectations[pick][del] = (expectation*occurence + winBid) / (occurence+1);
+			bidExpectations[pick][del] = (expectation * occurence + winBid) / (occurence + 1);
 			double variance = bidVariance[pick][del];
-			bidVariance[pick][del] = (occurence-1)*variance/occurence + Math.pow(winBid-expectation,2)/(occurence+1);
-			
-			totalBidExpectation = (totalBidExpectation*(totalNbOfTasks-1) + winBid) / totalNbOfTasks;
-			totalBidVariance = (totalNbOfTasks-2)*totalBidVariance/(totalNbOfTasks-1) + Math.pow(winBid-totalBidExpectation,2)/totalNbOfTasks;
+			bidVariance[pick][del] = (occurence - 1) * variance / occurence
+					+ Math.pow(winBid - expectation, 2) / (occurence + 1);
+
+			totalBidExpectation = (totalBidExpectation * (totalNbOfTasks - 1) + winBid) / totalNbOfTasks;
+			totalBidVariance = (totalNbOfTasks - 2) * totalBidVariance / (totalNbOfTasks - 1)
+					+ Math.pow(winBid - totalBidExpectation, 2) / totalNbOfTasks;
 		} else {
 			bidExpectations[pick][del] = winBid;
 			bidVariance[pick][del] = 0.0;
@@ -135,7 +138,6 @@ public class AuctionAgent implements AuctionBehavior {
 	/**
 	 * This function is called when we must bid for a task
 	 */
-	// TODO
 	@Override
 	public Long askPrice(Task task) {
 		totalNbOfTasks++;
@@ -153,10 +155,16 @@ public class AuctionAgent implements AuctionBehavior {
 
 		newState = computeSLS(vehicles, tasksList, timeout_bid, SLS_PROBABILITY);
 
+		// Compute a possible better plan without the task
+		SolutionState newStateWithoutTask = removeTaskFromPlan(newState, task);
+
 		double marginalCost;
 		if (currentBestState == null) {
 			marginalCost = newState.getCost();
 		} else {
+			if (newStateWithoutTask.getCost() < currentBestState.getCost()) {
+				currentBestState = newStateWithoutTask;
+			}
 			marginalCost = newState.getCost() - currentBestState.getCost();
 		}
 
@@ -169,19 +177,21 @@ public class AuctionAgent implements AuctionBehavior {
 			futurePickupTasksProba += nextTaskProbabilities[task.pickupCity.id][c.id];
 		}
 
-		double probaFuture = (futureTasksProba + futurePickupTasksProba + futureDeliveryTasksProba) / probabilitiesTaskFromToTotal;
+		double probaFuture = (futureTasksProba + futurePickupTasksProba + futureDeliveryTasksProba)
+				/ probabilitiesTaskFromToTotal;
 
 		Long expectation = bidExpectations[task.pickupCity.id][task.deliveryCity.id];
-		if(expectation != null) {
+		if (expectation != null) {
 			double variance = bidVariance[task.pickupCity.id][task.deliveryCity.id];
-			double minBid = expectation - 3*Math.sqrt(variance);
-			double maxBid = expectation + 3*Math.sqrt(variance);
-			return (long) Math.max(marginalCost, minBid + (maxBid-minBid)*(1-probaFuture));
+			double minBid = expectation - 3 * Math.sqrt(variance);
+			double maxBid = expectation + 3 * Math.sqrt(variance);
+			return (long) Math.max(marginalCost, minBid + (maxBid - minBid) * (1 - probaFuture));
 		} else {
-			double minBid = totalBidExpectation - 3*Math.sqrt(totalBidVariance);
-			double maxBid = totalBidExpectation + 3*Math.sqrt(totalBidVariance);
-			//return (long) Math.max(0,marginalCost);// + Math.abs(marginalCost) * (1-probaFuture));
-			return (long) Math.max(marginalCost, minBid + (maxBid-minBid)*(1-probaFuture));
+			double minBid = totalBidExpectation - 3 * Math.sqrt(totalBidVariance);
+			double maxBid = totalBidExpectation + 3 * Math.sqrt(totalBidVariance);
+			// return (long) Math.max(0,marginalCost);// +
+			// Math.abs(marginalCost) * (1-probaFuture));
+			return (long) Math.max(marginalCost, minBid + (maxBid - minBid) * (1 - probaFuture));
 		}
 
 	}
@@ -199,6 +209,49 @@ public class AuctionAgent implements AuctionBehavior {
 		}
 	}
 
+	/**
+	 * Take a State with the last added Task and remove it from the plan This
+	 * function is useful when adding a task has a better cost than before We
+	 * can maybe have a better solution without the task than the
+	 * currentBestSolution without the same task.
+	 * 
+	 * @param oldState
+	 * @param taskToRemove
+	 * @return
+	 */
+	private SolutionState removeTaskFromPlan(SolutionState oldState, Task taskToRemove) {
+		Movement[] nextMovements = oldState.getNextMovements();
+		Movement[] nextMovementsVehicle = oldState.getNextMovementsVehicle();
+
+		Movement pickup = new Movement(Action.PICKUP, taskToRemove);
+		Movement deliver = new Movement(Action.DELIVER, taskToRemove);
+
+		// Find next movements of taskToRemove
+		Movement nextPickup = nextMovements[taskToRemove.id * 2];
+		Movement nextDeliver = nextMovements[taskToRemove.id * 2 + 1];
+
+		// Previous tasks
+
+		// If first task
+		for (Vehicle v : vehicles) {
+			if (nextMovementsVehicle[v.id()] != null && nextMovementsVehicle[v.id()].equals(pickup)) {
+				nextMovementsVehicle[v.id()] = nextPickup;
+			}
+		}
+
+		// if not first task
+		for (int i = 0; i < totalNbOfTasks * 2; i++) {
+			if (nextMovements[i] != null) {
+				if (nextMovements[i].equals(pickup)) {
+					nextMovements[i] = nextPickup;
+				} else if (nextMovements[i].equals(deliver)) {
+					nextMovements[i] = nextDeliver;
+				}
+			}
+		}
+
+		return new SolutionState(nextMovements, nextMovementsVehicle, nbVehicles, vehicles, totalNbOfTasks);
+	}
 
 	////////////////////////////////////////////////////////////////////////////
 	// Everything below is taken from centralized agent
@@ -213,9 +266,6 @@ public class AuctionAgent implements AuctionBehavior {
 
 		List<Task> tasksList = new ArrayList<Task>(tasks);
 
-
-		// Compute the centralized plan
-		// ArrayList<LinkedList<Movement>> vehiclePlans
 		SolutionState vehicleState = computeSLS(allVehicles, tasksList, timeout_plan, SLS_PROBABILITY);
 
 		if (currentBestState == null || vehicleState.getCost() < currentBestState.getCost()) {
@@ -538,7 +588,7 @@ public class AuctionAgent implements AuctionBehavior {
 					}
 					if (dMov.getTask().id != pMov.getTask().id) {
 						System.out
-						.println("Deliver not found for task " + pMov.getTask().id + " in changingTaskOrder.");
+								.println("Deliver not found for task " + pMov.getTask().id + " in changingTaskOrder.");
 						dMov = null;
 					}
 
