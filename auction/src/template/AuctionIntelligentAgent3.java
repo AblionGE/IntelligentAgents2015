@@ -217,6 +217,11 @@ public class AuctionIntelligentAgent3 implements AuctionBehavior {
 		// Find next movements of taskToRemove
 		Movement nextPickup = nextMovements[taskToRemove.id * 2];
 		Movement nextDeliver = nextMovements[taskToRemove.id * 2 + 1];
+		nextMovements[taskToRemove.id * 2] = null;
+		nextMovements[taskToRemove.id * 2 + 1] = null;
+		if (nextPickup.equals(deliver)) {
+			nextPickup = nextDeliver;
+		}
 
 		// Previous tasks
 
@@ -232,13 +237,16 @@ public class AuctionIntelligentAgent3 implements AuctionBehavior {
 			if (nextMovements[i] != null) {
 				if (nextMovements[i].equals(pickup)) {
 					nextMovements[i] = nextPickup;
-				} else if (nextMovements[i].equals(deliver)) {
+				} else if (nextMovements[i].equals(deliver) && i != pickup.getId()) {
 					nextMovements[i] = nextDeliver;
 				}
 			}
 		}
 
-		return new SolutionState(nextMovements, nextMovementsVehicle, nbVehicles, vehicles, totalNbOfTasks);
+		SolutionState state = new SolutionState(nextMovements, nextMovementsVehicle, nbVehicles, vehicles,
+				totalNbOfTasks);
+
+		return state;
 	}
 
 	////////////////////////////////////////////////////////////////////////////
@@ -270,11 +278,12 @@ public class AuctionIntelligentAgent3 implements AuctionBehavior {
 							i = tasksList.size();
 						}
 					}
-
 				}
 			}
 		}
 
+		System.out.println("INTELLIGENT 3 : " + currentBestState.toString());
+		
 		if (!vehiclePlans.isEmpty()) {
 			for (Vehicle vehicle : allVehicles) {
 				LinkedList<Movement> movements = vehiclePlans.get(vehicle.id());
@@ -404,7 +413,7 @@ public class AuctionIntelligentAgent3 implements AuctionBehavior {
 		}
 
 		System.out.println(" ======================================================== ");
-		System.out.println("INTELLIGENT AGENT");
+		System.out.println("INTELLIGENT AGENT 3");
 		System.out.println("Expected cost: " + overallBestState.getCost());
 
 		return overallBestState;

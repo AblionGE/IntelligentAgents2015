@@ -105,15 +105,16 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 	 */
 	@Override
 	public void auctionResult(Task previous, int winner, Long[] bids) {
+		Long winBid = bids[winner];
 		if (winner == agent.id()) {
 			currentBestState = newState;
+			winBid = bids[(winner + 1) % 2];
 		} else {
 			tasksList.remove(tasksList.size() - 1);
 			nbTasks--;
 		}
 		int pick = previous.pickupCity.id;
 		int del = previous.deliveryCity.id;
-		Long winBid = bids[winner];
 
 		Long expectation = bidExpectations[pick][del];
 		if (expectation != null) {
@@ -179,6 +180,8 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 
 		double probaFuture = (futureTasksProba + futurePickupTasksProba + futureDeliveryTasksProba)
 				/ probabilitiesTaskFromToTotal;
+		System.out.println("probaFuture : " + probaFuture);
+		System.out.println("marginalCost : " + marginalCost);
 
 		Long expectation = bidExpectations[task.pickupCity.id][task.deliveryCity.id];
 		if (expectation != null) {
@@ -229,6 +232,11 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 		// Find next movements of taskToRemove
 		Movement nextPickup = nextMovements[taskToRemove.id * 2];
 		Movement nextDeliver = nextMovements[taskToRemove.id * 2 + 1];
+		nextMovements[taskToRemove.id * 2] = null;
+		nextMovements[taskToRemove.id * 2 + 1] = null;
+		if (nextPickup.equals(deliver)) {
+			nextPickup = nextDeliver;
+		}
 
 		// Previous tasks
 
@@ -244,13 +252,16 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 			if (nextMovements[i] != null) {
 				if (nextMovements[i].equals(pickup)) {
 					nextMovements[i] = nextPickup;
-				} else if (nextMovements[i].equals(deliver)) {
+				} else if (nextMovements[i].equals(deliver) && i != pickup.getId()) {
 					nextMovements[i] = nextDeliver;
 				}
 			}
 		}
 
-		return new SolutionState(nextMovements, nextMovementsVehicle, nbVehicles, vehicles, totalNbOfTasks);
+		SolutionState state = new SolutionState(nextMovements, nextMovementsVehicle, nbVehicles, vehicles,
+				totalNbOfTasks);
+
+		return state;
 	}
 
 	////////////////////////////////////////////////////////////////////////////
@@ -282,10 +293,11 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 							i = tasksList.size();
 						}
 					}
-
 				}
 			}
 		}
+
+		System.out.println("INTELLIGENT 1 : " + currentBestState.toString());
 
 		if (!vehiclePlans.isEmpty()) {
 			for (Vehicle vehicle : allVehicles) {
@@ -416,7 +428,7 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 		}
 
 		System.out.println(" ======================================================== ");
-		System.out.println("INTELLIGENT AGENT");
+		System.out.println("INTELLIGENT AGENT 1");
 		System.out.println("Expected cost: " + overallBestState.getCost());
 
 		return overallBestState;

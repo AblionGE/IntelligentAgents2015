@@ -197,6 +197,11 @@ public class AuctionIntelligentAgent2 implements AuctionBehavior {
 		// Find next movements of taskToRemove
 		Movement nextPickup = nextMovements[taskToRemove.id * 2];
 		Movement nextDeliver = nextMovements[taskToRemove.id * 2 + 1];
+		nextMovements[taskToRemove.id * 2] = null;
+		nextMovements[taskToRemove.id * 2 + 1] = null;
+		if (nextPickup.equals(deliver)) {
+			nextPickup = nextDeliver;
+		}
 
 		// Previous tasks
 
@@ -212,13 +217,16 @@ public class AuctionIntelligentAgent2 implements AuctionBehavior {
 			if (nextMovements[i] != null) {
 				if (nextMovements[i].equals(pickup)) {
 					nextMovements[i] = nextPickup;
-				} else if (nextMovements[i].equals(deliver)) {
+				} else if (nextMovements[i].equals(deliver) && i != pickup.getId()) {
 					nextMovements[i] = nextDeliver;
 				}
 			}
 		}
 
-		return new SolutionState(nextMovements, nextMovementsVehicle, nbVehicles, vehicles, totalNbOfTasks);
+		SolutionState state = new SolutionState(nextMovements, nextMovementsVehicle, nbVehicles, vehicles,
+				totalNbOfTasks);
+
+		return state;
 	}
 
 	////////////////////////////////////////////////////////////////////////////
