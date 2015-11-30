@@ -182,6 +182,7 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 		}
 
 		double probaFuture = (futurePickupTasksProba / topology.size() + futureDeliveryTasksProba / topology.size());
+		System.out.println("task nr. : " + task.id);
 		System.out.println("probaFuture : " + probaFuture);
 		System.out.println("marginalCost : " + marginalCost);
 
@@ -190,11 +191,11 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 			double variance = bidVariance[task.pickupCity.id][task.deliveryCity.id];
 			double minBid = expectation - 3 * Math.sqrt(variance);
 			double maxBid = expectation + 3 * Math.sqrt(variance);
-			return (long) Math.max(marginalCost, Math.max(marginalCost, minBid) + (maxBid - minBid) * (1-probaFuture));
+			return (long) Math.max(marginalCost, minBid + (maxBid - minBid) * (1-probaFuture));
 		} else {
 			double minBid = totalBidExpectation - 3 * Math.sqrt(totalBidVariance);
 			double maxBid = totalBidExpectation + 3 * Math.sqrt(totalBidVariance);
-			return (long) Math.max(marginalCost, Math.max(marginalCost, minBid) + (maxBid - minBid) * (1-probaFuture));
+			return (long) Math.max(marginalCost, minBid + (maxBid - minBid) * (1-probaFuture));
 		}
 
 	}
