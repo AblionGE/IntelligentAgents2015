@@ -42,7 +42,7 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 
 	private final double SLS_PROBABILITY = 0.4;
 	private final int MAX_SLS_LOOPS = 10000;
-	private final int MAX_SLS_COST_REPETITION = 750;
+	private final int MAX_SLS_COST_REPETITION = 1000;
 	private SolutionState currentBestState;
 	private SolutionState newState;
 	private int nbTasks;
@@ -119,7 +119,8 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 		Long expectation = bidExpectations[pick][del];
 		if (expectation != null) {
 			int occurence = taskOccurences[pick][del];
-			bidExpectations[pick][del] = (expectation * occurence + winBid) / (occurence + 1);
+			// Give more importance to last bid
+			bidExpectations[pick][del] = (expectation + winBid) / 2;
 			double variance = bidVariance[pick][del];
 			bidVariance[pick][del] = (occurence - 1) * variance / occurence
 					+ Math.pow(winBid - expectation, 2) / (occurence + 1);
@@ -133,7 +134,8 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 			totalBidExpectation = winBid;
 			totalBidVariance = 0.0;
 		} else {
-			totalBidExpectation = (totalBidExpectation * (totalNbOfTasks - 1) + winBid) / totalNbOfTasks;
+			// Give more importance to last bid
+			totalBidExpectation = (totalBidExpectation + winBid) / 2;
 			totalBidVariance = (totalNbOfTasks - 2) * totalBidVariance / (totalNbOfTasks - 1)
 					+ Math.pow(winBid - totalBidExpectation, 2) / totalNbOfTasks;
 		}
