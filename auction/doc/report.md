@@ -38,6 +38,13 @@ Math.max(marginalCost, minBid + (maxBid - minBid) * (1 - probaFuture));
 
 where ```minBid``` and ```maxBid``` are the minimal and maximal bid estimated from other agents using expectation and variance and ```probaFuture``` is the probability to have a task in the pickup or delivery city of the task we are bidding on. We compute ```1 - probaFuture``` because best is the chance to have a task in a city of the current task, more we want the task, thus lower we will bid.
 
+## Considered Strategies
+
+We also thought about different strategies for bidding. Here are some ideas we tought with reasons why we didn't keep them.
+
+- Trying to compute the plan for other agents : it takes to much computations compared to the reliability of the results (we don't know how many vehicles, what vehicles, etc.);
+- Considering the weight of tasks : it is already considered when we compute the plans and it is "useless" according to the others because we don't know what they have.
+
 # Results
 
 For evaluating our agent, we had to implement other simple agents. We chose to have greedy agents that have exactly the same *centralized* agent implementation (except that there are greedy), but they have different bid strategies :
