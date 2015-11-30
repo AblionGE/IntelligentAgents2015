@@ -123,17 +123,20 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 			double variance = bidVariance[pick][del];
 			bidVariance[pick][del] = (occurence - 1) * variance / occurence
 					+ Math.pow(winBid - expectation, 2) / (occurence + 1);
-
-			totalBidExpectation = (totalBidExpectation * (totalNbOfTasks - 1) + winBid) / totalNbOfTasks;
-			totalBidVariance = (totalNbOfTasks - 2) * totalBidVariance / (totalNbOfTasks - 1)
-					+ Math.pow(winBid - totalBidExpectation, 2) / totalNbOfTasks;
 		} else {
 			bidExpectations[pick][del] = winBid;
 			bidVariance[pick][del] = 0.0;
-			totalBidExpectation = winBid;
-			totalBidVariance = 0.0;
 		}
 		taskOccurences[pick][del] += 1;
+
+		if (totalNbOfTasks == 1) {
+			totalBidExpectation = winBid;
+			totalBidVariance = 0.0;
+		} else {
+			totalBidExpectation = (totalBidExpectation * (totalNbOfTasks - 1) + winBid) / totalNbOfTasks;
+			totalBidVariance = (totalNbOfTasks - 2) * totalBidVariance / (totalNbOfTasks - 1)
+					+ Math.pow(winBid - totalBidExpectation, 2) / totalNbOfTasks;
+		}
 	}
 
 	/**
@@ -188,13 +191,13 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 			double variance = bidVariance[task.pickupCity.id][task.deliveryCity.id];
 			double minBid = expectation - 3 * Math.sqrt(variance);
 			double maxBid = expectation + 3 * Math.sqrt(variance);
-			return (long) Math.max(marginalCost, minBid + (maxBid - minBid) * (1 - probaFuture));
+			return (long) Math.max(marginalCost, minBid + (maxBid - minBid) * probaFuture);
 		} else {
 			double minBid = totalBidExpectation - 3 * Math.sqrt(totalBidVariance);
 			double maxBid = totalBidExpectation + 3 * Math.sqrt(totalBidVariance);
 			// return (long) Math.max(0,marginalCost);// +
 			// Math.abs(marginalCost) * (1-probaFuture));
-			return (long) Math.max(marginalCost, minBid + (maxBid - minBid) * (1 - probaFuture));
+			return (long) Math.max(marginalCost, minBid + (maxBid - minBid) * probaFuture);
 		}
 
 	}
