@@ -40,7 +40,7 @@ public class AuctionIntelligentAgent3 implements AuctionBehavior {
 	private long timeout_plan;
 	private long timeout_bid;
 
-	private final double SLS_PROBABILITY = 0.5;
+	private final double SLS_PROBABILITY = 0.4;
 	private final int MAX_SLS_LOOPS = 10000;
 	private final int MAX_SLS_COST_REPETITION = 750;
 	private SolutionState currentBestState;

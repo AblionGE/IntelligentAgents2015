@@ -40,7 +40,7 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 	private long timeout_plan;
 	private long timeout_bid;
 
-	private final double SLS_PROBABILITY = 0.5;
+	private final double SLS_PROBABILITY = 0.4;
 	private final int MAX_SLS_LOOPS = 10000;
 	private final int MAX_SLS_COST_REPETITION = 750;
 	private SolutionState currentBestState;
@@ -163,6 +163,7 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 		SolutionState newStateWithoutTask = removeTaskFromPlan(newState, task);
 
 		double marginalCost;
+		double gain = 0;
 		if (currentBestState == null) {
 			marginalCost = newState.getCost();
 		} else {
@@ -395,7 +396,7 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 			bestCost = 0;
 		}
 
-		double maxIterationTime = 3000;
+		double maxIterationTime = 1000;
 		if (p > 0.0 && tasks.size() > 1) {
 			while (currentLoop < MAX_SLS_LOOPS && costRepetition < MAX_SLS_COST_REPETITION
 					&& (timeout - maxIterationTime) > System.currentTimeMillis() - time_start) {
