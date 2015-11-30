@@ -181,8 +181,7 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 			futurePickupTasksProba += nextTaskProbabilities[task.pickupCity.id][c.id];
 		}
 
-		double probaFuture = (futureTasksProba + futurePickupTasksProba + futureDeliveryTasksProba)
-				/ probabilitiesTaskFromToTotal;
+		double probaFuture = (futurePickupTasksProba / topology.size() + futureDeliveryTasksProba / topology.size());
 		System.out.println("probaFuture : " + probaFuture);
 		System.out.println("marginalCost : " + marginalCost);
 
@@ -191,13 +190,11 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 			double variance = bidVariance[task.pickupCity.id][task.deliveryCity.id];
 			double minBid = expectation - 3 * Math.sqrt(variance);
 			double maxBid = expectation + 3 * Math.sqrt(variance);
-			return (long) Math.max(marginalCost, minBid + (maxBid - minBid) * probaFuture);
+			return (long) Math.max(marginalCost, Math.max(marginalCost, minBid) + (maxBid - minBid) * (1-probaFuture));
 		} else {
 			double minBid = totalBidExpectation - 3 * Math.sqrt(totalBidVariance);
 			double maxBid = totalBidExpectation + 3 * Math.sqrt(totalBidVariance);
-			// return (long) Math.max(0,marginalCost);// +
-			// Math.abs(marginalCost) * (1-probaFuture));
-			return (long) Math.max(marginalCost, minBid + (maxBid - minBid) * probaFuture);
+			return (long) Math.max(marginalCost, Math.max(marginalCost, minBid) + (maxBid - minBid) * (1-probaFuture));
 		}
 
 	}
@@ -207,10 +204,20 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 	 */
 	private void computeNextTaskProbabilities() {
 
+		double max = Double.MIN_VALUE;
 		for (City c1 : topology.cities()) {
 			for (City c2 : topology.cities()) {
 				nextTaskProbabilities[c1.id][c2.id] = distribution.probability(c1, c2);
 				probabilitiesTaskFromToTotal += distribution.probability(c1, c2);
+				if (distribution.probability(c1, c2) > max) {
+					max = distribution.probability(c1, c2);
+				}
+			}
+		}
+		
+		for (City c1 : topology.cities()) {
+			for (City c2 : topology.cities()) {
+				nextTaskProbabilities[c1.id][c2.id] = nextTaskProbabilities[c1.id][c2.id] / max;
 			}
 		}
 	}
