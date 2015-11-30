@@ -28,7 +28,7 @@ import logist.topology.Topology.City;
  * 
  */
 @SuppressWarnings("unused")
-public class AuctionIntelligentAgent1 implements AuctionBehavior {
+public class AuctionIntelligentAgent3 implements AuctionBehavior {
 
 	private Topology topology;
 	private TaskDistribution distribution;
@@ -165,30 +165,18 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 			marginalCost = newState.getCost() - currentBestState.getCost();
 		}
 
-		double futureTasksProba = nextTaskProbabilities[task.pickupCity.id][task.deliveryCity.id];
-
-		double futurePickupTasksProba = 0;
-		double futureDeliveryTasksProba = 0;
-		for (City c : topology.cities()) {
-			futureDeliveryTasksProba += nextTaskProbabilities[c.id][task.deliveryCity.id];
-			futurePickupTasksProba += nextTaskProbabilities[task.pickupCity.id][c.id];
-		}
-
-		double probaFuture = (futureTasksProba + futurePickupTasksProba + futureDeliveryTasksProba)
-				/ probabilitiesTaskFromToTotal;
-
 		Long expectation = bidExpectations[task.pickupCity.id][task.deliveryCity.id];
 		if (expectation != null) {
 			double variance = bidVariance[task.pickupCity.id][task.deliveryCity.id];
 			double minBid = expectation - 3 * Math.sqrt(variance);
 			double maxBid = expectation + 3 * Math.sqrt(variance);
-			return (long) Math.max(marginalCost, minBid + (maxBid - minBid) * (1 - probaFuture));
+			return (long) Math.max(marginalCost, minBid + (maxBid - minBid));
 		} else {
 			double minBid = totalBidExpectation - 3 * Math.sqrt(totalBidVariance);
 			double maxBid = totalBidExpectation + 3 * Math.sqrt(totalBidVariance);
 			// return (long) Math.max(0,marginalCost);// +
 			// Math.abs(marginalCost) * (1-probaFuture));
-			return (long) Math.max(marginalCost, minBid + (maxBid - minBid) * (1 - probaFuture));
+			return (long) Math.max(marginalCost, minBid + (maxBid - minBid));
 		}
 
 	}
