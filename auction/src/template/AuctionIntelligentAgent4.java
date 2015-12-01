@@ -200,7 +200,8 @@ public class AuctionIntelligentAgent4 implements AuctionBehavior {
 		System.out.println("minBid: " + minBid);
 		
 		// Bid depending on the probability of having a future task in the same cities than the current task
-		if(futurePickupTasksProba[task.deliveryCity.id] > 1/topology.size() || futureDeliveryTasksProba[task.pickupCity.id] > 1/topology.size()) {
+		if(futurePickupTasksProba[task.deliveryCity.id] > 1/(double)topology.size() || futureDeliveryTasksProba[task.pickupCity.id] > 1/(double)topology.size()) {
+			System.out.println(futurePickupTasksProba[task.deliveryCity.id] + "              " + 1/(double)topology.size());
 			if(totalNbOfTasks == 1) {
 				return (long) task.pickupCity.distanceTo(task.deliveryCity) * minCostPerKm;
 			}
@@ -320,7 +321,7 @@ public class AuctionIntelligentAgent4 implements AuctionBehavior {
 			}
 		}
 
-		System.out.println("INTELLIGENT 1 : " + currentBestState.toString());
+		System.out.println("INTELLIGENT 4 : " + currentBestState.toString());
 
 		if (!vehiclePlans.isEmpty()) {
 			for (Vehicle vehicle : allVehicles) {
