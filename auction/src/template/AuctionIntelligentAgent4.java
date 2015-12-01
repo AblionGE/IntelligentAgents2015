@@ -48,6 +48,7 @@ public class AuctionIntelligentAgent4 implements AuctionBehavior {
 	private int nbTasks;
 	private int nbVehicles;
 	private List<Vehicle> vehicles;
+	private int minCostPerKm;
 	private int totalNbOfTasks;
 	private long totalBidExpectation;
 	private double totalBidVariance;
@@ -78,12 +79,19 @@ public class AuctionIntelligentAgent4 implements AuctionBehavior {
 		nextTaskProbabilities = new double[topology.cities().size()][topology.cities().size()];
 		futurePickupTasksProba = new double[topology.cities().size()];
 		futureDeliveryTasksProba = new double[topology.cities().size()];
-		
+
 		bidExpectations = new Long[topology.cities().size()][topology.cities().size()];
 		bidVariance = new Double[topology.cities().size()][topology.cities().size()];
 		taskOccurences = new int[topology.cities().size()][topology.cities().size()];
 
 		computeNextTaskProbabilities();
+
+		minCostPerKm = Integer.MAX_VALUE;
+		for(Vehicle vehicle: vehicles) {
+			if(vehicle.costPerKm() < minCostPerKm) {
+				minCostPerKm = vehicle.costPerKm();
+			}
+		}
 
 		long seed = -9019554669489983951L * agent.id();
 		this.random = new Random(seed);
@@ -155,14 +163,10 @@ public class AuctionIntelligentAgent4 implements AuctionBehavior {
 		tasksList.add(task);
 		nbTasks++;
 
-		int minCostPerKm = Integer.MAX_VALUE;
 		boolean carryTask = false;
 		for (Vehicle vehicle : vehicles) {
 			if (vehicle.capacity() >= task.weight) {
 				carryTask = true;
-			}
-			if(vehicle.costPerKm() < minCostPerKm) {
-				minCostPerKm = vehicle.costPerKm();
 			}
 		}
 		if (!carryTask)
@@ -185,6 +189,12 @@ public class AuctionIntelligentAgent4 implements AuctionBehavior {
 			marginalCost = newState.getCost() - currentBestState.getCost();
 		}
 
+
+		// We want the first task at the lowest possible cost
+		if(totalNbOfTasks == 1) {
+			return (long) task.pickupCity.distanceTo(task.deliveryCity) * minCostPerKm;
+		}
+
 		// Compute an expectation of the adversary's bid
 		Long expectation = bidExpectations[task.pickupCity.id][task.deliveryCity.id];
 		double minBid;
@@ -194,17 +204,16 @@ public class AuctionIntelligentAgent4 implements AuctionBehavior {
 		} else {
 			minBid = totalBidExpectation - 3 * Math.sqrt(totalBidVariance);
 		}
-		
+
 		System.out.println("task nr. : " + task.id);
 		System.out.println("marginalCost : " + marginalCost);
 		System.out.println("minBid: " + minBid);
-		
+
 		// Bid depending on the probability of having a future task in the same cities than the current task
-		if(futurePickupTasksProba[task.deliveryCity.id] > 1/(double)topology.size() || futureDeliveryTasksProba[task.pickupCity.id] > 1/(double)topology.size()) {
-			System.out.println(futurePickupTasksProba[task.deliveryCity.id] + "              " + 1/(double)topology.size());
-			if(totalNbOfTasks == 1) {
-				return (long) task.pickupCity.distanceTo(task.deliveryCity) * minCostPerKm;
-			}
+		double pFuture = Math.floor(futurePickupTasksProba[task.deliveryCity.id] * 1000.0) / 1000.0;
+		double dFuture = Math.floor(futureDeliveryTasksProba[task.pickupCity.id] * 1000.0) / 1000.0;
+		double threshold = 1/(double)topology.size();
+		if(pFuture > threshold || dFuture > threshold) {
 			return (long) minBid;
 		}
 		return (long) Math.max(marginalCost, marginalCost + (minBid - marginalCost)/2);
@@ -222,14 +231,14 @@ public class AuctionIntelligentAgent4 implements AuctionBehavior {
 				futureDeliveryTasksProba[c2.id] += distribution.probability(c1, c2);
 			}
 		}
-		
+
 		double pTot = 0.0;
 		double dTot = 0.0;
 		for (City c : topology.cities()) {
 			pTot += futurePickupTasksProba[c.id];
 			dTot += futureDeliveryTasksProba[c.id];
 		}
-		
+
 		for (City c : topology.cities()) {
 			futurePickupTasksProba[c.id] = futurePickupTasksProba[c.id] / pTot;
 			futureDeliveryTasksProba[c.id] = futureDeliveryTasksProba[c.id] / dTot;
@@ -624,7 +633,7 @@ public class AuctionIntelligentAgent4 implements AuctionBehavior {
 					}
 					if (dMov.getTask().id != pMov.getTask().id) {
 						System.out
-								.println("Deliver not found for task " + pMov.getTask().id + " in changingTaskOrder.");
+						.println("Deliver not found for task " + pMov.getTask().id + " in changingTaskOrder.");
 						dMov = null;
 					}
 
