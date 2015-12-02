@@ -15,7 +15,7 @@ header-includes:
 ---
 
 \title{Intelligent Agents\\
-Assignment 5: Implementing a Auctioning Agent}
+Assignment 5: Implementing an Auctioning Agent}
 \date{\today}
 \author{Cynthia Oeschger and Marc Schär}
 \maketitle
