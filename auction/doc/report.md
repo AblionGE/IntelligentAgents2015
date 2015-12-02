@@ -38,61 +38,59 @@ We will use these probabilities to act differently if there is a higher probabil
 
 #### Adversary's bids statistics
 
-The expectation and variance of the adversary's bids are computed incrementally. We store them in two ways:
-
-- general statistics of all the adversary's bids: the expectation $\mu$ and the variance $\sigma^2$;
-- path statistics of the adversary's bids for a task on route from city *a* to city *b*: the expectation $\mu_{ab}$ and the variance $\sigma_{ab}^2$.
-
-Three scenarios can occur:
+The expectation and variance of the adversary's bids are computed incrementally. Three scenarios can occur:
 
 - First bid: don't use any statistics;
-- First time that a task from city *a* to city *b* comes up: we use the general statistics and compute $B_{min} = \mu - 3\sigma$;
-- A task from city *a* to city *b* already came up: we use the path statistics and compute $B_{min} = \mu_{ab} - 3\sigma_{ab}$.
+- First time that a task from city *a* to city *b* comes up: we use the expectaion $\mu$ and the variance $\sigma^2$ to compute $B_{min} = \mu - 3\sigma$;
+- A task from city *a* to city *b* already came up: we use the path's 'expectation $\mu_{ab}$ and variance $\sigma_{ab}^2$ compute $B_{min} = \mu_{ab} - 3\sigma_{ab}$.
 
 $B_{min}$ is a reasonable approximation of the lowest bid from the adversary.
 
 #### The case of the first task
 
-At the beginning of auctions, the marginal cost is always a bit high depending on position of our vehicles. We observed that if we do not take it, the problem is that the adversary will have more chances to have a marginal cost lower than ours in the future. Indeed, the next tasks have more chances to be close from his vehicles or the paths of them (while we are still waiting to have a task close from our vehicles).
+At the beginning of the auctions, the marginal cost is often high depending on the position of our vehicles. We observed that if we do not take it, the problem is that the adversary will have more chances to have a marginal cost lower than ours in the future. Indeed, the next tasks have more chances to be close from his vehicles or the paths of them (while we are still waiting to have a task close from our vehicles).
 
 To avoid this problem, we accept to loose some money during the 3 first tasks proposed until we have won one. Our bid for having the task is simply the cost for delivering it with the cheapest\footnote{The vehicle with the smallest cost per km.} vehicle.
 
 #### Final bid
 
-With these informations, we can define the following strategy for bidding :
+With these informations, we can define the following strategy for bidding for a task from *a* to *b*:
 
 ```java
 // totalNbOfTasks is the number of task that were proposed for auctions
-// takenTask is the number of task that are currently taken + the one that is bidding
+// takenTask is the number of task that are currently taken + the one that is being auctioned
 if(totalNbOfTasks < 4 && takenTask == 1) {
   return (long) task.pickupCity.distanceTo(task.deliveryCity) * minCostPerKm;
 }
 
-// Bid depending on the probability of having a future task in the same cities than the current task
-double pFuture = Math.floor(futurePickupTasksProba[task.deliveryCity.id] * 1000.0) / 1000.0;
-double dFuture = Math.floor(futureDeliveryTasksProba[task.pickupCity.id] * 1000.0) / 1000.0;
+// Bid depending on the probability of having a future task in the same cities than the current
+// task
 double threshold = 1/(double)(topology.size()-1);
 if(pFuture > threshold || dFuture > threshold) {
-  return (long) Math.max(minBid, totalBidExpectation + (marginalCost - totalBidExpectation)/2);
+  return (long) Math.max(minBid, bidExpectation + (marginalCost - bidExpectation)/2);
 }
 
 return (long) Math.max(marginalCost, marginalCost + (minBid - marginalCost)/2);
 ```
 
-where ```minBid``` is the minimal bid estimated from other agents using expectation and variance.
+where ```minBid``` is $B_{min}$, bidExpectation is $\mu$, ```pFuture``` is the probability of having a task with pickup city in *b* and ```dFuture``` is the probability of having a task with delivery city in *a*.
 
-Thus, we have 3 different strategies : one for the beginning of the auctions, one if the probability to have later a task in the city is high (we can have a bid smaller than the marginal cost) and one for the general case where we never loose any money.
+Thus, we have 3 different behaviours:
+
+- One for the beginning of the auctions.
+- One if the probability to have later a task in the same city is high. In that case we take the risk to bid a smaller price than the marginal cost.
+- One for the general case where we don't want to loose money.
 
 ## Considered Strategies
 
-We also thought about different strategies for bidding. Here are some ideas we tought with the reasons why we didn't keep them :
+Here are some other elements of strategy for bidding that we didn't kept:
 
-- Trying to compute the plan for other agents : it takes to much computations compared to the reliability of the results (we don't know how many vehicles, what vehicles, etc.);
-- Considering the weight of tasks : it is already considered when we compute the plans and it is "useless" according to the others because we don't know what they have.
+- Trying to compute the plan for other agents, but it takes too much computations compared to the reliability of the results (we don't know about the number of vehicles, type of vehicles, etc.);
+- Adapt the bids according to the weight of the tasks, but it is already considered by computing our marginal cost and not promising because we don't know the adversary's vehicles capacities.
 
 # Results
 
-For evaluating our agent (```AuctionOeschgerSchaerAgent```), we had to implement other simple agents. We chose to have agents that have exactly the same *centralized* agent implementation (greedy agents have ```p=1``` in the *SLS* algorithm), but they have different bid strategies :
+For evaluating our agent (```AuctionOeschgerSchaerAgent```), we had to implement other simple agents. We chose to have agents that have exactly the same *centralized* agent implementation (greedy agents have ```p=1``` in the *SLS* algorithm), but they have different bidding strategies :
 
 - ```AuctionRandomGreedyAgent``` : It bids its marginal cost + a random percentage of its marginal cost.
 - ```AuctionBidLastAgent``` : It bids the maximum between its marginal cost and the last winning bid of the adversary.
