@@ -190,8 +190,8 @@ public class AuctionIntelligentAgent4 implements AuctionBehavior {
 		}
 
 
-		// We want the first task at the lowest possible cost
-		if(totalNbOfTasks == 1) {
+		// We want one of the 3 first tasks at the lowest possible cost
+		if(totalNbOfTasks < 4 && nbTasks == 1) {
 			return (long) task.pickupCity.distanceTo(task.deliveryCity) * minCostPerKm;
 		}
 
@@ -211,7 +211,7 @@ public class AuctionIntelligentAgent4 implements AuctionBehavior {
 		double dFuture = Math.floor(futureDeliveryTasksProba[task.pickupCity.id] * 1000.0) / 1000.0;
 		double threshold = 1/(double)(topology.size()-1);
 		if(pFuture > threshold || dFuture > threshold) {
-			return (long) minBid;//(Math.max(marginalCost, minBid));
+			return (long) Math.max(minBid, minBid + (marginalCost - minBid)/2);
 		}
 		return (long) Math.max(marginalCost, marginalCost + (minBid - marginalCost)/2);
 
@@ -239,7 +239,6 @@ public class AuctionIntelligentAgent4 implements AuctionBehavior {
 		for (City c : topology.cities()) {
 			futurePickupTasksProba[c.id] = futurePickupTasksProba[c.id] / pTot;
 			futureDeliveryTasksProba[c.id] = futureDeliveryTasksProba[c.id] / dTot;
-			System.out.println(futurePickupTasksProba[c.id] + "             " + futureDeliveryTasksProba[c.id]);
 		}
 	}
 
