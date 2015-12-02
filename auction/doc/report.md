@@ -19,21 +19,21 @@ For this assignment, we improved our *centralized* agent to allow us to have a s
 
 # Auction Agent
 
-The agent has to bid for each task that is proposed to him knowing the previous bids of other agents, the probability distribution of the tasks and its own configuration (vehicles, etc.).
+The agent has to bid for each task that is proposed to him knowing the previous bids of other agents, the probability distribution of tasks and its own configuration (vehicles, etc.).
 
 ## Strategy
 
 Our strategy needs to compute the following informations :
 
 - The probability distribution of having a task (for *Pickup* and *Delivery*) in a city (computed once during setup);
-- The Expectation of the adversary's bids;
-- The Variance of the adversary's bids;
+- The expectation of the adversary's bids;
+- The variance of the adversary's bids;
 - The marginal cost (the cost difference for taking the new task and for not having it).
 
 #### Distribution of the tasks
 
 For the distribution of tasks, we simply read the probability distribution that is given to us through the *Logist* platform and we normalize each matrix (we have one matrix for *Pickup* tasks and one for *Delivery* tasks).
-We will use these probabilities to act differently if there is a higher probability to come back in a city later than a given threshold (defined as $\frac{1}{topology.size()-1}$).
+We will use these probabilities to act differently if there is a higher probability than a given threshold (defined as $\frac{1}{topology.size()-1}$) to come back in a city later.
 
 
 #### Adversary's bids statistics
@@ -53,9 +53,9 @@ $B_{min}$ is a reasonable approximation of the lowest bid from the adversary.
 
 #### The case of the first task
 
-At the beginning of auctions, the marginal cost is always a bit high depending on position of our vehicles. We observed that if we do not take it, the problem is that the adversary will have more chance to have a marginal cost lower than ours in the future. Indeed, the next tasks have more chances to be close from his vehicles or the paths of them (while we are still waiting to have task close from our vehicles).
+At the beginning of auctions, the marginal cost is always a bit high depending on position of our vehicles. We observed that if we do not take it, the problem is that the adversary will have more chances to have a marginal cost lower than ours in the future. Indeed, the next tasks have more chances to be close from his vehicles or the paths of them (while we are still waiting to have a task close from our vehicles).
 
-To fight against this problem, we accept to loose some money during the 3 first tasks proposed until we have won one. Our bid for having the task is simply the cost for delivering it with the cheapest\footnote{The vehicle with the smallest cost per km.} vehicle.
+To avoid this problem, we accept to loose some money during the 3 first tasks proposed until we have won one. Our bid for having the task is simply the cost for delivering it with the cheapest\footnote{The vehicle with the smallest cost per km.} vehicle.
 
 #### Final bid
 
@@ -81,11 +81,11 @@ return (long) Math.max(marginalCost, marginalCost + (minBid - marginalCost)/2);
 
 where ```minBid``` is the minimal bid estimated from other agents using expectation and variance.
 
-Thus, we have 3 different strategies : one for the beginning of the auctions, one if the probability to have later a task in the city is high (we can have a bid smaller than the marginal cost) and one for the general case where we never loose some money.
+Thus, we have 3 different strategies : one for the beginning of the auctions, one if the probability to have later a task in the city is high (we can have a bid smaller than the marginal cost) and one for the general case where we never loose any money.
 
 ## Considered Strategies
 
-We also thought about different strategies for bidding. Here are some ideas we tought with the reasons why we didn't keep them.
+We also thought about different strategies for bidding. Here are some ideas we tought with the reasons why we didn't keep them :
 
 - Trying to compute the plan for other agents : it takes to much computations compared to the reliability of the results (we don't know how many vehicles, what vehicles, etc.);
 - Considering the weight of tasks : it is already considered when we compute the plans and it is "useless" according to the others because we don't know what they have.
@@ -98,13 +98,15 @@ For evaluating our agent (```AuctionOeschgerSchaerAgent```), we had to implement
 - ```AuctionBidLastAgent``` : It bids the maximum between its marginal cost and the last winning bid of the adversary.
 - ```AuctionDummyAgent``` : It bids always 0.
 
-On the last page you can find results of tournaments (figures \ref{auction} and \ref{auction2}) between all of these agents. You can also find in the zip file a directory with all configurations and histories for these tournaments. We can observe in the history files that our agent makes a low bid for the first tasks and that after it adapts itself to the adversary's bids. It allows it to win against simple agents. It will not probably be as good as here against other agents that are really smart.
+On the last page you can find results of tournaments (figures \ref{auction} and \ref{auction2}) between all of these agents. You can also find in the zip file a directory with all configurations and histories for these tournaments.
 
-We also observed (with agents of same quality) that in certain configurations (map, vehicles, etc.) be the company A or B gives the agent an advantage (or a disadvantage) according to the position of tasks. It is probably what happens in figure \ref{auction2} between our agent and the ```RandomGreedy``` one.
+We can observe in the history files that our agent makes a low bid for the first tasks and that after it adapts itself to the adversary's bids. It allows it to win against simple agents. It will not probably be as good as here against other agents that are really smart.
+
+We also observed (with agents of same quality) that in certain configurations (map, vehicles, etc.), to be the company A or B gives the agent an advantage (or a disadvantage) according to the position of tasks. It is probably what happens in figure \ref{auction2} between our agent and the ```RandomGreedy``` one.
 
 # Conclusion
 
-In conclusion, we can say that it is difficult to find a good strategy for bidding. Indeed, to improve a strategy we have to test it against other agents. As the behaviors of other agents can be really different, it is impossible to have a general strategy to be better than each of them. To be really good, we need more informations about others agents (like number of vehicles, positions, capacities, etc.). Even with that, it is not sure to be unbeatable.
+In conclusion, we can say that it is difficult to find a good strategy for bidding. Indeed, to improve a strategy we have to test it against other agents. As the behaviors of other agents can be really different, it is impossible to have a general strategy to be better than each of them. To be really good, we need more informations about other agents (like number of vehicles, positions, capacities, etc.). Even with that, it is not sure to be unbeatable.
 
 \newpage{}
 
