@@ -198,6 +198,7 @@ public class AuctionIntelligentAgent4 implements AuctionBehavior {
 		// Compute an expectation of the adversary's bid
 		Long expectation = bidExpectations[task.pickupCity.id][task.deliveryCity.id];
 		double minBid;
+		double maxBid;
 		if (expectation != null) {
 			double variance = bidVariance[task.pickupCity.id][task.deliveryCity.id];
 			minBid = expectation - 3 * Math.sqrt(variance);
@@ -205,16 +206,12 @@ public class AuctionIntelligentAgent4 implements AuctionBehavior {
 			minBid = totalBidExpectation - 3 * Math.sqrt(totalBidVariance);
 		}
 
-		System.out.println("task nr. : " + task.id);
-		System.out.println("marginalCost : " + marginalCost);
-		System.out.println("minBid: " + minBid);
-
 		// Bid depending on the probability of having a future task in the same cities than the current task
 		double pFuture = Math.floor(futurePickupTasksProba[task.deliveryCity.id] * 1000.0) / 1000.0;
 		double dFuture = Math.floor(futureDeliveryTasksProba[task.pickupCity.id] * 1000.0) / 1000.0;
 		double threshold = 1/(double)topology.size();
 		if(pFuture > threshold || dFuture > threshold) {
-			return (long) minBid;
+			return (long) (Math.max(marginalCost, minBid));
 		}
 		return (long) Math.max(marginalCost, marginalCost + (minBid - marginalCost)/2);
 
@@ -461,7 +458,7 @@ public class AuctionIntelligentAgent4 implements AuctionBehavior {
 		}
 
 		System.out.println(" ======================================================== ");
-		System.out.println("INTELLIGENT AGENT 1");
+		System.out.println("INTELLIGENT AGENT 4");
 		System.out.println("Expected cost: " + overallBestState.getCost());
 
 		return overallBestState;
