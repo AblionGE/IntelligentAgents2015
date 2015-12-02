@@ -98,10 +98,29 @@ For evaluating our agent (```AuctionOeschgerSchaerAgent```), we had to implement
 - ```AuctionBidLastAgent``` : It bids the maximum between its marginal cost and the last winning bid of the adversary.
 - ```AuctionDummyAgent``` : It bids always 0.
 
-On the last page you can find the results of a tournament between all of these agents. You can also find in the zip file a directory with all configurations and histories for this tournament. We can observe in the history files that our agent makes a low bid for the first tasks and that after it adapts itself to the adversary's bids. It allows it to win against simple agents. It will not probably be as good as here against other agents that are really smart.
+On the last page you can find results of tournaments (figures \ref{auction} and \ref{auction2}) between all of these agents. You can also find in the zip file a directory with all configurations and histories for these tournaments. We can observe in the history files that our agent makes a low bid for the first tasks and that after it adapts itself to the adversary's bids. It allows it to win against simple agents. It will not probably be as good as here against other agents that are really smart.
 
-We also observed (with agents of same quality) that in certain configurations (map, vehicles, etc.) be the company A or B gives the agent an advantage (or a disadvantage) according to the position of tasks.
+We also observed (with agents of same quality) that in certain configurations (map, vehicles, etc.) be the company A or B gives the agent an advantage (or a disadvantage) according to the position of tasks. It is probably what happens in figure \ref{auction2} between our agent and the ```RandomGreedy``` one.
 
 # Conclusion
 
 In conclusion, we can say that it is difficult to find a good strategy for bidding. Indeed, to improve a strategy we have to test it against other agents. As the behaviors of other agents can be really different, it is impossible to have a general strategy to be better than each of them. To be really good, we need more informations about others agents (like number of vehicles, positions, capacities, etc.). Even with that, it is not sure to be unbeatable.
+
+\newpage{}
+
+# Tournament results
+
+Here are two results from two different tournaments. Further informations can be found in the zip file in the *tournament* directory.
+
+\begin{figure}[!h]
+  \centering \includegraphics[scale=0.6]{img/results.png}
+  \caption{\it Tournament between our 4 agents for map England with 2 vehicles for each company with capacity 30, cost per km of 5 and 20 tasks of weight 3.}
+  \label{auction}
+\end{figure}
+
+
+\begin{figure}[!h]
+  \centering \includegraphics[scale=0.64]{img/results2.png}
+  \caption{\it Tournament between our 4 agents for map Netherlands with 3 vehicles for company A (with capacity 60, cost per km of 5) and 2 vehicles for company B (with capacity 90, cost per km 5) and 15 tasks of weights between 10 and 35 (uniform distribution).}
+  \label{auction2}
+\end{figure}
