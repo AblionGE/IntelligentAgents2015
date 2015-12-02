@@ -21,8 +21,9 @@ import logist.topology.Topology;
 import logist.topology.Topology.City;
 
 /**
- * A very simple auction agent that assigns all tasks to its first vehicle and
- * handles them sequentially.
+ * A dummy auction agent that always bids 0.
+ * 
+ * @author Cynthia Oeschger and Marc Schaer
  * 
  */
 @SuppressWarnings("unused")
@@ -297,10 +298,6 @@ public class AuctionDummyAgent implements AuctionBehavior {
 				}
 			}
 		}
-
-		System.out.println(" ======================================================== ");
-		System.out.println("GREEDY AGENT");
-		System.out.println("Expected cost: " + overallBestState.getCost());
 
 		return overallBestState;
 	}

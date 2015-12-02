@@ -21,8 +21,10 @@ import logist.topology.Topology;
 import logist.topology.Topology.City;
 
 /**
- * A very simple auction agent that assigns all tasks to its first vehicle and
- * handles them sequentially.
+ * A greedy auction agent that find the best solution in a greedy manner and
+ * bids its marginal cost + a random percentage of its marginal cost
+ * 
+ * @author Cynthia Oeschger and Marc Schaer
  * 
  */
 @SuppressWarnings("unused")
@@ -301,10 +303,6 @@ public class AuctionRandomGreedyAgent implements AuctionBehavior {
 				}
 			}
 		}
-
-		System.out.println(" ======================================================== ");
-		System.out.println("RANDOM GREEDY AGENT");
-		System.out.println("Expected cost: " + overallBestState.getCost());
 
 		return overallBestState;
 	}

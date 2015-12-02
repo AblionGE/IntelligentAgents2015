@@ -21,8 +21,10 @@ import logist.topology.Topology;
 import logist.topology.Topology.City;
 
 /**
- * A very simple auction agent that assigns all tasks to its first vehicle and
- * handles them sequentially.
+ * An auction agent that bids the maximum between its marginal cost and 
+ * the last winning bid of the adversary.
+ * 
+ * @author Cynthia Oeschger and Marc Schaer
  * 
  */
 @SuppressWarnings("unused")
@@ -301,10 +303,6 @@ public class AuctionBidLastAgent implements AuctionBehavior {
 				}
 			}
 		}
-
-		System.out.println(" ======================================================== ");
-		System.out.println("RANDOM GREEDY AGENT");
-		System.out.println("Expected cost: " + overallBestState.getCost());
 
 		return overallBestState;
 	}
