@@ -211,7 +211,7 @@ public class AuctionIntelligentAgent4 implements AuctionBehavior {
 		double dFuture = Math.floor(futureDeliveryTasksProba[task.pickupCity.id] * 1000.0) / 1000.0;
 		double threshold = 1/(double)(topology.size()-1);
 		if(pFuture > threshold || dFuture > threshold) {
-			return (long) Math.max(minBid, minBid + (marginalCost - minBid)/2);
+			return (long) Math.max(minBid, totalBidExpectation + (marginalCost - totalBidExpectation)/2);
 		}
 		return (long) Math.max(marginalCost, marginalCost + (minBid - marginalCost)/2);
 
