@@ -191,7 +191,7 @@ public class AuctionIntelligentAgent4 implements AuctionBehavior {
 
 
 		// We want the first task at the lowest possible cost
-		if(totalNbOfTasks == 1) {
+		if(nbTasks == 1) {
 			return (long) task.pickupCity.distanceTo(task.deliveryCity) * minCostPerKm;
 		}
 
