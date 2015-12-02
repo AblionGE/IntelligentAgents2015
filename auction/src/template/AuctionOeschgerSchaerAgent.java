@@ -21,8 +21,8 @@ import logist.topology.Topology;
 import logist.topology.Topology.City;
 
 /**
- * A very simple auction agent that assigns all tasks to its first vehicle and
- * handles them sequentially.
+ * An intelligent auction agent that bids smartly according to future tasks probabilities,
+ * adversary's bids and its marginal cost
  * 
  * @author Cynthia Oeschger and Marc Schaer
  * 
@@ -327,8 +327,6 @@ public class AuctionOeschgerSchaerAgent implements AuctionBehavior {
 			}
 		}
 
-		System.out.println("INTELLIGENT 4 : " + currentBestState.toString());
-
 		if (!vehiclePlans.isEmpty()) {
 			for (Vehicle vehicle : allVehicles) {
 				LinkedList<Movement> movements = vehiclePlans.get(vehicle.id());
@@ -456,10 +454,6 @@ public class AuctionOeschgerSchaerAgent implements AuctionBehavior {
 				}
 			}
 		}
-
-		System.out.println(" ======================================================== ");
-		System.out.println("INTELLIGENT AGENT 4");
-		System.out.println("Expected cost: " + overallBestState.getCost());
 
 		return overallBestState;
 	}
