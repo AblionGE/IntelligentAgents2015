@@ -28,7 +28,7 @@ import logist.topology.Topology.City;
  * 
  */
 @SuppressWarnings("unused")
-public class AuctionIntelligentAgent1 implements AuctionBehavior {
+public class AuctionOeschgerSchaerAgent implements AuctionBehavior {
 
 	private Topology topology;
 	private TaskDistribution distribution;
@@ -48,10 +48,13 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 	private int nbTasks;
 	private int nbVehicles;
 	private List<Vehicle> vehicles;
+	private int minCostPerKm;
 	private int totalNbOfTasks;
 	private long totalBidExpectation;
 	private double totalBidVariance;
 	private double[][] nextTaskProbabilities;
+	private double[] futurePickupTasksProba;
+	private double[] futureDeliveryTasksProba;
 	private double probabilitiesTaskFromToTotal;
 	private Long[][] bidExpectations;
 	private Double[][] bidVariance;
@@ -74,11 +77,21 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 		probabilitiesTaskFromToTotal = 0;
 
 		nextTaskProbabilities = new double[topology.cities().size()][topology.cities().size()];
+		futurePickupTasksProba = new double[topology.cities().size()];
+		futureDeliveryTasksProba = new double[topology.cities().size()];
+
 		bidExpectations = new Long[topology.cities().size()][topology.cities().size()];
 		bidVariance = new Double[topology.cities().size()][topology.cities().size()];
 		taskOccurences = new int[topology.cities().size()][topology.cities().size()];
 
 		computeNextTaskProbabilities();
+
+		minCostPerKm = Integer.MAX_VALUE;
+		for(Vehicle vehicle: vehicles) {
+			if(vehicle.costPerKm() < minCostPerKm) {
+				minCostPerKm = vehicle.costPerKm();
+			}
+		}
 
 		long seed = -9019554669489983951L * agent.id();
 		this.random = new Random(seed);
@@ -116,10 +129,10 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 		int pick = previous.pickupCity.id;
 		int del = previous.deliveryCity.id;
 
+		// Compute expectation and variance of the bids for that path
 		Long expectation = bidExpectations[pick][del];
 		if (expectation != null) {
 			int occurence = taskOccurences[pick][del];
-			// Give more importance to last bid
 			bidExpectations[pick][del] = (expectation + winBid) / 2;
 			double variance = bidVariance[pick][del];
 			bidVariance[pick][del] = (occurence - 1) * variance / occurence
@@ -130,11 +143,11 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 		}
 		taskOccurences[pick][del] += 1;
 
+		// Compute the expectation and variance of all the bids
 		if (totalNbOfTasks == 1) {
 			totalBidExpectation = winBid;
 			totalBidVariance = 0.0;
 		} else {
-			// Give more importance to last bid
 			totalBidExpectation = (totalBidExpectation + winBid) / 2;
 			totalBidVariance = (totalNbOfTasks - 2) * totalBidVariance / (totalNbOfTasks - 1)
 					+ Math.pow(winBid - totalBidExpectation, 2) / totalNbOfTasks;
@@ -164,6 +177,7 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 		// Compute a possible better plan without the task
 		SolutionState newStateWithoutTask = removeTaskFromPlan(newState, task);
 
+		// Compute a plan containing the new task and the marginal cost
 		double marginalCost;
 		double gain = 0;
 		if (currentBestState == null) {
@@ -175,31 +189,31 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 			marginalCost = newState.getCost() - currentBestState.getCost();
 		}
 
-		double futureTasksProba = nextTaskProbabilities[task.pickupCity.id][task.deliveryCity.id];
 
-		double futurePickupTasksProba = 0;
-		double futureDeliveryTasksProba = 0;
-		for (City c : topology.cities()) {
-			futureDeliveryTasksProba += nextTaskProbabilities[c.id][task.deliveryCity.id];
-			futurePickupTasksProba += nextTaskProbabilities[task.pickupCity.id][c.id];
+		// We want one of the 3 first tasks at the lowest possible cost
+		if(totalNbOfTasks < 4 && nbTasks == 1) {
+			return (long) task.pickupCity.distanceTo(task.deliveryCity) * minCostPerKm;
 		}
 
-		double probaFuture = (futurePickupTasksProba / topology.size() + futureDeliveryTasksProba / topology.size());
-		System.out.println("task nr. : " + task.id);
-		System.out.println("probaFuture : " + probaFuture);
-		System.out.println("marginalCost : " + marginalCost);
-
+		// Compute an expectation of the adversary's bid
 		Long expectation = bidExpectations[task.pickupCity.id][task.deliveryCity.id];
+		double minBid;
+		double maxBid;
 		if (expectation != null) {
 			double variance = bidVariance[task.pickupCity.id][task.deliveryCity.id];
-			double minBid = expectation - 3 * Math.sqrt(variance);
-			double maxBid = expectation + 3 * Math.sqrt(variance);
-			return (long) Math.max(marginalCost, minBid + (maxBid - minBid) * (1-probaFuture));
+			minBid = expectation - 3 * Math.sqrt(variance);
 		} else {
-			double minBid = totalBidExpectation - 3 * Math.sqrt(totalBidVariance);
-			double maxBid = totalBidExpectation + 3 * Math.sqrt(totalBidVariance);
-			return (long) Math.max(marginalCost, minBid + (maxBid - minBid) * (1-probaFuture));
+			minBid = totalBidExpectation - 3 * Math.sqrt(totalBidVariance);
 		}
+
+		// Bid depending on the probability of having a future task in the same cities than the current task
+		double pFuture = Math.floor(futurePickupTasksProba[task.deliveryCity.id] * 1000.0) / 1000.0;
+		double dFuture = Math.floor(futureDeliveryTasksProba[task.pickupCity.id] * 1000.0) / 1000.0;
+		double threshold = 1/(double)(topology.size()-1);
+		if(pFuture > threshold || dFuture > threshold) {
+			return (long) Math.max(minBid, totalBidExpectation + (marginalCost - totalBidExpectation)/2);
+		}
+		return (long) Math.max(marginalCost, marginalCost + (minBid - marginalCost)/2);
 
 	}
 
@@ -208,21 +222,23 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 	 */
 	private void computeNextTaskProbabilities() {
 
-		double max = Double.MIN_VALUE;
 		for (City c1 : topology.cities()) {
 			for (City c2 : topology.cities()) {
-				nextTaskProbabilities[c1.id][c2.id] = distribution.probability(c1, c2);
-				probabilitiesTaskFromToTotal += distribution.probability(c1, c2);
-				if (distribution.probability(c1, c2) > max) {
-					max = distribution.probability(c1, c2);
-				}
+				futurePickupTasksProba[c1.id] += distribution.probability(c1, c2);
+				futureDeliveryTasksProba[c2.id] += distribution.probability(c1, c2);
 			}
 		}
-		
-		for (City c1 : topology.cities()) {
-			for (City c2 : topology.cities()) {
-				nextTaskProbabilities[c1.id][c2.id] = nextTaskProbabilities[c1.id][c2.id] / max;
-			}
+
+		double pTot = 0.0;
+		double dTot = 0.0;
+		for (City c : topology.cities()) {
+			pTot += futurePickupTasksProba[c.id];
+			dTot += futureDeliveryTasksProba[c.id];
+		}
+
+		for (City c : topology.cities()) {
+			futurePickupTasksProba[c.id] = futurePickupTasksProba[c.id] / pTot;
+			futureDeliveryTasksProba[c.id] = futureDeliveryTasksProba[c.id] / dTot;
 		}
 	}
 
@@ -311,7 +327,7 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 			}
 		}
 
-		System.out.println("INTELLIGENT 1 : " + currentBestState.toString());
+		System.out.println("INTELLIGENT 4 : " + currentBestState.toString());
 
 		if (!vehiclePlans.isEmpty()) {
 			for (Vehicle vehicle : allVehicles) {
@@ -442,7 +458,7 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 		}
 
 		System.out.println(" ======================================================== ");
-		System.out.println("INTELLIGENT AGENT 1");
+		System.out.println("INTELLIGENT AGENT 4");
 		System.out.println("Expected cost: " + overallBestState.getCost());
 
 		return overallBestState;
@@ -614,7 +630,7 @@ public class AuctionIntelligentAgent1 implements AuctionBehavior {
 					}
 					if (dMov.getTask().id != pMov.getTask().id) {
 						System.out
-								.println("Deliver not found for task " + pMov.getTask().id + " in changingTaskOrder.");
+						.println("Deliver not found for task " + pMov.getTask().id + " in changingTaskOrder.");
 						dMov = null;
 					}
 
