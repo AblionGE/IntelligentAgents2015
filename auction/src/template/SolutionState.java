@@ -25,7 +25,8 @@ public class SolutionState {
 	private List<Vehicle> vehicles;
 	private int nbTasks;
 
-	SolutionState(Movement[] nextMovements, Movement[] nextMovementsVehicle, int nbVehicles, List<Vehicle> vehicles, int nbTasks) {
+	SolutionState(Movement[] nextMovements, Movement[] nextMovementsVehicle, int nbVehicles, List<Vehicle> vehicles,
+			int nbTasks) {
 		this.nextMovements = nextMovements.clone();
 		this.nextMovementsVehicle = nextMovementsVehicle.clone();
 		this.nbVehicles = nbVehicles;
@@ -42,8 +43,7 @@ public class SolutionState {
 	private void computeCost() {
 		double totalCost = 0;
 		for (int vehicle = 0; vehicle < nbVehicles; vehicle++) {
-			double totalVehicleDistance = computeVehicleDistance(vehicles.get(vehicle),
-					nextMovementsVehicle[vehicle]);
+			double totalVehicleDistance = computeVehicleDistance(vehicles.get(vehicle), nextMovementsVehicle[vehicle]);
 			LinkedList<Movement> currentPath = plans.get(vehicle);
 			for (int i = 0; i < currentPath.size() - 1; i++) {
 				Movement currentMovement = currentPath.get(i);
@@ -119,7 +119,7 @@ public class SolutionState {
 				next = movements[next.getId()];
 			}
 			plans.add(orderedMovements);
-			
+
 		}
 		return plans;
 	}

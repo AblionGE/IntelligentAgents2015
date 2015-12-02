@@ -87,8 +87,8 @@ public class AuctionOeschgerSchaerAgent implements AuctionBehavior {
 		computeNextTaskProbabilities();
 
 		minCostPerKm = Integer.MAX_VALUE;
-		for(Vehicle vehicle: vehicles) {
-			if(vehicle.costPerKm() < minCostPerKm) {
+		for (Vehicle vehicle : vehicles) {
+			if (vehicle.costPerKm() < minCostPerKm) {
 				minCostPerKm = vehicle.costPerKm();
 			}
 		}
@@ -189,9 +189,8 @@ public class AuctionOeschgerSchaerAgent implements AuctionBehavior {
 			marginalCost = newState.getCost() - currentBestState.getCost();
 		}
 
-
 		// We want one of the 3 first tasks at the lowest possible cost
-		if(totalNbOfTasks < 4 && nbTasks == 1) {
+		if (totalNbOfTasks < 4 && nbTasks == 1) {
 			return (long) task.pickupCity.distanceTo(task.deliveryCity) * minCostPerKm;
 		}
 
@@ -206,14 +205,15 @@ public class AuctionOeschgerSchaerAgent implements AuctionBehavior {
 			minBid = totalBidExpectation - 3 * Math.sqrt(totalBidVariance);
 		}
 
-		// Bid depending on the probability of having a future task in the same cities than the current task
+		// Bid depending on the probability of having a future task in the same
+		// cities than the current task
 		double pFuture = Math.floor(futurePickupTasksProba[task.deliveryCity.id] * 1000.0) / 1000.0;
 		double dFuture = Math.floor(futureDeliveryTasksProba[task.pickupCity.id] * 1000.0) / 1000.0;
-		double threshold = 1/(double)(topology.size()-1);
-		if(pFuture > threshold || dFuture > threshold) {
-			return (long) Math.max(minBid, totalBidExpectation + (marginalCost - totalBidExpectation)/2);
+		double threshold = 1 / (double) (topology.size() - 1);
+		if (pFuture > threshold || dFuture > threshold) {
+			return (long) Math.max(minBid, totalBidExpectation + (marginalCost - totalBidExpectation) / 2);
 		}
-		return (long) Math.max(marginalCost, marginalCost + (minBid - marginalCost)/2);
+		return (long) Math.max(marginalCost, marginalCost + (minBid - marginalCost) / 2);
 
 	}
 
@@ -630,7 +630,7 @@ public class AuctionOeschgerSchaerAgent implements AuctionBehavior {
 					}
 					if (dMov.getTask().id != pMov.getTask().id) {
 						System.out
-						.println("Deliver not found for task " + pMov.getTask().id + " in changingTaskOrder.");
+								.println("Deliver not found for task " + pMov.getTask().id + " in changingTaskOrder.");
 						dMov = null;
 					}
 

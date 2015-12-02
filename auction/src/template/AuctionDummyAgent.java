@@ -34,7 +34,6 @@ public class AuctionDummyAgent implements AuctionBehavior {
 	private Random random;
 	private List<Task> tasksList = new ArrayList<Task>();
 	private Vehicle vehicle;
-	
 
 	private long timeout_setup;
 	private long timeout_plan;
@@ -125,7 +124,7 @@ public class AuctionDummyAgent implements AuctionBehavior {
 			return null;
 
 		newState = computeSLS(vehicles, tasksList, timeout_bid, SLS_PROBABILITY);
-		
+
 		return (long) 0;
 
 		//////////////////////////////////////////////////////////////
@@ -141,9 +140,9 @@ public class AuctionDummyAgent implements AuctionBehavior {
 		List<Plan> plans = new ArrayList<Plan>();
 
 		ArrayList<LinkedList<Movement>> vehiclePlans;
-		
+
 		List<Task> tasksList = new ArrayList<Task>(tasks);
-		
+
 		// Compute the centralized plan
 		// ArrayList<LinkedList<Movement>> vehiclePlans
 		SolutionState vehicleState = computeSLS(allVehicles, tasksList, timeout_plan, 0);
@@ -162,13 +161,13 @@ public class AuctionDummyAgent implements AuctionBehavior {
 							i = tasksList.size();
 						}
 					}
-					
+
 				}
 			}
 		}
 
 		vehiclePlans = currentBestState.getPlans();
-		
+
 		if (!vehiclePlans.isEmpty()) {
 			for (Vehicle vehicle : allVehicles) {
 				// LinkedList<Movement> movements =
@@ -302,7 +301,7 @@ public class AuctionDummyAgent implements AuctionBehavior {
 		System.out.println(" ======================================================== ");
 		System.out.println("GREEDY AGENT");
 		System.out.println("Expected cost: " + overallBestState.getCost());
-		
+
 		return overallBestState;
 	}
 
@@ -398,7 +397,8 @@ public class AuctionDummyAgent implements AuctionBehavior {
 				nextMovementsVehicle[v.id()] = null;
 			}
 		}
-		SolutionState solution = new SolutionState(nextMovements, nextMovementsVehicle, nbVehicles, vehicles, totalNbOfTasks);
+		SolutionState solution = new SolutionState(nextMovements, nextMovementsVehicle, nbVehicles, vehicles,
+				totalNbOfTasks);
 
 		// Compute the cost of this plan a save it into the SolutionState object
 		solution.getCost();
@@ -639,7 +639,8 @@ public class AuctionDummyAgent implements AuctionBehavior {
 		}
 		nextMovement[plan.getLast().getId()] = null;
 
-		SolutionState solution = new SolutionState(nextMovement, nextVehicleMovement, nbVehicles, vehicles, totalNbOfTasks);
+		SolutionState solution = new SolutionState(nextMovement, nextVehicleMovement, nbVehicles, vehicles,
+				totalNbOfTasks);
 
 		if (Constraints.checkVehicleLoad(solution, vehicle.id(), vehicles) != 0) {
 			return null;

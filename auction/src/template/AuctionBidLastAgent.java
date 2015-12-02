@@ -125,8 +125,8 @@ public class AuctionBidLastAgent implements AuctionBehavior {
 		if (!carryTask)
 			return null;
 
-		newState = computeSLS(vehicles, tasksList, timeout_bid, SLS_PROBABILITY); 
-		
+		newState = computeSLS(vehicles, tasksList, timeout_bid, SLS_PROBABILITY);
+
 		double marginalCost;
 		if (currentBestState == null) {
 			marginalCost = newState.getCost();
@@ -149,7 +149,7 @@ public class AuctionBidLastAgent implements AuctionBehavior {
 		List<Plan> plans = new ArrayList<Plan>();
 
 		ArrayList<LinkedList<Movement>> vehiclePlans;
-		
+
 		List<Task> tasksList = new ArrayList<Task>(tasks);
 
 		// Compute the centralized plan
@@ -170,7 +170,7 @@ public class AuctionBidLastAgent implements AuctionBehavior {
 							i = tasksList.size();
 						}
 					}
-					
+
 				}
 			}
 		}
@@ -305,7 +305,7 @@ public class AuctionBidLastAgent implements AuctionBehavior {
 		System.out.println(" ======================================================== ");
 		System.out.println("RANDOM GREEDY AGENT");
 		System.out.println("Expected cost: " + overallBestState.getCost());
-		
+
 		return overallBestState;
 	}
 
@@ -401,7 +401,8 @@ public class AuctionBidLastAgent implements AuctionBehavior {
 				nextMovementsVehicle[v.id()] = null;
 			}
 		}
-		SolutionState solution = new SolutionState(nextMovements, nextMovementsVehicle, nbVehicles, vehicles, totalNbOfTasks);
+		SolutionState solution = new SolutionState(nextMovements, nextMovementsVehicle, nbVehicles, vehicles,
+				totalNbOfTasks);
 
 		// Compute the cost of this plan a save it into the SolutionState object
 		solution.getCost();
@@ -642,7 +643,8 @@ public class AuctionBidLastAgent implements AuctionBehavior {
 		}
 		nextMovement[plan.getLast().getId()] = null;
 
-		SolutionState solution = new SolutionState(nextMovement, nextVehicleMovement, nbVehicles, vehicles, totalNbOfTasks);
+		SolutionState solution = new SolutionState(nextMovement, nextVehicleMovement, nbVehicles, vehicles,
+				totalNbOfTasks);
 
 		if (Constraints.checkVehicleLoad(solution, vehicle.id(), vehicles) != 0) {
 			return null;

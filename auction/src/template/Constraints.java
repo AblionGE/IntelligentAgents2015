@@ -44,7 +44,7 @@ public final class Constraints {
 			LinkedList<Movement> movements = plans.get(vehicle);
 			for (int i = 0; i < movements.size(); i++) {
 				consistencyVerification = computeMovementConsistency(movements.get(i), consistencyVerification);
-				
+
 				errors += checkTime(state, timeCounter, movements.get(i));
 				int loadResult = checkLoad(movements.get(i), vehicle, currentLoad, vehicles);
 				if (loadResult < 0) {
