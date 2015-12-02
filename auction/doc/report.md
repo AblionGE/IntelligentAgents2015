@@ -13,7 +13,7 @@ For this assignment, we improved our *centralized* agent to allow us to have a s
 - Use arrays instead of HashMaps for performance;
 - In the *Stochastic Local Search* algorithm, keep the best solution found (not the last one);
 - Change the initial solution : now we give each task to the closest vehicle (considering last position of the vehicle);
-    - We still have only one task in a vehicle for this initial state.
+    - We still have only one task at a time in a vehicle for this initial state.
     - This changes a lot the performance of the algorithm because we avoid visiting higher local minima.
 - As we recompute the plan when a new task is proposed, we compute, at the end of the auctions, a second time the plan and we keep the best one.
 
